@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.triton.johnson_tap_app">
+    <!-- multiscreens support -->
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:resizeable="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
+    <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/app_logo"
+        android:label="@string/app_name"
+        android:screenOrientation="portrait"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
+        tools:ignore="AllowBackup"
+        tools:targetApi="m">
+
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.PreventiveMRListtwo_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.PreventiveMRListOne_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.BreakdownMRListtwo_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.BreakdownMRListOne_Activity"
+            android:exported="false" />
+
+        <activity
+            android:name=".Engineer_Dashboard.Agent_Pop_New_ScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Engineer_Dashboard.CustomerDetails_DashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Engineer_Dashboard.JobList_DashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Engineer_Dashboard.ServicesList_DashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Engineer_Dashboard.AgentList_DashboardActivity"
+            android:exported="true">
+
+<!--             <intent-filter>-->
+<!--             <action android:name="android.intent.action.MAIN" />-->
+<!--             <category android:name="android.intent.category.LAUNCHER" />-->
+<!--             </intent-filter>-->
+        </activity>
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.TechnicianSignature_PreventiveMRActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.StartJob_PreventiveMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.PreventiveMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.PausedServicesPreventiveMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.MRForms_PreventiveMRActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.JobDetails_PreventiveMRActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.PreventiveMRApproval.CustomerDetailsPreventiveMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.TechnicianSignature_BreakdownMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.StartJob_BreakdownMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.PausedServicesBreakdownMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.MRForms_BreakdownMRActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.JobDetails_BreakdownMRActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.CustomerDetailsBreakdownMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.BreakdownMRApprovel.BreakdownMR_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Recycler_SpinnerActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Material_Request_PreventiveActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Material_Request_MR_Screen_PreventiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Job_Details_PreventiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Preventive_StatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Customer_Acknowledgement_PreventiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Customer_Details_PreventiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Technician_signature_preventiveActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Preventive_action_requiredActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Preventive_checklistActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Quarterly_Top_PitActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Esc_TrvActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Start_Job_Text_PreventiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.Customer_Details_preActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Preventive_Services.PreventiveMaintance_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".Sample_testActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+        </activity>
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Customer_AcknowledgementActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Customer_Details_BreakdownActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Technician_signatureActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.BD_StatusActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Material_Request_MR_ScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Material_RequestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Feedback_RemarkActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Feedback_DetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Feedback_GroupActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.BD_DetailsActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+        </activity>
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Start_Job_TextActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.New_LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SampleActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".SearchActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".ImageUploadActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".TestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.InputValueFormListActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Paused_ServicesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Customer_DetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Agent_ProfileActivity"
+            android:exported="true">
+
+<!--             <intent-filter>-->
+<!--             <action android:name="android.intent.action.MAIN" />-->
+
+<!--             <category android:name="android.intent.category.LAUNCHER" />-->
+<!--             </intent-filter>-->
+
+        </activity>
+        <activity
+            android:name=".activity.Change_PasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Job_DetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.ServicesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Breakdown_ServiceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Service_Activity.Breakdown_Services.Job_StatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.Main_Menu_ServicesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.Dashbaord_MainActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".Spinner_addActivity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".activity.RTGS_PopActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".Main3Activity"
+            android:exported="true" />
+        <activity
+            android:name=".Main2Activity"
+            android:exported="true">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity
+            android:name=".activity.DownloadapkfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.Pending_Collection_ReviewActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".activity.Enquiry_Status_ReviewActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".activity.Daily_Collection_DetailsActivity"
+            android:exported="true"
+            android:screenOrientation="landscape">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+
+<!--        //Form 5-->
+
+        <activity android:name=".Service_Activity.LR_Service.LR_Service_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.JobDetails_LRService_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.LR_Details_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.CustomerDetails_LRServiceActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.TechnicianSignature_LRServiceActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.CustomerAcknowledgement_LRServiceActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.LR_Service.StartJob_LRService_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.Preventive_Services.Monthlist_Preventive_Activity"
+            android:exported="false"/>
+
+        <!--        //Form 6-->
+
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.ACK_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.JobDetails_ACKActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.MRDetails_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.MaterialDetailsACK_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.TechnicianSignature_ACKServiceActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.CustomerAcknowledgement_ACKServiceActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.PartsReplacementACK.StartJob_ACK_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.Preventive_Services.ESCTRV"
+             android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.SiteAudit_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.JobdetailsSiteaudit_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.AD_DetailsSiteAudit_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.StartJob_AuditActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.Checklist_AuditActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.MaterialRequest_AuditActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.AuditChecklist"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.AuditMR_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.AuditMRList_Activity"
+            android:exported="false"/>
+
+        <activity android:name=".Service_Activity.SiteAudit.TechnicianSigantureAudit_Activity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activity.UI_Serv_LeadsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.UI_Servenq_RequestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+        <activity
+            android:name=".activity.LoginActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            tools:ignore="LockedOrientationActivity" /> <!-- Activity Based -->
+
+
+        <activity
+            android:name=".activity.SplashActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+    </application>
+
+</manifest>

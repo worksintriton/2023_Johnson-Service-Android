@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#213e9a</color>
+    <color name="colorPrimaryDark">#213e9a</color>
+    <color name="colorAccent">#213e9a</color>
+    <color name="white">#FFFFFF</color>
+    <color name="light_black">#80000000</color>
+    <color name="default_shadow_color">#88757575</color>
+    <color name="black">#000000</color>
+    <color name="red">#FF0000</color>
+
+    <color name="float_transparent">#00000000</color>
+    <color name="sweet_dialog_bg_color">#FFFFFF</color>
+    <color name="button_text_color">#FFFFFF</color>
+    <color name="gray_btn_bg_color">#D0D0D0</color>
+    <color name="gray_btn_bg_pressed_color">#B6B6B6</color>
+    <color name="blue_btn_bg_color">#213e9a</color>
+    <color name="blue_btn_bg_pressed_color">#213e9a</color>
+    <color name="red_btn_bg_color">#213e9a</color>
+    <color name="red_btn_bg_pressed_color">#213e9a</color>
+    <color name="error_stroke_color">#F27474</color>
+    <color name="success_stroke_color">#A5DC86</color>
+    <color name="trans_success_stroke_color">#33A5DC86</color>
+    <color name="warning_stroke_color">#213e9a</color>
+    <color name="text_color">#575757</color>
+    <color name="material_blue_grey_80">#ff37474f</color>
+    <color name="material_blue_grey_90">#ff263238</color>
+    <color name="material_blue_grey_95">#ff21272b</color>
+    <color name="material_deep_teal_20">#ff80cbc4</color>
+    <color name="material_deep_teal_50">#ff009688</color>
+
+    <color name="transprand_color">#00000000</color>
+    <color name="album_title">#4c4c4c</color>
+    <color name="johnson_orange">#f37021</color>
+    <color name="johnson_green">#00a551</color>
+    <color name="johnson_blue">#213e9a</color>
+    <color name="lightgray">#efefef</color>
+    <color name="grey_color">#F2F2F2</color>
+    <color name="warning">#FFCC00</color>
+    <color name="new_light_green">#2896c2</color>
+
+    <color name="new_txt_color">#444444</color>
+    <color name="new_sec_txt_color">#888888</color>
+
+
+</resources>

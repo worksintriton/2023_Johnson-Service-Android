@@ -1,0 +1,9 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:elevation="10dp"
+     android:color="#80FFFFFF"
+    tools:ignore="NewApi"> <!-- ripple color -->
+
+<item android:drawable="@drawable/johnson_orange"/> <!-- normal color -->
+
+</ripple>

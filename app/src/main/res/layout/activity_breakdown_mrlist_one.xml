@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Service_Activity.BreakdownMRApprovel.BreakdownMRListOne_Activity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/main_bar">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/iv_back"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/ic_back_arrow"/>
+            <TextView
+                android:id="@+id/title_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MR List"
+                android:textSize="18sp"
+                android:layout_marginLeft="10dp"
+                android:textColor="#ffffff"
+                android:textStyle="bold"/>
+
+            <ImageView
+                android:id="@+id/ic_paused"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="end"
+                android:visibility="gone"
+                android:src="@drawable/ic_pause_white"/>
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:id="@+id/line_job"
+        android:layout_below="@id/main_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal"
+        android:weightSum="1">
+
+        <com.triton.johnson_tap_app.materialeditext.MaterialEditText
+            android:id="@+id/part_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:focusable="false"
+            android:hint="Part Name"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textSize="20sp"
+            app:met_baseColor="#80000000"
+            app:met_floatingLabel="highlight"
+            app:met_floatingLabelAnimating="true"
+            app:met_primaryColor="@color/colorPrimary" />
+
+        <ImageButton
+            android:id="@+id/imgbtn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_search"
+            android:background="@color/colorPrimary"
+            android:tint="@color/white"
+            android:padding="5dp"/>
+
+    </LinearLayout>
+
+    <com.triton.johnson_tap_app.materialeditext.MaterialEditText
+        android:id="@+id/part_no"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/line_job"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="@dimen/_10dp"
+        android:layout_marginRight="20dp"
+        android:focusable="false"
+        android:hint="Part No"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textSize="20sp"
+        app:met_baseColor="#80000000"
+        app:met_floatingLabel="highlight"
+        app:met_floatingLabelAnimating="true"
+        app:met_primaryColor="@color/colorPrimary" />
+
+    <com.triton.johnson_tap_app.materialeditext.MaterialEditText
+        android:id="@+id/no"
+        android:layout_below="@id/part_no"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="@dimen/_10dp"
+        android:hint="Quantity"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textSize="20sp"
+        app:met_baseColor="#80000000"
+        app:met_floatingLabel="highlight"
+        app:met_floatingLabelAnimating="true"
+        app:met_primaryColor="@color/colorPrimary" />
+
+    <Button
+        android:id="@+id/btn_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/no"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/white"
+        android:background="@drawable/blue_button_background_with_radius"
+        android:layout_centerInParent="true"
+        android:text="ADD"/>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/line_btn"
+        android:layout_below="@id/btn_add"
+        android:layout_marginTop="10dp"
+        android:scrollbars="vertical" />
+
+    <LinearLayout
+        android:id="@+id/line_btn"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginVertical="10dp">
+
+        <Button
+            android:id="@+id/btn_show"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:drawableStart="@drawable/icn_previous"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/previous"
+            android:visibility="visible"
+            android:textAlignment="center"
+            android:textColor="@color/white">
+
+        </Button>
+        <Button
+            android:id="@+id/btn_sumbit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:text="Next"
+            android:textAlignment="center"
+            android:drawableEnd="@drawable/icn_next"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="@color/white">
+        </Button>
+
+        <Button
+            android:id="@+id/btn_success"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:drawableEnd="@drawable/icn_next"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="@string/success"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:visibility="gone">
+        </Button>
+        <Button
+            android:id="@+id/btn_complete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:text="Complete"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:visibility="gone">
+
+        </Button>
+        <Button
+            android:id="@+id/btn_pending"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:text="Pending"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:visibility="gone">
+        </Button>
+
+    </LinearLayout>
+
+</RelativeLayout>

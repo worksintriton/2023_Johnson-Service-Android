@@ -1,0 +1,10 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:elevation="10dp"
+     android:color="@color/error_stroke_color"
+    tools:ignore="NewApi">
+    <!-- ripple color -->
+
+<item android:drawable="@drawable/normal_checkout"/> <!-- normal color -->
+
+</ripple>
