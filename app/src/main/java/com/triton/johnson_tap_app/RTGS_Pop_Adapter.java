@@ -60,13 +60,17 @@ public class RTGS_Pop_Adapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
     private void initLayoutOne(ViewHolderOne holder, final int position) {
         currentItem = breedTypedataBeanList.get(position);
 
+        String bsdamt = breedTypedataBeanList.get(position).getFA_BSD_CUSACNM();
+
+
+        Log.e("Nish",""+bsdamt);
 
         if(currentItem.getFA_BSD_AMOUNT() != null){
             holder.textView_pop.setText(currentItem.getFA_BSD_UTRNO());
             holder.textView1_pop.setText(currentItem.getFA_BSD_BANKDT());
             holder.textView2_pop.setText(currentItem.getFA_BSD_AMOUNT());
-            holder.textView3_pop.setText(currentItem.getFA_BSD_CUSACNM());
-            holder.textView4_pop.setText(currentItem.getFA_BSD_IFSCCD());
+            holder.textView3_pop.setText(currentItem.getFA_BSD_CUSACNM()); ///
+            holder.textView4_pop.setText(currentItem.getFA_BSD_IFSCCD());///
             holder.textView5_pop.setText(currentItem.getFA_BSD_BALAMT());
         }
 
@@ -546,12 +550,12 @@ public class RTGS_Pop_Adapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
         return breedTypedataBeanList.size();
     }
 
-    public void filterList(List<RTGS_PopResponse.DataBean> breedTypedataBeanListFiltered) {
-        breedTypedataBeanList = breedTypedataBeanListFiltered;
-        Log.w(TAG,"breedTypedataBeanList : "+new Gson().toJson(breedTypedataBeanList));
-
-        notifyDataSetChanged();
-    }
+//    public void filterList(List<RTGS_PopResponse.DataBean> breedTypedataBeanListFiltered) {
+//        breedTypedataBeanList = breedTypedataBeanListFiltered;
+//        Log.w(TAG,"breedTypedataBeanList : "+new Gson().toJson(breedTypedataBeanList));
+//
+//        notifyDataSetChanged();
+//    }
 
 
 
@@ -559,6 +563,13 @@ public class RTGS_Pop_Adapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public int getItemViewType(int position) {
         return position;
+    }
+
+    public void filterList(List<RTGS_PopResponse.DataBean> filteredlist) {
+
+        breedTypedataBeanList = filteredlist;
+        Log.w(TAG,"breedTypedataBeanList : "+new Gson().toJson(breedTypedataBeanList));
+        notifyDataSetChanged();
     }
 
     static class ViewHolderOne extends RecyclerView.ViewHolder {

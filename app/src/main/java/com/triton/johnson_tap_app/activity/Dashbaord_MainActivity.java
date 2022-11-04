@@ -111,17 +111,17 @@ public class Dashbaord_MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-//                Intent send = new Intent(Dashbaord_MainActivity.this, MainActivity.class);
-//                startActivity(send);
+                Intent send = new Intent(Dashbaord_MainActivity.this, MainActivity.class);
+                startActivity(send);
 
-                alertDialog = new AlertDialog.Builder(Dashbaord_MainActivity.this)
-                        .setMessage("You don't have the access")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                alertDialog.dismiss();
-                            }
-                        })
-                        .show();
+//                alertDialog = new AlertDialog.Builder(Dashbaord_MainActivity.this)
+//                        .setMessage("You don't have the access")
+//                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//                                alertDialog.dismiss();
+//                            }
+//                        })
+//                        .show();
 
             }
         });

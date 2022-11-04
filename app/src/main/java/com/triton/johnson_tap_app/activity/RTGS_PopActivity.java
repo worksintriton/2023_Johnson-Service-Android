@@ -93,20 +93,38 @@ public class RTGS_PopActivity extends AppCompatActivity{
         edt_search.addTextChangedListener(new TextWatcher() {
 
             public void afterTextChanged(Editable s) {
+
+
+                String Searchvalue = edt_search.getText().toString();
+
+                Log.e("Search",""+Searchvalue);
+
+                recyclerView.setVisibility(View.VISIBLE);
+                txt_no_records.setVisibility(View.GONE);
+
+                filter(Searchvalue);
+
             }
 
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+
                 String Searchvalue = edt_search.getText().toString();
 
+                Log.e("Search",""+Searchvalue);
+
                 if(Searchvalue.equals("")){
+
+                    Log.e("Search 1",""+Searchvalue);
+
                     recyclerView.setVisibility(View.VISIBLE);
-                    jobFindResponseCall();
+                //   jobFindResponseCall();
                     img_clearsearch.setVisibility(View.INVISIBLE);
                 }
                 else {
+                    Log.e("Search 2",""+Searchvalue);
                     //   Log.w(TAG,"Search Value---"+Searchvalue);
                     filter(Searchvalue);
                 }
@@ -129,8 +147,19 @@ public class RTGS_PopActivity extends AppCompatActivity{
         List<RTGS_PopResponse.DataBean> filteredlist = new ArrayList<>();
         for(RTGS_PopResponse.DataBean item : breedTypedataBeanList)
         {
-            if(item.getFA_BSD_UTRNO().toLowerCase().contains(s.toLowerCase()) || item.getFA_BSD_BANKDT().toLowerCase().contains(s.toLowerCase()) || item.getFA_BSD_AMOUNT().toLowerCase().contains(s.toLowerCase()) || item.getFA_BSD_CUSACNM().toLowerCase().contains(s.toLowerCase()) || item.getFA_BSD_BALAMT().toLowerCase().contains(s.toLowerCase()))
+           // if(item.getFA_BSD_UTRNO().toLowerCase().contains(s.toLowerCase()) ||
+            // item.getFA_BSD_BANKDT().toLowerCase().contains(s.toLowerCase()) ||
+            // item.getFA_BSD_AMOUNT().toLowerCase().contains(s.toLowerCase()) ||
+            // item.getFA_BSD_CUSACNM().toLowerCase().contains(s.toLowerCase()) || error
+            // item.getFA_BSD_BALAMT().toLowerCase().contains(s.toLowerCase()))
+            if(item.getFA_BSD_UTRNO().toString().contains(s.toString()))
             {
+                Log.e("A","" + item.getFA_BSD_UTRNO().toString());
+//                Log.e("A","" + item.getFA_BSD_BANKDT().toString());
+//                Log.e("A","" + item.getFA_BSD_AMOUNT().toString());
+//                Log.e("A","" + item.getFA_BSD_CUSACNM().toString());
+//                Log.e("A","" + item.getFA_BSD_BALAMT().toString());
+
                 Log.w(TAG,"filter----"+item.getFA_BSD_UTRNO().toLowerCase().contains(s.toLowerCase()));
                 filteredlist.add(item);
 
@@ -157,7 +186,7 @@ public class RTGS_PopActivity extends AppCompatActivity{
             @SuppressLint("LogNotTimber")
             @Override
             public void onResponse(@NonNull Call<RTGS_PopResponse> call, @NonNull Response<RTGS_PopResponse> response) {
-                Log.w(TAG, "Jobno Find Response" + new Gson().toJson(response.body()));
+                Log.w(TAG, "Filter Page Info Response" + new Gson().toJson(response.body()));
 
                 if (response.body() != null) {
 
@@ -167,6 +196,7 @@ public class RTGS_PopActivity extends AppCompatActivity{
                     if (200 == response.body().getCode()) {
                         if (response.body().getData() != null) {
                             breedTypedataBeanList = response.body().getData();
+
 
                             setView(breedTypedataBeanList);
                             Log.d("dataaaaa", String.valueOf(breedTypedataBeanList));

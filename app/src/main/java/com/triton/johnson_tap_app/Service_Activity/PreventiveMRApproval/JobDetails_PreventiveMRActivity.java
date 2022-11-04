@@ -104,9 +104,12 @@ public class JobDetails_PreventiveMRActivity extends AppCompatActivity implement
                 String Search = edtsearch.getText().toString();
 
                 if(Search.equals("")){
+                    Log.e("Search",""+Search);
                     recyclerView.setVisibility(View.VISIBLE);
                     img_clearsearch.setVisibility(View.INVISIBLE);
                 } else {
+
+                    Log.e("Search",""+Search);
 
                     filter(Search);
                 }
@@ -130,9 +133,9 @@ public class JobDetails_PreventiveMRActivity extends AppCompatActivity implement
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()))
+            if(item.getJob_id().toString().contains(search.toString()))
             {
-                Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
+                Log.w(TAG,"filter----"+item.getJob_id().toString().contains(search.toLowerCase()));
                 filterlist.add(item);
 
             }
