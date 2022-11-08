@@ -37,8 +37,11 @@ import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
@@ -328,9 +331,12 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
             @Override
             public void onClick(View view) {
 
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
 
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 s_mr1 = mr1.getText().toString();

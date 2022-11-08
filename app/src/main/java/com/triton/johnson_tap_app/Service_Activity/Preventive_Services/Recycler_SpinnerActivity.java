@@ -52,9 +52,13 @@ import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -161,10 +165,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 //        Bundle args = intent.getBundleExtra("BUNDLE");
 //        ArrayList<String > object = (ArrayList<String>) args.getSerializable("ARRAYLIST");
 
-
         Log.e("List New", "" +List);
-
-
 
         if (status.equals("new")) {
             jobFindResponseCall();
@@ -188,8 +189,12 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
             @Override
             public void onClick(View view) {
 
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -213,6 +218,9 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                                         Log.e("Resuktt", form1_value);
                                         Log.e("Resuktt", "" + myFieldValue.size());
+
+
+
 
                                     }
 
@@ -438,6 +446,8 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
 
                 if (currentPage == 0) {
+
+                    Log.e("Hi","Current Page 0");
                     for (int i = 0; i < 6; i++) {
 
                         form1_value = dataBeanList.get(i).getField_value().toString();
@@ -458,10 +468,17 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 //                        Cursor curs = CommonUtil.dbUtil.getSpinnerChecklist(job_id,service_title,"3");
 //                        Log.e("Spinner Count",""+ curs.getCount());
 
+                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
 
-                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
+//                            for (int j =1 ; j<=1 ; j++){
+//
+//                                showErrorLoading();
+//                            }
+
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
                                 dataBeanList.get(i).setField_value("LIFT");
+
+
                             }/*else if(dataBeanList.get(i).getField_type() !=  null && dataBeanList.get(i).getField_type().equalsIgnoreCase("File upload")){
                                 dataBeanList.get(i).setField_value("File upload");
                             }*/
@@ -471,7 +488,9 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                     //joinInspectionCreateRequestCall();
 
-                } else {
+                }
+                else {
+                    Log.e("Hi","Current Page 1");
                     int enditem = (currentPage + 1) * ITEMS_PER_PAGE;
                     Log.w(TAG, "currentPage else currentPage : " + currentPage + " startItem : " + startItem + " enditem : " + enditem + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE);
 
@@ -492,7 +511,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                         Log.e("Resuktt", form1_value);
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
-                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
+                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
                                 Log.w(TAG, "index---- : " + i + " endvaleue " + (enditem - 1));
                                 dataBeanList.get(i).setField_value("LIFT");
@@ -503,9 +522,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                         }
                         Log.w(TAG, "index : " + i + " endvaleue " + (enditem - 1));
 
-
                     }
-
 
                 }
                 //Log.w(TAG, "btnnext flag : " + flag);
@@ -593,7 +610,6 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             toast.show();
                         }
                         toast.show();*/
-
 
                     }
 
@@ -742,6 +758,8 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             send.putExtra("status",status);
                             startActivity(send);
                         }
+
+                        createLocalFormcheck();
 
                     } else {
                         Toast toast = Toast.makeText(getApplicationContext(), "please enter all required data", Toast.LENGTH_SHORT);

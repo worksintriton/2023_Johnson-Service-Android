@@ -43,8 +43,11 @@ import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -269,8 +272,12 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -309,11 +316,6 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-//                progressDialog = new ProgressDialog(Technician_signature_preventiveActivity.this);
-//                progressDialog.setMessage("Please Wait Image Upload ...");
-//                progressDialog.setCancelable(false);
-//                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Technician Signature" + ".jpg");
@@ -331,6 +333,11 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
                 }
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
+
+                progressDialog = new ProgressDialog(Technician_signature_preventiveActivity.this);
+                progressDialog.setMessage("Please Wait Image Upload ...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
 
                 uploadDigitalSignatureImageRequest(file);
 

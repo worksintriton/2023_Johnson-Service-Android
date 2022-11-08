@@ -42,6 +42,9 @@ import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
@@ -60,6 +63,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
     String compno, sertype,status,PAGE;
     SharedPreferences sharedPreferences;
     Context context;
+    TextView txt_DateandTime;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
         text = findViewById(R.id.text);
         iv_back = (ImageView) findViewById(R.id.iv_back);
         txt_Title = findViewById(R.id.txt_title);
+        txt_DateandTime = findViewById(R.id.txt_datetime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -144,12 +149,18 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
             send.setImageResource(R.drawable.ic_resume);
             //  send.getImageTintList() = ColorStateList.valueOf(Color.rgb(255, 50, 50));
 
+            txt_DateandTime.setVisibility(View.VISIBLE);
+
             Spannable name_Upload2 = new SpannableString("Resume Job ");
             name_Upload2.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setText(name_Upload2);
             Spannable name_Upload3 = new SpannableString("*");
             name_Upload3.setSpan(new ForegroundColorSpan(Color.RED), 0, name_Upload3.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.append(name_Upload3);
+
+            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+            String date = df.format(Calendar.getInstance().getTime());
+            txt_DateandTime.setText(date);
 
             send.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -180,6 +191,9 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(Start_Job_Text_PreventiveActivity.this);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -188,11 +202,14 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
         LinearLayout ll_resume = mView.findViewById(R.id.ll_resume);
         ImageView img_close = mView.findViewById(R.id.img_close);
         Button btn_back = mView.findViewById(R.id.btn_back);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
         btn_back.setVisibility(GONE);
         txt_jobstatus.setVisibility(GONE);
         ll_resume.setVisibility(GONE);
         ll_pause.setVisibility(GONE);
         ll_stop.setVisibility(GONE);
+        txt_DateTime.setText(date);
 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
@@ -269,7 +286,6 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
     }
 
     private void Job_status() {
-
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<Job_statusResponse> call = apiInterface.job_status_PreventiveResponseCall(RestUtils.getContentType(), job_statusRequest());
         Log.w(TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
@@ -307,6 +323,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
         });
 
     }
+
     private Job_statusRequest job_statusRequest() {
 
         Job_statusRequest custom = new Job_statusRequest();

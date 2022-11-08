@@ -56,7 +56,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -263,13 +265,13 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-//                if (signatureBitmap == null) {
-//                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
-//                }
-//                else {
+                if (signatureBitmap == null) {
+                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                }
+                else {
 
                  submitAddResponseCall();
-              //  }
+                }
             }
         });
     }
@@ -331,6 +333,11 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -352,6 +359,7 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override

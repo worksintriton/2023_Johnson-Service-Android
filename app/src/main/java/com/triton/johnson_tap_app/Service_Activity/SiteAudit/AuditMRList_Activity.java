@@ -1,6 +1,7 @@
 package com.triton.johnson_tap_app.Service_Activity.SiteAudit;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,6 +25,7 @@ import com.google.gson.Gson;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMRListOne_Activity;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Technician_signatureActivity;
 import com.triton.johnson_tap_app.Service_Adapter.BreakdownMRListTwo_Adapter;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -50,7 +52,7 @@ public class AuditMRList_Activity extends AppCompatActivity {
     String se_user_mobile_no, se_user_name, se_id,check_id, service_title,job_id,message,status,compno, sertype;
     private List<Fetch_MrList_Response.Datum> breedTypedataBeanList;
     String str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="";
-
+    ProgressDialog progressDialog;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -187,6 +189,12 @@ public class AuditMRList_Activity extends AppCompatActivity {
     }
 
     private void fetchmrlistcall() {
+
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<Fetch_MrList_Response> call = apiInterface.FetchMrListAuditCall(RestUtils.getContentType(),fetch_mrList_request());
 
@@ -197,6 +205,7 @@ public class AuditMRList_Activity extends AppCompatActivity {
             public void onResponse(Call<Fetch_MrList_Response> call, Response<Fetch_MrList_Response> response) {
                 Log.w(TAG, "MRList Response" + new Gson().toJson(response.body()));
 
+                progressDialog.dismiss();
                 if (response.body() != null){
                     message = response.body().getMessage();
                     Log.d("message", message);

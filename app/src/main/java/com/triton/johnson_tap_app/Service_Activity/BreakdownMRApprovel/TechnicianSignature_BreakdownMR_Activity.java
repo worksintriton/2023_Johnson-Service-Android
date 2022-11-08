@@ -37,6 +37,7 @@ import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Customer_AcknowledgementActivity;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.PreventiveMRListOne_Activity;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.PreventiveMR_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -55,8 +56,10 @@ import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -389,7 +392,13 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
 //                editor.putBoolean( "mysignkey" , false);
 //                editor.apply();
 
-                serviceUserDetailsRequestResponse();
+                if (signatureBitmap == null) {
+                    Toast.makeText(TechnicianSignature_BreakdownMR_Activity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                }else{
+                    serviceUserDetailsRequestResponse();
+                }
+
+
 
             }
         });
@@ -501,6 +510,11 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(TechnicianSignature_BreakdownMR_Activity.this);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -521,6 +535,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
 
         ll_pause.setOnClickListener(new View.OnClickListener() {

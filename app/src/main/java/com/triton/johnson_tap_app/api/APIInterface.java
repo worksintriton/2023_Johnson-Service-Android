@@ -253,8 +253,11 @@ public interface APIInterface {
     @POST("service_temp_data/retrive_local_value_form_2")
     Call<RetriveResponsePR> retriveLocalValuePRCall(@Header("Content-Type") String type, @Body Job_status_updateRequest job_status_updateRequest);
 
-    @POST("preventive_service_data_management//check_list_value_temp")
+    @POST("preventive_service_data_management/check_list_value_temp")
     Call<GetFieldListResponse> checkLocalValuecall(@Header("Content-Type") String type, @Body GetFieldListRequest getFieldListRequest);
+
+    @POST("preventive_data_management/job_details_in_text")
+    Call<Job_Details_TextResponse> Job_DetailsTextPreventiveResponseCall(@Header("Content-Type") String type, @Body Job_Details_TextRequest custom_detailsRequest);
 
 
     @POST("service_temp_data/create_local_value_form_check")

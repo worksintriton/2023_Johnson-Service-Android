@@ -37,6 +37,7 @@ import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.TechnicianSignature_BreakdownMR_Activity;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Customer_AcknowledgementActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -56,8 +57,11 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -320,7 +324,12 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                 serviceUserDetailsRequestResponse();
+                if (signatureBitmap == null) {
+                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                }else{
+                    serviceUserDetailsRequestResponse();
+                }
+
             }
         });
     }
@@ -380,6 +389,11 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -401,6 +415,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override

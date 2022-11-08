@@ -31,6 +31,7 @@ import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.R;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Technician_signatureActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -45,6 +46,9 @@ import com.triton.johnson_tap_app.utils.RestUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -246,16 +250,23 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
         btn_Next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent send = new Intent(context, CustomerAcknowledgement_LRServiceActivity.class);
-                // send.putExtra("service_title",service_title);
-                send.putExtra("status" , status);
-                send.putExtra("job_id",job_id);
-                send.putExtra("C_name" , str_Custname);
-                send.putExtra("C_no" , str_Custno);
-                send.putExtra("C_remarks" , str_Custremarks);
-                send.putExtra("tech_signature", uploadimagepath);
-                send.putExtra("cust_ack",str_CustAck);
-                startActivity(send);
+
+                if (signatureBitmap == null && uploadimagepath == null) {
+                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Intent send = new Intent(context, CustomerAcknowledgement_LRServiceActivity.class);
+                    // send.putExtra("service_title",service_title);
+                    send.putExtra("status" , status);
+                    send.putExtra("job_id",job_id);
+                    send.putExtra("C_name" , str_Custname);
+                    send.putExtra("C_no" , str_Custno);
+                    send.putExtra("C_remarks" , str_Custremarks);
+                    send.putExtra("tech_signature", uploadimagepath);
+                    send.putExtra("cust_ack",str_CustAck);
+                    startActivity(send);
+                }
+
 
             }
         });
@@ -264,8 +275,12 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 str_job_status = "Job Paused";

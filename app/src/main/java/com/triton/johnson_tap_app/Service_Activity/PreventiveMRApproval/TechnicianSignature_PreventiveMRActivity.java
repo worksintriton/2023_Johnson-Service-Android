@@ -53,8 +53,10 @@ import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -369,13 +371,13 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-            //    if (signatureBitmap == null) {
-             //       Toast.makeText(TechnicianSignature_PreventiveMRActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
-             //   }
-           //     else {
+                if (signatureBitmap == null) {
+                    Toast.makeText(TechnicianSignature_PreventiveMRActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                }
+                else {
 
                     serviceUserDetailsRequestResponse();
-              //  }
+            }
 
             }
         });
@@ -487,6 +489,11 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(TechnicianSignature_PreventiveMRActivity.this);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -508,6 +515,7 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -973,6 +981,10 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
                         CommonUtil.dbUtil.Preportdelete(job_id);
+
+                        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+
+                        Log.e("MR List Count",""+ cursor.getCount());
 
                       //  CommonUtil.dbUtil.updatesign(job_id,myactivity,"1");
 

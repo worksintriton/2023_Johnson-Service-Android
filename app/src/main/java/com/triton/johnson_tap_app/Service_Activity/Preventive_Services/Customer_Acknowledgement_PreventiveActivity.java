@@ -56,9 +56,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -335,11 +337,6 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(Customer_Acknowledgement_PreventiveActivity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Acknowledgment_Signature" + ".jpg");
@@ -358,9 +355,17 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
+                progressDialog = new ProgressDialog(Customer_Acknowledgement_PreventiveActivity.this);
+                progressDialog.setMessage("Please Wait Image Upload ...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
+
+
                 uploadDigitalSignatureImageRequest(file);
 
-                long delayInMillis = 15000;
+
+                long delayInMillis = 1000;
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
@@ -512,6 +517,11 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(Customer_Acknowledgement_PreventiveActivity.this);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
 
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
+
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);
         LinearLayout ll_start = mView.findViewById(R.id.ll_start);
@@ -533,6 +543,7 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -894,7 +905,7 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
                     }
                     else{
 
-                        long delayInMillis = 15000;
+                        long delayInMillis = 1000;
                         Timer timer = new Timer();
                         timer.schedule(new TimerTask() {
                             @Override
@@ -1105,7 +1116,7 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
     private void job_details_in_text() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
-        Call<Job_Details_TextResponse> call = apiInterface.Job_Details_TextResponseCall(RestUtils.getContentType(), custom_detailsRequest());
+        Call<Job_Details_TextResponse> call = apiInterface.Job_DetailsTextPreventiveResponseCall(RestUtils.getContentType(), custom_detailsRequest());
         Log.w(VolleyLog.TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
 
         call.enqueue(new Callback<Job_Details_TextResponse>() {

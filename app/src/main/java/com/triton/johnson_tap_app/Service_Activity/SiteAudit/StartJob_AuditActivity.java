@@ -38,6 +38,9 @@ import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
@@ -54,7 +57,9 @@ public class StartJob_AuditActivity extends AppCompatActivity {
     FloatingActionButton send;
     String se_user_mobile_no, se_user_name, se_id,check_id, service_title,jobid,message,str_job_status,osacompno;
     String compno, sertype,status;
+    TextView txt_DateandTime;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +70,7 @@ public class StartJob_AuditActivity extends AppCompatActivity {
         send = findViewById(R.id.add_fab);
         text = findViewById(R.id.text);
         img_Back = (ImageView) findViewById(R.id.img_back);
+        txt_DateandTime = findViewById(R.id.txt_datetime);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -95,6 +101,26 @@ public class StartJob_AuditActivity extends AppCompatActivity {
         text.append(name_Upload1);
 
         jobStatuscall();
+
+        if (status.equals("pause")){
+
+            send.setImageResource(R.drawable.ic_resume);
+            //  send.getImageTintList() = ColorStateList.valueOf(Color.rgb(255, 50, 50));
+
+            txt_DateandTime.setVisibility(View.VISIBLE);
+
+            Spannable name_Upload2 = new SpannableString("Resume Job ");
+            name_Upload2.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.setText(name_Upload2);
+            Spannable name_Upload3 = new SpannableString("*");
+            name_Upload3.setSpan(new ForegroundColorSpan(Color.RED), 0, name_Upload3.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.append(name_Upload3);
+
+            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+            String date = df.format(Calendar.getInstance().getTime());
+            txt_DateandTime.setText(date);
+
+        }
 
         img_Back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,6 +170,11 @@ public class StartJob_AuditActivity extends AppCompatActivity {
     private void alert() {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
+
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
 
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);

@@ -33,6 +33,8 @@ public class JobListAdapter_BreakdownMR extends  RecyclerView.Adapter<RecyclerVi
     private List<JobListResponse.DataBean> breedTypedataBeanList;
     private PetBreedTypeSelectListener petBreedTypeSelectListener;
     String service_title, status;
+    SharedPreferences sharedPreferences;
+
     public JobListAdapter_BreakdownMR(Context context, List<JobListResponse.DataBean> breedTypedataBeanList, PetBreedTypeSelectListener petBreedTypeSelectListener, String status) {
         this.context = context;
         this.breedTypedataBeanList = breedTypedataBeanList;
@@ -42,6 +44,11 @@ public class JobListAdapter_BreakdownMR extends  RecyclerView.Adapter<RecyclerVi
 
         Log.e("Status", "" + status);
      //   Log.e("Name" , service_title);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        service_title = sharedPreferences.getString("service_title", "Services");
+
+        Log.e("Name" , " " +service_title);
 
     }
     public void filterrList(List<JobListResponse.DataBean> filterllist)
@@ -136,7 +143,7 @@ public class JobListAdapter_BreakdownMR extends  RecyclerView.Adapter<RecyclerVi
     }
 
     static class ViewHolderOne extends RecyclerView.ViewHolder {
-        public TextView job_id,cust_name,pm_date;
+        public TextView job_id,cust_name,pm_date,txt_BMDate;
         public LinearLayout ll_root;
 
         public ViewHolderOne(View itemView) {
@@ -146,7 +153,7 @@ public class JobListAdapter_BreakdownMR extends  RecyclerView.Adapter<RecyclerVi
             cust_name = itemView.findViewById(R.id.text1);
             pm_date = itemView.findViewById(R.id.text2);
             ll_root = itemView.findViewById(R.id.lin_job_item);
-
+            txt_BMDate = itemView.findViewById(R.id.txt_bmdate);
         }
 
     }

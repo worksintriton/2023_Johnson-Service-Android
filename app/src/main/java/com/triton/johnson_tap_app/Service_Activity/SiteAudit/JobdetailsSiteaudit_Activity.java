@@ -159,7 +159,8 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
     private void filter(String search) {
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()))
+            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
+                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
             {
                 Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
                 filterlist.add(item);
@@ -199,6 +200,15 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
                     if (200 == response.body().getCode()) {
                         if (response.body().getData() != null) {
                             breedTypedataBeanList = response.body().getData();
+
+                            if (breedTypedataBeanList.size() == 0){
+
+                                recyclerView.setVisibility(View.GONE);
+                                txt_no_records.setVisibility(View.VISIBLE);
+                                txt_no_records.setText("No Records Found");
+                                edtsearch.setEnabled(false);
+
+                            }
 
                             setBreedTypeView(breedTypedataBeanList);
                             Log.d("dataaaaa", String.valueOf(breedTypedataBeanList));

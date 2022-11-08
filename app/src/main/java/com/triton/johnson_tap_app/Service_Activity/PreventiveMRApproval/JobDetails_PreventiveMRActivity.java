@@ -133,7 +133,8 @@ public class JobDetails_PreventiveMRActivity extends AppCompatActivity implement
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toString().contains(search.toString()))
+            if(item.getJob_id().toString().contains(search.toString()) ||
+                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
             {
                 Log.w(TAG,"filter----"+item.getJob_id().toString().contains(search.toLowerCase()));
                 filterlist.add(item);

@@ -22,6 +22,7 @@ import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.Customer
 import com.triton.johnson_tap_app.responsepojo.JobListResponse;
 
 import java.util.List;
+import java.util.Objects;
 
 
 public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -32,6 +33,7 @@ public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerV
     private List<JobListResponse.DataBean> breedTypedataBeanList;
     private PetBreedTypeSelectListener petBreedTypeSelectListener;
     String service_title,status;
+    SharedPreferences sharedPreferences;
     public JobListAdapter_PreventiveMR(Context context, List<JobListResponse.DataBean> breedTypedataBeanList, PetBreedTypeSelectListener petBreedTypeSelectListener, String status) {
         this.context = context;
         this.breedTypedataBeanList = breedTypedataBeanList;
@@ -39,6 +41,11 @@ public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerV
         this.status = status;
 
         Log.e("Status", "" + status);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        service_title = sharedPreferences.getString("service_title", "Services");
+
+        Log.e("Name" , " " +service_title);
 
     }
 
@@ -58,6 +65,11 @@ public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerV
 
     @SuppressLint("LogNotTimber")
     private void initLayoutOne(ViewHolderOne holder, final int position) {
+
+        if (Objects.equals(service_title, "Preventive MR Approval")){
+
+            holder.txt_BMDate.setText("PM Date");
+        }
         currentItem = breedTypedataBeanList.get(position);
 
 //        Intent intent = new Intent("message_subject_intent");
@@ -126,7 +138,7 @@ public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerV
     }
 
     static class ViewHolderOne extends RecyclerView.ViewHolder {
-        public TextView job_id,cust_name,pm_date;
+        public TextView job_id,cust_name,pm_date,txt_BMDate;
         public LinearLayout ll_root;
 
         public ViewHolderOne(View itemView) {
@@ -136,6 +148,7 @@ public class JobListAdapter_PreventiveMR extends  RecyclerView.Adapter<RecyclerV
             cust_name = itemView.findViewById(R.id.text1);
             pm_date = itemView.findViewById(R.id.text2);
             ll_root = itemView.findViewById(R.id.lin_job_item);
+            txt_BMDate = itemView.findViewById(R.id.txt_bmdate);
 
         }
 

@@ -9,8 +9,7 @@
         android:id="@+id/linec"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/line_d"
-        android:layout_below="@id/main_bar"
+
         android:layout_marginHorizontal="10dp"
         android:orientation="vertical"
         android:visibility="visible">
@@ -128,7 +127,7 @@
                     android:focusable="true"
                     android:gravity="start"
                     android:inputType="none"
-                    android:maxLines="1"
+                    android:maxLines="5"
                     android:padding="10dp"
                     android:visibility="visible" />
             </LinearLayout>

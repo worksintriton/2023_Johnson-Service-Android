@@ -47,6 +47,9 @@ import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
@@ -216,12 +219,18 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+     //         hi();
+
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 str_job_status = "Job Paused";
-                               // Job_status_update();
+                                Job_status_update();
                                 str_Custname = edt_Custname.getText().toString();
                                 str_Custno = edt_Custno.getText().toString();
                                 str_Custremarks = edt_Custremarks.getText().toString();
@@ -237,6 +246,31 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void hi() {
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Title");
+        alert.setMessage("Message");
+// Create TextView
+        final TextView input = new TextView (this);
+        alert.setView(input);
+        input.setText("hi");
+
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                // Do something with value!
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        alert.show();
     }
 
     private void retrive_LocalValue() {

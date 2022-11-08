@@ -45,6 +45,9 @@ import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
@@ -62,7 +65,9 @@ public class StartJob_ACK_Activity extends AppCompatActivity {
     String str_Custname, str_Custno, str_Custremarks,str_Techsign,str_CustAck,str_ACKCompno,service_type;
     Context context;
     SharedPreferences sharedPreferences;
+    TextView txt_DateandTime;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +78,7 @@ public class StartJob_ACK_Activity extends AppCompatActivity {
         send = findViewById(R.id.add_fab);
         text = findViewById(R.id.text);
         iv_back = (ImageView) findViewById(R.id.img_back);
+        txt_DateandTime = findViewById(R.id.txt_datetime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -130,6 +136,26 @@ public class StartJob_ACK_Activity extends AppCompatActivity {
             }
         });
 
+        if (status.equals("pause")){
+
+            send.setImageResource(R.drawable.ic_resume);
+            //  send.getImageTintList() = ColorStateList.valueOf(Color.rgb(255, 50, 50));
+
+            txt_DateandTime.setVisibility(View.VISIBLE);
+
+            Spannable name_Upload2 = new SpannableString("Resume Job ");
+            name_Upload2.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.setText(name_Upload2);
+            Spannable name_Upload3 = new SpannableString("*");
+            name_Upload3.setSpan(new ForegroundColorSpan(Color.RED), 0, name_Upload3.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.append(name_Upload3);
+
+            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+            String date = df.format(Calendar.getInstance().getTime());
+            txt_DateandTime.setText(date);
+
+        }
+
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -180,6 +206,11 @@ public class StartJob_ACK_Activity extends AppCompatActivity {
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
         View mView = getLayoutInflater().inflate(R.layout.startjob_popup_layout, null);
+
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateTime.setText(date);
 
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
         TextView txt_job_content = mView.findViewById(R.id.txt_job_content);

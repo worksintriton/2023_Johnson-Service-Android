@@ -138,7 +138,8 @@ public class Job_DetailsActivity extends AppCompatActivity implements PetBreedTy
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()))
+            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
+                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
             {
                 Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
                 filterlist.add(item);

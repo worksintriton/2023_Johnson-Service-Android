@@ -100,9 +100,9 @@ public class Job_Details_PreventiveActivity extends AppCompatActivity implements
         }
 
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("service_title", service_title);
-        editor.apply();
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("service_title", service_title);
+//        editor.apply();
 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -154,20 +154,18 @@ public class Job_Details_PreventiveActivity extends AppCompatActivity implements
 
     }
 
-
-
     private void filter(String search) {
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()))
+            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
+                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
             {
                 Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
                 filterlist.add(item);
 
             }
         }
-
 
         if(filterlist.isEmpty())
         {

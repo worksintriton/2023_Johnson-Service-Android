@@ -48,6 +48,7 @@ public class AuditMR_Activity extends AppCompatActivity {
     private String PetBreedType = "";
     Context context;
     AlertDialog.Builder builder;
+    AlertDialog alertDialog;
 
     ArrayList<String> arli_Partname;
     ArrayList<String> arli_Partno;
@@ -346,8 +347,15 @@ public class AuditMR_Activity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent send = new Intent(AuditMR_Activity.this, TechnicianSigantureAudit_Activity.class);
-                //send.putExtra("service_title",service_title);
+
+
+                Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+
+                Log.e("MR Count",""+ cursor.getCount());
+
+                if(cursor.getCount()>0) {
+                    Intent send = new Intent(AuditMR_Activity.this, TechnicianSigantureAudit_Activity.class);
+                    //send.putExtra("service_title",service_title);
 //                send.putExtra("job_id",job_id);
 //                send.putExtra("mr1", str_mr1);
 //                send.putExtra("mr2", str_mr2);
@@ -359,8 +367,20 @@ public class AuditMR_Activity extends AppCompatActivity {
 //                send.putExtra("mr8", str_mr8);
 //                send.putExtra("mr9", str_mr9);
 //                send.putExtra("mr10", str_mr10);
-                send.putExtra("status", status);
-                startActivity(send);
+                    send.putExtra("status", status);
+                    startActivity(send);
+                }
+                else{
+                    alertDialog = new AlertDialog.Builder(context)
+                            //.setTitle("Please Login to Continue!")
+                            .setMessage("Please add MR")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    alertDialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
 
             }
         });
