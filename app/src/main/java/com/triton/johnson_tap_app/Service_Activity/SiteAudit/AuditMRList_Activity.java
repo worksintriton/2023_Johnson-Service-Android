@@ -213,9 +213,34 @@ public class AuditMRList_Activity extends AppCompatActivity {
                     if (200 == response.body().getCode()){
                         if (response.body().getData() != null) {
                             breedTypedataBeanList = response.body().getData();
+
+                            if (breedTypedataBeanList.size() == 0){
+
+                                recyclerView.setVisibility(View.GONE);
+                                txt_no_records.setVisibility(View.VISIBLE);
+                                txt_no_records.setText("No Records Found");
+                                edtsearch.setEnabled(false);
+
+                            }
+
                             setBreedTypeView(breedTypedataBeanList);
                             Log.d("dataaaaa", String.valueOf(breedTypedataBeanList));
                         }
+                    }else if (400 == response.body().getCode()) {
+                        if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
+
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found");
+                            edtsearch.setEnabled(false);
+                        }
+                    } else {
+
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found");
+                        edtsearch.setEnabled(false);
+                        // Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
                     }
                 }
             }
@@ -223,6 +248,10 @@ public class AuditMRList_Activity extends AppCompatActivity {
             @Override
             public void onFailure(Call<Fetch_MrList_Response> call, Throwable t) {
                 Log.e("Mrlist ", "--->" + t.getMessage());
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something Went Wrong.. Try Again Later");
+                edtsearch.setEnabled(false);
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

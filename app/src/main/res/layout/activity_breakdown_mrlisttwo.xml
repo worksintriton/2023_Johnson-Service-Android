@@ -103,21 +103,22 @@
                 android:layout_height="match_parent"
                 android:scrollbars="vertical" />
 
-            <TextView
-                android:id="@+id/txt_no_records"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center"
-                android:fontFamily="@font/sourcesanspro_regular"
-                android:text="@string/no_service_list"
-                android:textColor="@color/blue_btn_bg_color"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
 
         </LinearLayout>
 
     </ScrollView>
+
+    <TextView
+        android:id="@+id/txt_no_records"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:fontFamily="@font/sourcesanspro_regular"
+        android:text="@string/no_service_list"
+        android:textColor="@color/blue_btn_bg_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
 </RelativeLayout>

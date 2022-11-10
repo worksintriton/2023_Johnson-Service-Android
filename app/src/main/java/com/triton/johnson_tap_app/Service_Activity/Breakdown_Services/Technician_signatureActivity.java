@@ -246,8 +246,15 @@ public class Technician_signatureActivity extends AppCompatActivity {
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                if (signatureBitmap == null && uploadimagepath == null) {
-                    Toast.makeText(Technician_signatureActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+//                if (signatureBitmap == null && uploadimagepath == null) {
+//                    Toast.makeText(Technician_signatureActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+//                }
+
+                Cursor cur =  CommonUtil.dbUtil.getEngSign(job_id,service_title);
+                Log.e("ENg Sign", " " + cur.getCount());
+
+                if (signatureBitmap == null && cur.getCount() == 0) {
+                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     Intent send = new Intent(Technician_signatureActivity.this, Customer_Details_BreakdownActivity.class);

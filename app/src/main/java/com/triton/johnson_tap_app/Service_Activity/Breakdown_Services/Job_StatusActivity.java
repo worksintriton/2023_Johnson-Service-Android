@@ -43,7 +43,7 @@ public class Job_StatusActivity extends AppCompatActivity implements PetBreedTyp
         lin_layout = (LinearLayout) findViewById(R.id.lin_layout);
         lin_layout1 = (LinearLayout) findViewById(R.id.lin_layout1);
         lin_layout2 = (LinearLayout) findViewById(R.id.lin_layout2);
-        layout = (LinearLayout) findViewById(R.id.layout);
+        layout = (LinearLayout) findViewById(R.id.rel_job);
         layout1 = (LinearLayout) findViewById(R.id.layout1);
         layout2 = (LinearLayout) findViewById(R.id.layout2);
         text = (TextView) findViewById(R.id.text);

@@ -789,10 +789,6 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
 
     private void Job_status_update() {
-        dialog = new Dialog(context, R.style.NewProgressDialog);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.progroess_popup);
-        dialog.show();
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<Job_status_updateResponse> call = apiInterface.job_status_updateAuditResponseCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(), job_status_updateRequest());
@@ -805,7 +801,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                 Log.w(VolleyLog.TAG,"SignupResponse" + new Gson().toJson(response.body()));
                 if (response.body() != null) {
-                    dialog.dismiss();
+
                     message = response.body().getMessage();
 
                     if (200 == response.body().getCode()) {

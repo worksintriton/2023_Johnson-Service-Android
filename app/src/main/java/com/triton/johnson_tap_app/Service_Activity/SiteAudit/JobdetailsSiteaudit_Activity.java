@@ -160,7 +160,7 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
         for (JobListResponse.DataBean item :breedTypedataBeanList){
             if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
-                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
+                    item.getName().toLowerCase().contains(search.toLowerCase()))
             {
                 Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
                 filterlist.add(item);
@@ -218,9 +218,17 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
                     } else if (400 == response.body().getCode()) {
                         if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
 
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found");
+                            edtsearch.setEnabled(false);
                         }
                     } else {
 
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found");
+                        edtsearch.setEnabled(false);
                         Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
                     }
                 }
@@ -231,6 +239,10 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
             @Override
             public void onFailure(@NonNull Call<JobListResponse> call, @NonNull Throwable t) {
                 Log.e("Job List on Failure", "--->" + t.getMessage());
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something Went Wrong.. Try Again Later");
+                edtsearch.setEnabled(false);
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

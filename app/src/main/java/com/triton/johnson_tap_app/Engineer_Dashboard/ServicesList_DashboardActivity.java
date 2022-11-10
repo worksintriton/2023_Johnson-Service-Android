@@ -208,6 +208,15 @@ public class ServicesList_DashboardActivity extends AppCompatActivity {
                         if (response.body().getData() != null) {
                             dataBeanList = response.body().getData();
 
+                            if (dataBeanList.size() == 0){
+
+                                recyclerView.setVisibility(View.GONE);
+                                txt_no_records.setVisibility(View.VISIBLE);
+                                txt_no_records.setText("No Records Found");
+                                etsearch.setEnabled(false);
+
+                            }
+
                             setView(dataBeanList);
                             Log.d("dataaaaa", String.valueOf(dataBeanList));
 
@@ -216,10 +225,18 @@ public class ServicesList_DashboardActivity extends AppCompatActivity {
                     } else if (400 == response.body().getCode()) {
                         if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
 
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found..!");
+                            etsearch.setEnabled(false);
                         }
                     } else {
 
                         Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found..!");
+                        etsearch.setEnabled(false);
                     }
                 }
 
@@ -229,6 +246,10 @@ public class ServicesList_DashboardActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<Service_list_new_screenResponse> call, @NonNull Throwable t) {
                 Log.e("Jobno Find ", "--->" + t.getMessage());
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something went wrong..! Try agin");
+                etsearch.setEnabled(false);
             }
         });
 

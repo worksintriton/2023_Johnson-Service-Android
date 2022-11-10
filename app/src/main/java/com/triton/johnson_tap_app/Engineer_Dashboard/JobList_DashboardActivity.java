@@ -47,7 +47,7 @@ public class JobList_DashboardActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private EditText etsearch;
-    TextView txt_Lastlogin,txt_Welcome,txt_ServiceTitle;
+    TextView txt_Lastlogin,txt_Welcome,txt_ServiceTitle,txt_JobCount;
     String se_id,se_user_mobile_no,se_user_name,message,title,agentName,agentNumber,service_Title,lastLogin;
     List<Joblist_new_screenResponse.DataBean> dataBeanList;
     JobList_DashboardAdapter activityBasedListAdapter;
@@ -73,6 +73,7 @@ public class JobList_DashboardActivity extends AppCompatActivity {
         txt_Lastlogin = findViewById(R.id.txt_lastlogin);
         txt_Welcome = findViewById(R.id.txt_welcome);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        txt_JobCount = findViewById(R.id.txt_jobcount);
 
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -215,7 +216,7 @@ public class JobList_DashboardActivity extends AppCompatActivity {
         Call<Joblist_new_screenResponse> call = apiInterface.Job_list_new_screenResponseCall(RestUtils.getContentType(), serviceRequest());
         Log.w(TAG, "Jobno Find Response url  :%s" + " " + call.request().url().toString());
         call.enqueue(new Callback<Joblist_new_screenResponse>() {
-            @SuppressLint("LogNotTimber")
+            @SuppressLint({"LogNotTimber", "SetTextI18n"})
             @Override
             public void onResponse(@NonNull Call<Joblist_new_screenResponse> call, @NonNull Response<Joblist_new_screenResponse> response) {
                 Log.w(TAG, "Jobno Find Response" + new Gson().toJson(response.body()));
@@ -229,6 +230,22 @@ public class JobList_DashboardActivity extends AppCompatActivity {
                         if (response.body().getData() != null) {
                             dataBeanList = response.body().getData();
 
+                            Log.e("Job List",""+  dataBeanList.size());
+
+                            if (dataBeanList.size() == 0){
+
+                                recyclerView.setVisibility(View.GONE);
+                                txt_no_records.setVisibility(View.VISIBLE);
+                                txt_no_records.setText("No Records Found");
+                                etsearch.setEnabled(false);
+
+                            }else{
+
+                                txt_JobCount.setVisibility(View.VISIBLE);
+                            }
+
+                            txt_JobCount.setText("Total Jobs : "+ dataBeanList.size());
+
                             setView(dataBeanList);
                             Log.d("dataaaaa", String.valueOf(dataBeanList));
 
@@ -237,10 +254,18 @@ public class JobList_DashboardActivity extends AppCompatActivity {
                     } else if (400 == response.body().getCode()) {
                         if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
 
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found..!");
+                            etsearch.setEnabled(false);
                         }
                     } else {
 
                         Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found..!");
+                        etsearch.setEnabled(false);
                     }
                 }
 
@@ -250,6 +275,10 @@ public class JobList_DashboardActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<Joblist_new_screenResponse> call, @NonNull Throwable t) {
                 Log.e("Jobno Find ", "--->" + t.getMessage());
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something went wrong..! Try agin");
+                etsearch.setEnabled(false);
             }
         });
 

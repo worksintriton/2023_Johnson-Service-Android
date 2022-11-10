@@ -24,6 +24,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -668,7 +669,6 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
             public void onClick(View v) {
                 Log.w(TAG, "inside");
 
-
                 if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
 
                     Toasty.warning(getApplicationContext(), "No Internet", Toasty.LENGTH_LONG).show();
@@ -685,7 +685,6 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             }*/
                             flag = false;
                         }
-
 
                     }
 
@@ -742,6 +741,11 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             editor.putString("Form1_group_id",str4);
                             editor.apply();
 
+                            dialog = new Dialog(context, R.style.NewProgressDialog);
+                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            dialog.setContentView(R.layout.progroess_popup);
+                            dialog.show();
+
                           //  createLocalValue();
 
                           //  createLocalFormcheck();
@@ -757,6 +761,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 //                            send.putExtra("Form1_group_id",str4);
                             send.putExtra("status",status);
                             startActivity(send);
+                            dialog.dismiss();
                         }
 
                         createLocalFormcheck();

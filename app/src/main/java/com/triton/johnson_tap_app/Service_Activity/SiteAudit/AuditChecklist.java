@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -33,6 +34,7 @@ import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.ReAdapter;
 import com.triton.johnson_tap_app.RestUtils;
+import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.TechnicianSignature_PreventiveMRActivity;
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Job_Details_PreventiveActivity;
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Material_Request_PreventiveActivity;
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Quarterly_Top_PitActivity;
@@ -47,6 +49,7 @@ import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -185,7 +188,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                         Log.e("Resuktt", Result);
 
 
-                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
+                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
                                 dataBeanList.get(i).setField_value("LIFT");
                             }/*else if(dataBeanList.get(i).getField_type() !=  null && dataBeanList.get(i).getField_type().equalsIgnoreCase("File upload")){
@@ -194,6 +197,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                             flag = false;
                         }
                     }
+
 
                     //joinInspectionCreateRequestCall();
 
@@ -206,7 +210,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                         Result1 = dataBeanList.get(i).getField_value().toString();
                         Log.e("Resuktt", Result1);
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
-                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
+                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
                                 Log.w(TAG, "index---- : " + i + " endvaleue " + (enditem - 1));
                                 dataBeanList.get(i).setField_value("LIFT");
@@ -216,6 +220,12 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                             flag = false;
                         }
                         Log.w(TAG, "index : " + i + " endvaleue " + (enditem - 1));
+
+//                        if (Objects.equals(Result1, "Select")){
+//
+//                            showErrorLoading();
+//                        }
+
 
 
                     }
@@ -369,6 +379,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                     Toasty.warning(getApplicationContext(), "No Internet", Toasty.LENGTH_LONG).show();
 
                 } else {
+
                     boolean flag = true;
                     for (int i = 0; i < dataBeanList.size(); i++) {
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
@@ -433,6 +444,11 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                             editor.apply();
 
 
+                            dialog = new Dialog(context, R.style.NewProgressDialog);
+                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            dialog.setContentView(R.layout.progroess_popup);
+                            dialog.show();
+
                             Intent send = new Intent(AuditChecklist.this, MaterialRequest_AuditActivity.class);
                             send.putExtra("job_id",job_id);
 //                            send.putExtra("value",value);
@@ -444,9 +460,11 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 //                            send.putExtra("Form1_group_id",str4);
                             send.putExtra("status", status);
                             startActivity(send);
+                            dialog.dismiss();
                         }
 
                     } else {
+
                         Toast toast = Toast.makeText(getApplicationContext(), "please enter all required data", Toast.LENGTH_SHORT);
                         toast.setGravity(Gravity.CENTER, 0, 0);
                         // toast.getView().setBackgroundTintList(ColorStateList.valueOf(R.color.warning));

@@ -25,9 +25,6 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold"/>
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="5dp"/>
 
             <View
                 android:layout_width="2dp"
@@ -50,6 +47,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:gravity="end"
+                android:visibility="gone"
                 android:orientation="vertical">
 
                 <ImageView
@@ -88,9 +86,6 @@
             android:textColor="#ffffff"
             android:textSize="15dp" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="5dp"/>
     </LinearLayout>
 
     <ScrollView
@@ -420,10 +415,6 @@
                 android:text="Continue"
                 android:textColor="#ffffff"
                 android:textSize="15dp" />
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="20dp"/>
 
 
         </LinearLayout>

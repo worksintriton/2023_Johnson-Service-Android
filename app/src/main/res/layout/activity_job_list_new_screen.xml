@@ -26,10 +26,6 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold"/>
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="5dp"/>
-
             <View
                 android:layout_width="2dp"
                 android:layout_height="30dp"
@@ -48,9 +44,10 @@
 
             <LinearLayout
                 android:id="@+id/logout"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:gravity="end"
+                android:visibility="gone"
                 android:orientation="vertical">
 
                 <ImageView
@@ -89,9 +86,6 @@
             android:textColor="#ffffff"
             android:textSize="15dp" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="5dp"/>
     </LinearLayout>
 
     <RelativeLayout
@@ -101,7 +95,7 @@
         android:layout_marginTop="30dp"
         android:layout_marginEnd="30dp"
         android:layout_below="@id/tool"
-        android:id="@+id/layout"
+        android:id="@+id/rel_job"
         android:layout_marginBottom="20dp"
         android:background="@drawable/new_rounded_corner_btn_white"
         android:padding="10dp">
@@ -151,18 +145,30 @@
 
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/txt_jobcount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rel_job"
+        android:text="Total Jobs : 0"
+        android:visibility="gone"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/black"
+        android:textSize="15sp"/>
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/layout"
+        android:layout_below="@+id/txt_jobcount"
         tools:context=".MainActivity">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/layout"
+            android:layout_below="@id/rel_job"
             android:layout_weight="1"
             android:scrollbars="vertical" />
 

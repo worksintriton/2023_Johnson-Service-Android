@@ -36,7 +36,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PausedServicesPreventiveMR_Activity extends AppCompatActivity implements PetBreedTypeSelectListener {
+public class  PausedServicesPreventiveMR_Activity extends AppCompatActivity implements PetBreedTypeSelectListener {
 
     ImageView iv_back;
     String value="";

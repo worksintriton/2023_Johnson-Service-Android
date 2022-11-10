@@ -235,7 +235,10 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         btn_Next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (signatureBitmap == null && uploadimagepath == null) {
+                Cursor cur =  CommonUtil.dbUtil.getEngSign(job_id,myactivity);
+                Log.e("ENg Sign", " " + cur.getCount());
+
+                if (signatureBitmap == null && cur.getCount() == 0) {
                     Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else{

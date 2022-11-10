@@ -49,6 +49,7 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -251,7 +252,10 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (signatureBitmap == null && uploadimagepath == null) {
+                Cursor cur =  CommonUtil.dbUtil.getEngSign(job_id,myactivity);
+                Log.e("ENg Sign", " " + cur.getCount());
+
+                if (signatureBitmap == null && cur.getCount() == 0) {
                     Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else{

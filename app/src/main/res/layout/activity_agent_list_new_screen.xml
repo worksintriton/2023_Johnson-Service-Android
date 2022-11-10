@@ -26,9 +26,7 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="5dp" />
+
 
             <View
                 android:layout_width="2dp"
@@ -90,20 +88,17 @@
             android:textColor="#ffffff"
             android:textSize="15dp" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="5dp"/>
     </LinearLayout>
 
     <RelativeLayout
-        android:id="@+id/layout"
+        android:id="@+id/rel_job"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/tool"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="30dp"
         android:layout_marginEnd="30dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/new_rounded_corner_btn_white"
         android:padding="10dp">
 
@@ -156,14 +151,14 @@
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/layout"
+        android:layout_below="@+id/rel_job"
         tools:context=".MainActivity">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/layout"
+            android:layout_below="@id/rel_job"
             android:layout_weight="1"
             android:scrollbars="vertical" />
 

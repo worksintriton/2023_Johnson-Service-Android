@@ -70,8 +70,10 @@
             android:id="@+id/my_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:overScrollMode="never"
             android:layout_marginTop="5dp"
             android:layout_weight="1"
+            android:fastScrollEnabled="true"
             android:scrollbars="vertical" />
 
     </RelativeLayout>

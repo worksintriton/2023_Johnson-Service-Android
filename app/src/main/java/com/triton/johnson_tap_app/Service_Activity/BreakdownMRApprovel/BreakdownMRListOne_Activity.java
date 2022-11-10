@@ -662,7 +662,7 @@ public class BreakdownMRListOne_Activity extends AppCompatActivity {
 
                             databean = response.body().getData().getMr_data();
 
-                            Log.e("Nish",""+databean.toString());
+//                            Log.e("Nish",""+databean.toString());
                             Log.e("Nish",""+databean.size());
 
                             for (int i =0 ; i < databean.size(); i++){

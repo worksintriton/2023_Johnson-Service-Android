@@ -195,10 +195,16 @@ public class Job_DetailsActivity extends AppCompatActivity implements PetBreedTy
 
                     } else if (400 == response.body().getCode()) {
                         if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
-
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found..!");
+                            edtsearch.setEnabled(false);
                         }
                     } else {
-
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found..!");
+                        edtsearch.setEnabled(false);
                         Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
                     }
                 }
@@ -210,6 +216,10 @@ public class Job_DetailsActivity extends AppCompatActivity implements PetBreedTy
             public void onFailure(@NonNull Call<JobListResponse> call, @NonNull Throwable t) {
                 Log.e("Jobno Find ", "--->" + t.getMessage());
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something went wrong..! Try agin");
+                edtsearch.setEnabled(false);
             }
         });
 

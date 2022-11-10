@@ -279,7 +279,7 @@
                     android:layout_marginTop="20dp"
                     android:fontFamily="@font/sourcesanspro_regular"
                     android:padding="15dp"
-                    android:text="Test Version - 08/11/2022 05"
+                    android:text="Test Version - 09/11/2022-04.30"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
                     android:textSize="18sp"

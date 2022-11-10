@@ -341,7 +341,7 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
 
                 uploadDigitalSignatureImageRequest(file);
 
-                long delayInMillis = 15000;
+                long delayInMillis = 1000;
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
@@ -363,8 +363,11 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                if (signatureBitmap == null && uploadimagepath == null) {
-                    Toast.makeText(Technician_signature_preventiveActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
+                Cursor cur =  CommonUtil.dbUtil.getEngSign(job_id,service_title);
+                Log.e("ENg Sign", " " + cur.getCount());
+
+                if (signatureBitmap == null && cur.getCount() == 0) {
+                    Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     Intent send = new Intent(Technician_signature_preventiveActivity.this, Customer_Details_PreventiveActivity.class);
@@ -792,7 +795,7 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
                     }
                     else{
 
-                        long delayInMillis = 15000;
+                        long delayInMillis = 1000;
                         Timer timer = new Timer();
                         timer.schedule(new TimerTask() {
                             @Override
