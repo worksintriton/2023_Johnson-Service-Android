@@ -16,9 +16,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -51,6 +53,7 @@ import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SubmitPreventiveResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
@@ -100,8 +103,10 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
     Context context;
     SharedPreferences sharedPreferences;
     AlertDialog alertDialog;
-    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="";
-
+    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",networkStatus="";
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+    ArrayList<String> mydata = new ArrayList<>();
 
     String form1_value;
     String form1_name;
@@ -141,6 +146,8 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         image = (ImageView)findViewById(R.id.image);
         job_details_text = (TextView) findViewById(R.id.job_details_text);
         img_Signature = findViewById(R.id.image1);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -153,6 +160,11 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         List = sharedPreferences.getString("List","1");
         Log.e("Month List", "" +List);
 
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
@@ -291,9 +303,24 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
 
         Log.e("Nish",""+mmyvalue);
 
-        Job_status();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-        job_details_in_text();
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }
+        else{
+
+            Job_status();
+
+            job_details_in_text();
+
+        }
+
+        getPreventiveCheck();
+
 
         if (status.equals("new")){
 
@@ -304,8 +331,16 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
             getSign(job_id,service_title);
         }else{
 
-            retrive_LocalValue();
+            if (networkStatus != "Not connected to Internet"){
+                retrive_LocalValue();
+            }
+            else{
+
+                NoInternetDialog();
+
+            }
         }
+        getSample();
 
 
         //disable both buttons at start
@@ -355,24 +390,19 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                progressDialog = new ProgressDialog(Customer_Acknowledgement_PreventiveActivity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
 
+                    NoInternetDialog();
 
-                uploadDigitalSignatureImageRequest(file);
+                }else{
 
+                    uploadDigitalSignatureImageRequest(file);
 
-                long delayInMillis = 1000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                }
+
             }
         });
 
@@ -390,7 +420,20 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
                     Toast.makeText(Customer_Acknowledgement_PreventiveActivity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    locationAddResponseCall();
+
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                        NoInternetDialog();
+
+                    }
+                    else{
+
+                        locationAddResponseCall();
+                    }
+
                 }
 
             }
@@ -461,6 +504,73 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
                 onBackPressed();
             }
         });
+    }
+
+    private void getPreventiveCheck() {
+
+        Cursor cur = CommonUtil.dbUtil.getCheckList(job_id,service_title, "2");
+        Log.e("Checklist get",""+cur.getCount());
+        mydata = new ArrayList<>();
+        if(cur.getCount() >0 && cur.moveToFirst()){
+
+            do{
+                @SuppressLint("Range")
+                String abc = cur.getString(cur.getColumnIndex(DbHelper.PREVENTIVE_CHECKLIST));
+                Log.e("Datas",""+abc);
+                mydata.add(abc);
+            }while (cur.moveToNext());
+
+        } else{
+            Log.e("Datasss",""+cur);
+
+        }
+
+        ArrayList<String> outputList = new ArrayList<String>();
+        for (String item: mydata) {
+//            outputList.add("\""+item+"\"");
+            outputList.add(""+item+"");
+        }
+        preventive_check = String.valueOf(outputList);
+        Log.e("Preventive Checklist DB", preventive_check);
+    }
+
+    private Preventive_Submit_Request getSample() {
+
+        Log.e( "before ", preventive_check);
+
+        preventive_check  = preventive_check.replaceAll("\n", "").replaceAll("","");
+        Log.e( "after ", preventive_check);
+
+        Preventive_Submit_Request submitDailyRequest = new Preventive_Submit_Request();
+        submitDailyRequest.setJob_status_type(statustype);
+        submitDailyRequest.setMr_status(value_s);
+        submitDailyRequest.setMr_1(s_mr1);
+        submitDailyRequest.setMr_2(s_mr2);
+        submitDailyRequest.setMr_3(s_mr3);
+        submitDailyRequest.setMr_4(s_mr4);
+        submitDailyRequest.setMr_5(s_mr5);
+        submitDailyRequest.setMr_6(s_mr6);
+        submitDailyRequest.setMr_7(s_mr7);
+        submitDailyRequest.setMr_8(s_mr8);
+        submitDailyRequest.setMr_9(s_mr9);
+        submitDailyRequest.setMr_10(s_mr10);
+        submitDailyRequest.setPreventive_check(preventive_check);
+        submitDailyRequest.setAction_req_customer(action_req_customer);
+        submitDailyRequest.setPm_status(pm_status);
+        submitDailyRequest.setTech_signature(tech_signature);
+        submitDailyRequest.setCustomer_name(customer_name);
+        submitDailyRequest.setCustomer_number(customer_no);
+        submitDailyRequest.setCustomer_signature("uploadimagepath");
+        submitDailyRequest.setUser_mobile_no(se_user_mobile_no);
+        submitDailyRequest.setJob_id(job_id);
+        submitDailyRequest.setSMU_SCH_COMPNO(compno);
+        submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+        Log.e("JobID",""+job_id);
+
+        Log.w(TAG, " locationAddRequest" + new Gson().toJson(submitDailyRequest));
+        return submitDailyRequest;
     }
 
     private void Job_status() {
@@ -866,9 +976,23 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
 
     private void uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(Customer_Acknowledgement_PreventiveActivity.this);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 10000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")
@@ -946,6 +1070,8 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
 
                 if (response.body() != null) {
                     dialog.dismiss();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
@@ -978,6 +1104,7 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
                     }else{
                         //  showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -991,6 +1118,36 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         });
 
     }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
+    }
+
     private Preventive_Submit_Request submitDailyRequest() {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
@@ -999,16 +1156,16 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         Preventive_Submit_Request submitDailyRequest = new Preventive_Submit_Request();
         submitDailyRequest.setJob_status_type(statustype);
         submitDailyRequest.setMr_status(value_s);
-        submitDailyRequest.setMr_1(mr1);
-        submitDailyRequest.setMr_2(mr2);
-        submitDailyRequest.setMr_3(mr3);
-        submitDailyRequest.setMr_4(mr4);
-        submitDailyRequest.setMr_5(mr5);
-        submitDailyRequest.setMr_6(mr6);
-        submitDailyRequest.setMr_7(mr7);
-        submitDailyRequest.setMr_8(mr8);
-        submitDailyRequest.setMr_9(mr9);
-        submitDailyRequest.setMr_10(mr10);
+        submitDailyRequest.setMr_1(s_mr1);
+        submitDailyRequest.setMr_2(s_mr2);
+        submitDailyRequest.setMr_3(s_mr3);
+        submitDailyRequest.setMr_4(s_mr4);
+        submitDailyRequest.setMr_5(s_mr5);
+        submitDailyRequest.setMr_6(s_mr6);
+        submitDailyRequest.setMr_7(s_mr7);
+        submitDailyRequest.setMr_8(s_mr8);
+        submitDailyRequest.setMr_9(s_mr9);
+        submitDailyRequest.setMr_10(s_mr10);
         submitDailyRequest.setPreventive_check(preventive_check);
         submitDailyRequest.setAction_req_customer(action_req_customer);
         submitDailyRequest.setPm_status(pm_status);
@@ -1163,6 +1320,31 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         Log.e("SertYpe", ""+sertype);
         Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));
         return custom;
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     @Override

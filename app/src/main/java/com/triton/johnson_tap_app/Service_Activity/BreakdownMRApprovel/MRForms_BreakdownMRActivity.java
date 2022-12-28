@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,10 +17,12 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -38,6 +41,7 @@ import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.ServiceUserdetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import java.util.List;
@@ -58,11 +62,14 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
     List<ServiceUserdetailsResponse.Datum> servicedetailsbean;
     AlertDialog.Builder builder;
     Context context;
-    String myactivity = "Breakdown MR";
+    String myactivity = "Breakdown MR",networkStatus="";
     String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",str_job_status,message;
     AlertDialog alertDialog;
     ProgressDialog progressDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -87,6 +94,8 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
         mr8 = (EditText) findViewById(R.id.mr8);
         mr9 = (EditText) findViewById(R.id.mr9);
         mr10 = (EditText) findViewById(R.id.mr10);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -99,6 +108,11 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
         Log.e("Name",""+ service_title);
         Log.e("Job ID",""+ job_id);
 
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -177,6 +191,18 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
 
         if (status.equals("pause")){
             Log.e("Inside", "Paused Job");
+
+            networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+            Log.e("Network",""+networkStatus);
+            if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                NoInternetDialog();
+
+            }else{
+
+                Callservice_userdetails();
+            }
 
             iv_pause.setVisibility(View.INVISIBLE);
 
@@ -265,7 +291,17 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
 
                 Log.e("way", "API");
 
-                Callservice_userdetails();
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                  NoInternetDialog();
+
+                }else{
+
+                    Callservice_userdetails();
+                }
 
             }else {
 
@@ -535,5 +571,29 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
                 .show();
     }
 
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
 
 }

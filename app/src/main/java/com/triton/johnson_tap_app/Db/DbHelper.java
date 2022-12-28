@@ -16,6 +16,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL(MRLIST_QUERY);
         db.execSQL(MRFORM_QUERY);
         db.execSQL(P_MRFORM_QUERY);
         db.execSQL(PAUSED_BMRLIST_QUERY);
@@ -38,6 +39,7 @@ public class DbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public static  final String MRLIST_TABLE = "mrlist_table";
     public static final String MR_ID = "mr_id";
     public static  final String MR_TABLE = "mr_table";
     public static  final String PART_NAME = "part_name";
@@ -86,7 +88,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String MONTH = "month";
     public static final String CHECKLIST = "checklist";
     public static final String PREVENTIVE_CHECKLIST = "preventive_checklist";
-    public static final String MYDATATYPE = "mydatatype";
+    public static final String MYNUM = "mynum";
     public static final String BD_DETAILS = "bddetails";
     public static final String FEEDBACK_GROUP = "feedback_group";
     public static final String FEEDBACK_DESCRIPTION = "feedback_description";
@@ -104,6 +106,7 @@ public class DbHelper extends SQLiteOpenHelper {
             + " TEXT , " + FEEDBACK_GROUP
             + " TEXT , " + FEEDBACK_DESCRIPTION
             + " TEXT , " + STATUS
+            + " TEXT , " + MYNUM
             + " TEXT , " + FEEDBACK_REMARKS
             + " TEXT , " + MYACTIVITY
             + " TEXT );";
@@ -143,6 +146,16 @@ public class DbHelper extends SQLiteOpenHelper {
             + " TEXT , " + P_QUANTITY
             + " TEXT , " + P_STATUS
             + " TEXT , " + JOBID
+            + " TEXT );";
+
+    public static  final String MRLIST_QUERY = "CREATE TABLE "
+            + MRLIST_TABLE + " (" + ID
+            + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PART_NAME
+            + " TEXT , " + PART_NO
+            + " TEXT , " + QUANTITY
+            + " TEXT , " + STATUS
+            + " TEXT , " + JOBID
+            + " TEXT , " + MYACTIVITY
             + " TEXT );";
 
     public static final String PAUSED_BMRLIST_QUERY = "CREATE TABLE "

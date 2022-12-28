@@ -34,7 +34,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:ellipsize="end"
+                    android:ellipsize="marquee"
                     android:fontFamily="@font/sourcesanspro_regular"
                     android:maxLines="3"
                     android:lineSpacingExtra="2dp"

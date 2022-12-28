@@ -3,12 +3,17 @@ package com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +34,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Pasused_ListRequest;
 import com.triton.johnson_tap_app.responsepojo.Pasused_ListResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.List;
 
@@ -47,12 +53,14 @@ public class PausedServicesBreakdownMR_Activity extends AppCompatActivity implem
     String message, status;
     TextView txt_no_records;
     PasusedListAdapter_BreakDownMR petBreedTypesListAdapter;
-    private String PetBreedType = "";
+    private String PetBreedType = "",networkStatus="";
+    Context context;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_paused_services_breakdown_mractivity);
+        context = this;
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -98,7 +106,17 @@ public class PausedServicesBreakdownMR_Activity extends AppCompatActivity implem
             }
         });
 
-        jobFindResponseCall(se_user_mobile_no,service_title);
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+          NoInternetDialog();
+
+        }else {
+
+            jobFindResponseCall(se_user_mobile_no, service_title);
+        }
 
     }
 
@@ -192,5 +210,30 @@ public class PausedServicesBreakdownMR_Activity extends AppCompatActivity implem
         send.putExtra("status", status);
         send.putExtra("service_title",service_title);
         startActivity(send);
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 }

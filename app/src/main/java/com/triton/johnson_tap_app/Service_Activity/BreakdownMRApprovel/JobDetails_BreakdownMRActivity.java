@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -16,7 +19,9 @@ import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,6 +36,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.JobListRequest;
 import com.triton.johnson_tap_app.responsepojo.JobListResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,15 +54,17 @@ public class JobDetails_BreakdownMRActivity extends AppCompatActivity implements
     RecyclerView recyclerView;
     String message,job_id;
     JobListAdapter_BreakdownMR petBreedTypesListAdapter;
-    private String PetBreedType = "";
+    private String PetBreedType = "",networkStatus="";
     EditText edtsearch;
     TextView txt_no_records;
     String status;
+    Context context;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_job_details_breakdown_mractivity);
+        context = this;
 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         edtsearch = (EditText) findViewById(R.id.edt_search);
@@ -92,8 +100,18 @@ public class JobDetails_BreakdownMRActivity extends AppCompatActivity implements
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-        jobFindResponseCall(se_user_mobile_no,service_title);
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }
+        else {
+
+            jobFindResponseCall(se_user_mobile_no, service_title);
+        }
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,15 +162,24 @@ public class JobDetails_BreakdownMRActivity extends AppCompatActivity implements
     private void filter(String search) {
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
-        for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
-                    item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
-            {
-                Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
-                filterlist.add(item);
 
+        try{
+            for (JobListResponse.DataBean item :breedTypedataBeanList){
+
+                if(item.getJob_id().toLowerCase().contains(search.toLowerCase()) ||
+                        item.getCustomer_name().toLowerCase().contains(search.toLowerCase()))
+                {
+                    Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
+                    filterlist.add(item);
+
+                }
             }
+
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Log.e("Hi ",""+e.toString());
         }
+
 
 
         if(filterlist.isEmpty())
@@ -263,5 +290,30 @@ public class JobDetails_BreakdownMRActivity extends AppCompatActivity implements
         Intent send = new Intent(JobDetails_BreakdownMRActivity.this, BreakdownMR_Activity.class);
         send.putExtra("service_title",service_title);
         startActivity(send);
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 }

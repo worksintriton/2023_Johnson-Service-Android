@@ -10,15 +10,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +41,7 @@ import com.triton.johnson_tap_app.requestpojo.LoginRequest1;
 import com.triton.johnson_tap_app.requestpojo.ServiceRequest;
 import com.triton.johnson_tap_app.responsepojo.LoginResponse1;
 import com.triton.johnson_tap_app.responsepojo.ServiceResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -57,15 +62,17 @@ public class ServicesActivity extends AppCompatActivity implements PetBreedTypeS
     String message,ID;
     TextView txt_NoRecords;
     ServiceListAdapter petBreedTypesListAdapter;
-    private String PetBreedType = "";
+    private String PetBreedType = "",networkStatus="";
     SwipeRefreshLayout swipeRefreshLayout;
     Dialog dialog;
+    Context context;
 
     @SuppressLint({"MissingInflatedId", "HardwareIds"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_services);
+        context = this;
 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -94,13 +101,38 @@ public class ServicesActivity extends AppCompatActivity implements PetBreedTypeS
             }
         });
 
-        jobFindResponseCall(se_user_mobile_no);
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+//            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+            NoInternetDialog();
+
+        }
+        else {
+
+            jobFindResponseCall(se_user_mobile_no);
+        }
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 swipeRefreshLayout.setRefreshing(false);
-                LoginResponseCall();
+
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+//            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+                    NoInternetDialog();
+
+                }else {
+                    LoginResponseCall();
+                }
             }
         });
     }
@@ -246,5 +278,30 @@ public class ServicesActivity extends AppCompatActivity implements PetBreedTypeS
     public void onBackPressed() {
         Intent send = new Intent(ServicesActivity.this, Main_Menu_ServicesActivity.class);
         startActivity(send);
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 }

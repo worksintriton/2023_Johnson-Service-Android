@@ -66,8 +66,9 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     String s_cust_name,s_cust_no,status,List,statustype,compno,sertype,s_remark,signfile,uploadimagepath,message;
     String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="";
-
     RetriveResponsePR.Data databean ;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     String form1_value;
     String form1_name;
@@ -87,6 +88,7 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
     String[] strGroupid;
     String[] strCatid;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -106,6 +108,8 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
         et_cust_name = (EditText)findViewById(R.id.et_cust_name);
         et_cust_no = (EditText)findViewById(R.id.et_cust_no);
         img_Paused = findViewById(R.id.img_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
 
         Spannable name_Upload = new SpannableString("Customer Name ");
@@ -140,6 +144,12 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
         Log.e("Preventive Check",preventive_check);
         pm_status = sharedPreferences.getString("pmstatus","aaa");
         s_remark = sharedPreferences.getString("feedbackremark","000");
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
 
         form1_value = sharedPreferences.getString("Form1_value","124");

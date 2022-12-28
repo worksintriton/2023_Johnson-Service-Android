@@ -5,16 +5,21 @@ import static com.android.volley.VolleyLog.TAG;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -25,13 +30,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.VolleyLog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.triton.johnson_tap_app.Location.GpsTracker;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.MRForms_BreakdownMRActivity;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.StartJob_BreakdownMR_Activity;
+import com.triton.johnson_tap_app.Service_Activity.PartsReplacementACK.StartJob_ACK_Activity;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.MRForms_PreventiveMRActivity;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.StartJob_PreventiveMR_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -44,11 +53,16 @@ import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
@@ -63,10 +77,16 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
     ImageView iv_back;
     String se_user_mobile_no, se_user_name, se_id,check_id, service_title,job_id,message,str_job_status;
     String compno, sertype,status;
-    String str_Custname, str_Custno, str_Custremarks,str_Techsign,str_CustAck,str_Quoteno,service_type;
+    String str_Custname, str_Custno, str_Custremarks,str_Techsign,str_CustAck,str_Quoteno,service_type,str_StartTime,currentDateandTime;
     Context context;
     SharedPreferences sharedPreferences;
     TextView txt_DateandTime;
+    GpsTracker gpsTracker;
+    Geocoder geocoder;
+    double Latitude ,Logitude;
+    String address = "",networkStatus ="";
+    List<Address> myAddress =  new ArrayList<>();
+    AlertDialog mDialog;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -76,10 +96,22 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         setContentView(R.layout.activity_startjob_lrservice);
         context = this;
 
+//        Latitude = Double.parseDouble("0.0");
+//        Logitude = Double.parseDouble("0.0");
         send = findViewById(R.id.add_fab);
         text = findViewById(R.id.text);
         iv_back = (ImageView) findViewById(R.id.img_back);
         txt_DateandTime = findViewById(R.id.txt_datetime);
+
+
+        try {
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+                ActivityCompat.requestPermissions(StartJob_LRService_Activity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -117,7 +149,20 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         name_Upload1.setSpan(new ForegroundColorSpan(Color.RED), 0, name_Upload1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append(name_Upload1);
 
-        Job_status();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+           NoInternetDialog();
+
+        }
+        else{
+            Job_status();
+        }
+
+        getMYLocation();
+        Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +212,10 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
                     if (Objects.equals(message, "Not Started")){
 
                         Log.e("Hi","inside");
-
+                        DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                        currentDateandTime = df.format(Calendar.getInstance().getTime());
+                        Log.e ("Start Time",""+ currentDateandTime);
+                        str_StartTime = currentDateandTime;
                         alert();
 
                     }
@@ -178,6 +226,9 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
                         Intent send = new Intent(StartJob_LRService_Activity.this, CustomerDetails_LRServiceActivity.class);
                         send.putExtra("job_id",job_id);
                         send.putExtra("status", status);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("starttime", str_StartTime);
+                        editor.apply();
                         startActivity(send);
 
                     }
@@ -186,19 +237,67 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
                 }
                 else {
                     str_job_status = "Job Resume";
-                    Job_status_update();
-                    Intent send = new Intent(context, CustomerDetails_LRServiceActivity.class);
-                    send.putExtra("job_id",job_id);
-                    send.putExtra("status" , status);
-                    send.putExtra("C_name" , str_Custname);
-                    send.putExtra("C_no" , str_Custno);
-                    send.putExtra("C_remarks" , str_Custremarks);
-                    send.putExtra("tech_signature", str_Techsign);
-                    send.putExtra("cust_ack",str_CustAck);
-                    startActivity(send);
+
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                        NoInternetDialog();
+
+                    }else {
+
+                        Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
+
+                        if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
+                            Job_status_update();
+                            Intent send = new Intent(context, CustomerDetails_LRServiceActivity.class);
+                            send.putExtra("job_id", job_id);
+                            send.putExtra("status", status);
+                            send.putExtra("C_name", str_Custname);
+                            send.putExtra("C_no", str_Custno);
+                            send.putExtra("C_remarks", str_Custremarks);
+                            send.putExtra("tech_signature", str_Techsign);
+                            send.putExtra("cust_ack", str_CustAck);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("starttime", str_StartTime);
+                            editor.apply();
+                            startActivity(send);
+                        }
+                        else{
+
+                            ErrorAlert();
+                        }
+
+                    }
                 }
 
 
+            }
+        });
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private void ErrorAlert() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+
+        mBuilder.setView(mView);
+        mDialog = mBuilder.create();
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+                finish();
+                startActivity(getIntent());
             }
         });
     }
@@ -211,6 +310,7 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
         String date = df.format(Calendar.getInstance().getTime());
         TextView txt_DateTime = mView.findViewById(R.id.txt_datetime);
+        txt_DateandTime.setGravity(View.TEXT_ALIGNMENT_GRAVITY);
         txt_DateTime.setText(date);
 
         TextView txt_jobstatus = mView.findViewById(R.id.txt_jobstatus);
@@ -235,12 +335,36 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 str_job_status = "Job Started";
-                Job_status_update();
-                Intent send = new Intent(StartJob_LRService_Activity.this, CustomerDetails_LRServiceActivity.class);
-                send.putExtra("job_id",job_id);
-                send.putExtra("status", status);
-                startActivity(send);
-                dialog.dismiss();
+
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                Log.e("Network", "" + networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                 NoInternetDialog();
+
+                } else{
+
+                    Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
+
+                    if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
+                        Job_status_update();
+                        Intent send = new Intent(StartJob_LRService_Activity.this, CustomerDetails_LRServiceActivity.class);
+                        send.putExtra("job_id", job_id);
+                        send.putExtra("status", status);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("starttime", str_StartTime);
+                        editor.apply();
+                        startActivity(send);
+                        dialog.dismiss();
+                    }
+                    else{
+
+                        dialog.dismiss();
+                        ErrorAlert();
+                    }
+
+                }
 
             }
         });
@@ -269,6 +393,13 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
 
                             Log.d("msg",message);
 
+                            if (!Objects.equals(message, "Not Started")){
+
+                                str_StartTime = response.body().getTime();
+
+                                Log.e (" Start Time  API",""+str_StartTime);
+
+                            }
                         }
 
                     } else {
@@ -297,6 +428,31 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         custom.setSMU_SCQH_QUOTENO(str_Quoteno);
         Log.w(TAG,"loginRequest "+ new Gson().toJson(custom));
         return custom;
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
 
@@ -411,6 +567,9 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setSMU_SCQH_QUOTENO(str_Quoteno);
+        custom.setJOB_LOCATION(address);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_START_LONG(Logitude);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }
@@ -426,5 +585,33 @@ public class StartJob_LRService_Activity extends AppCompatActivity {
         send.putExtra("tech_signature", str_Techsign);
         send.putExtra("cust_ack",str_CustAck);
         startActivity(send);
+    }
+
+
+    private void getMYLocation() {
+
+        Log.e("Hi","Getting Your Location");
+        gpsTracker = new GpsTracker(StartJob_LRService_Activity.this);
+        if(gpsTracker.canGetLocation()){
+            Latitude = gpsTracker.getLatitude();
+            Logitude = gpsTracker.getLongitude();
+            Log.e("Lat ",Latitude + " Long: " + Logitude);
+
+            if (Latitude > 0.0 && Logitude > 0.0){
+                geocoder = new Geocoder(context, Locale.getDefault());
+
+                try {
+                    myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                address = myAddress.get(0).getAddressLine(0);
+
+                Log.e("Address",address);
+            }
+        }else{
+            gpsTracker.showSettingsAlert();
+        }
     }
 }

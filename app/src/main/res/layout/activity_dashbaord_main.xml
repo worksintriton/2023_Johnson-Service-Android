@@ -59,9 +59,11 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <RelativeLayout
+        android:id="@+id/rel_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/main_bar">
+        android:layout_below="@id/main_bar"
+        android:visibility="visible">
 
         <com.flaviofaria.kenburnsview.KenBurnsView
             android:layout_width="match_parent"
@@ -196,6 +198,48 @@
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rel_popimage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/main_bar"
+        android:visibility="gone"
+        android:layout_margin="15dp"
+        android:layout_centerInParent="true">
+
+
+        <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/img_pop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/piclist_icon_default"/>
+
+
+        <Button
+            android:id="@+id/btn_submit"
+            app:layout_constraintTop_toBottomOf="@id/img_pop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="25dp"
+            android:background="@drawable/blue_button_background_with_radius"
+            android:text="OK I HAVE READED"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:paddingHorizontal="45dp"
+            android:textColor="@color/white">
+        </Button>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 
 </RelativeLayout>

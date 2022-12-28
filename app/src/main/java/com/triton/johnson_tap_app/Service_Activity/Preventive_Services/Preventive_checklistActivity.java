@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -41,6 +42,7 @@ import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Preventive_ChecklistResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -69,8 +71,9 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
     Context context;
     ArrayList<String> mydata = new ArrayList<>();
     SharedPreferences sharedPreferences;
-    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",List,statustype,compno,sertype;
-
+    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",List,statustype,compno,sertype,networkStatus="";
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     String form1_value;
     String form1_name;
@@ -90,6 +93,7 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
     String[] strGroupid;
     String[] strCatid;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -107,6 +111,8 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         img_Paused = (ImageView) findViewById(R.id.img_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -176,8 +182,6 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
             Form1_group_id = extras.getString("Form1_group_id");
         }
 
-
-
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
         se_user_mobile_no = sharedPreferences.getString("user_mobile_no", "default value");
@@ -195,6 +199,12 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
         Log.e("ValueA",value_s);
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + jobid);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
@@ -238,10 +248,19 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
 
         Log.e("Nish",""+mmyvalue);
 
-        jobFindResponseCall();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+        }
+        else{
+            jobFindResponseCall();
+        }
 
         getData(jobid,service_title);
-
 
         img_Paused.setOnClickListener(new View.OnClickListener() {
             @Override

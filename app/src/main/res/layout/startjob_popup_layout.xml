@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/round_corner"
+    android:background="@drawable/round_corners"
     android:layout_marginBottom="@dimen/_30dp">
 
     <LinearLayout
@@ -45,6 +45,19 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/sourcesanspro_regular"
             android:gravity="center_horizontal"
+            android:text="Whether you want to proceed ?"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/txt_job_idpop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sourcesanspro_regular"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"
+            android:visibility="gone"
             android:text="Whether you want to proceed ?"
             android:textColor="@color/black"
             android:textSize="18sp" />
@@ -189,8 +202,6 @@
             android:id="@+id/txt_datetime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:padding="5dp"/>
 
 

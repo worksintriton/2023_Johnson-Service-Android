@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.icu.text.DateFormat;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Build;
@@ -86,11 +87,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -156,6 +159,9 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
     @SuppressLint("NonConstantResourceId")
     @BindView(R.id.rl_pet_pics)
     RelativeLayout rl_pet_pics;
+
+    DateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+    DateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     @SuppressLint("NonConstantResourceId")
     @BindView(R.id.rv_upload_pet_images)
@@ -12717,6 +12723,7 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialogInterface, int i) {
 
+                                            submit.setEnabled(false);
                                             locationAddResponseCall();
                                         }
                                     })
@@ -15741,33 +15748,144 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                 Log.w(TAG, "AddLocationResponse" + new Gson().toJson(response.body()));
                 Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
-                 message = response.message().toString();
+//                 message = response.message().toString();
+//                Log.e("message",""+message);
 
                 if (response.body() != null) {
+
+                    message = response.body().getMessage();
+                    Log.e("message",""+message);
 
                     if(response.body().getCode() == 200){
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
-                        Log.w(TAG,"dddd %s"+" "+ response.body().getData().getJobDetails());
+                        Log.e("message",""+message);
 
                         if(message.equals("Data Submitted Successfully")) {
 
                             Toasty.success(getApplicationContext(), "Submitted Successfully", Toast.LENGTH_SHORT, true).show();
 
-                            Intent i = new Intent(Daily_Collection_DetailsActivity.this, MainActivity.class);
-                            startActivity(i);
+                            finish();
+                            startActivity(getIntent());
+                             submit.setEnabled(true);
+
+//                            date.setText("");
+//                            agent_code.setText("");
+//                            chq_no.setText("");
+//                            chq_date.setText("");
+//                            rtgs_no.setText("");
+//                            chq_amt.setText("");
+//                            bank_name.setText("");
+//                            utr_no.setText("");
+//
+//                            job_no.setText("");
+//                            job_no1.setText("");
+//                            job_no2.setText("");
+//                            job_no3.setText("");
+//                            job_no4.setText("");
+//                            job_no5.setText("");
+//                            job_no6.setText("");
+//                            job_no7.setText("");
+//                            job_no8.setText("");
+//                            job_no9.setText("");
+//
+//                            cust_name.setText("");
+//                            cust_name1.setText("");
+//                            cust_name2.setText("");
+//                            cust_name3.setText("");
+//                            cust_name4.setText("");
+//                            cust_name5.setText("");
+//                            cust_name6.setText("");
+//                            cust_name7.setText("");
+//                            cust_name8.setText("");
+//                            cust_name9.setText("");
+//
+//                            f_date.setText("");
+//                            f_date1.setText("");
+//                            f_date2.setText("");
+//                            f_date3.setText("");
+//                            f_date4.setText("");
+//                            f_date5.setText("");
+//                            f_date6.setText("");
+//                            f_date7.setText("");
+//                            f_date8.setText("");
+//                            f_date9.setText("");
+//
+//                            t_date.setText("");
+//                            t_date1.setText("");
+//                            t_date2.setText("");
+//                            t_date3.setText("");
+//                            t_date4.setText("");
+//                            t_date5.setText("");
+//                            t_date6.setText("");
+//                            t_date7.setText("");
+//                            t_date8.setText("");
+//                            t_date9.setText("");
+//
+//                            pay_amt.setText("");
+//                            pay_amt1.setText("");
+//                            pay_amt2.setText("");
+//                            pay_amt3.setText("");
+//                            pay_amt4.setText("");
+//                            pay_amt5.setText("");
+//                            pay_amt6.setText("");
+//                            pay_amt7.setText("");
+//                            pay_amt8.setText("");
+//                            pay_amt9.setText("");
+//
+//                            pay_amt_total.setText("");
+//                            tds_it.setText("");
+//                            tds_gst.setText("");
+//                            edt_other.setText("");
+//                            edt_other1.setText("");
+//
+//                            total_chq_amt.setText("");
+//                            dec_amt.setText("");
+//                            balance_amt.setText("");
+//                            remark.setText("");
+//
+//                            spinner.setSelection(0);
+//                            spinner1.setSelection(0);
+//                            spinner2.setSelection(0);
+//                            spinner3.setSelection(0);
+//                            spinner4.setSelection(0);
+//                            spinner5.setSelection(0);
+//                            spinner6.setSelection(0);
+//                            spinner7.setSelection(0);
+//                            spinner8.setSelection(0);
+//                            spinner9.setSelection(0);
+//
+//                            contact_no.setSelection(0);
+//                            contact_no1.setSelection(0);
+//                            contact_no2.setSelection(0);
+//                            contact_no3.setSelection(0);
+//                            contact_no4.setSelection(0);
+//                            contact_no5.setSelection(0);
+//                            contact_no6.setSelection(0);
+//                            contact_no7.setSelection(0);
+//                            contact_no8.setSelection(0);
+//                            contact_no9.setSelection(0);
+//
+//                            other.setSelection(0);
+//                            other1.setSelection(0);
+
                         }
 
                     }else{
 
+                        submit.setEnabled(true);
+
                     }
 
                 }
+
+                submit.setEnabled(true);
             }
 
             @Override
             public void onFailure(@NotNull Call<SubmitDailyResponse> call, @NotNull Throwable t) {
                 Log.w(TAG,"AddLocationResponseflr"+t.getMessage());
+                submit.setEnabled(true);
             }
         });
 
@@ -16059,8 +16177,6 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                 //Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
-
     }
 
     private void setView() {
@@ -16091,6 +16207,45 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
 
                            String str_address1 = response.body().getData().getCustomer_name();
                             cust_name.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+                            
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
+
                         }
 
                     } else {
@@ -16131,6 +16286,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             str_cus_name = cust_name.getText().toString();
                             cust_name.setText(str_cus_name);
                             cust_name1.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16173,6 +16366,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name.setText(str_cus_name);
                             cust_name1.setText(str_cus_name1);
                             cust_name2.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16217,6 +16448,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name1.setText(str_cus_name1);
                             cust_name2.setText(str_cus_name2);
                             cust_name3.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16263,6 +16532,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name2.setText(str_cus_name2);
                             cust_name3.setText(str_cus_name3);
                             cust_name4.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16311,6 +16618,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name3.setText(str_cus_name3);
                             cust_name4.setText(str_cus_name4);
                             cust_name5.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16361,6 +16706,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name4.setText(str_cus_name4);
                             cust_name5.setText(str_cus_name5);
                             cust_name6.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16413,6 +16796,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name5.setText(str_cus_name5);
                             cust_name6.setText(str_cus_name6);
                             cust_name7.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16467,6 +16888,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name6.setText(str_cus_name6);
                             cust_name7.setText(str_cus_name7);
                             cust_name8.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {
@@ -16523,6 +16982,44 @@ public class Daily_Collection_DetailsActivity extends AppCompatActivity implemen
                             cust_name7.setText(str_cus_name7);
                             cust_name8.setText(str_cus_name8);
                             cust_name9.setText(str_address1);
+
+
+                            String Fdate = response.body().getData().getFRDT();
+                            String Tdate = response.body().getData().getTODT();
+                            Log.e("FRDT 1",""+Fdate);
+                            Log.e("TODT 1",""+Fdate);
+
+                            if(!Objects.equals(Fdate, "") || !Objects.equals(Tdate, "")){
+
+                                // From Date
+                                Fdate = Fdate.substring(0, 10);
+                                Log.e("FRDT",""+Fdate);
+                                String str_F=Fdate;
+                                Date dateF = null;
+                                try {
+                                    dateF = inputFormat.parse(str_F);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Fdate = outputFormat.format(dateF);
+                                Log.e("FDate",""+Fdate);
+                                f_date.setText(Fdate);
+
+
+                                // To Date
+                                Tdate = Tdate.substring(0, 10);
+                                Log.e("TODT",""+Tdate);
+                                String str_T=Tdate;
+                                Date dateT = null;
+                                try {
+                                    dateT = inputFormat.parse(str_T);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                Tdate = outputFormat.format(dateT);
+                                Log.e("TDate",""+Tdate);
+                                t_date.setText(Tdate);
+                            }
                         }
 
                     } else {

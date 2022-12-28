@@ -29,6 +29,8 @@ import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
+import java.util.Arrays;
+
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,19 +38,31 @@ import retrofit2.Response;
 
 public class BD_StatusActivity extends AppCompatActivity {
 
-    TextView text;
+    TextView text,txt_Lift;
     CardView full,material,lift;
     String value="",job_id,feedback_group,feedback_details,bd_dta,feedback_remark,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,tech_signature="",status,message;
     ImageView iv_back;
     SharedPreferences sharedPreferences;
     Context context;
     String se_id,se_user_mobile_no,sertype,compno,se_user_name;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_bd_status);
         context = this;
+
+        text = findViewById(R.id.text);
+        full = findViewById(R.id.card_full);
+        material = findViewById(R.id.card_material);
+        lift = findViewById(R.id.card_lift);
+        iv_back = (ImageView) findViewById(R.id.iv_back);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
+        txt_Lift = findViewById(R.id.txt_lift);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -119,11 +133,23 @@ public class BD_StatusActivity extends AppCompatActivity {
         sertype = sharedPreferences.getString("sertype","123");
         job_id = sharedPreferences.getString("job_id","123");
         Log.e("Value",value);
-        text = findViewById(R.id.text);
-        full = findViewById(R.id.card_full);
-        material = findViewById(R.id.card_material);
-        lift = findViewById(R.id.card_lift);
-        iv_back = (ImageView) findViewById(R.id.iv_back);
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+
+        Log.e("Start Time",str_StartTime);
+
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        String LiftType = job_id.substring(0,1);
+        Log.e("Hi","Lift Type "+ LiftType);
+
+        if (LiftType.equals("E")){
+
+            txt_Lift.setText("Escalator Shutdown");
+        }
+
+
 
         Spannable name_Upload = new SpannableString("Breakdown Service ");
         name_Upload.setSpan(new ForegroundColorSpan(BD_StatusActivity.this.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

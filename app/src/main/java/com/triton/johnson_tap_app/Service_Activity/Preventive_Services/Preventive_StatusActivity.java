@@ -1,5 +1,6 @@
 package com.triton.johnson_tap_app.Service_Activity.Preventive_Services;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -26,7 +27,10 @@ public class Preventive_StatusActivity extends AppCompatActivity {
     String Form1_cat_id,Form1_group_id,status;
     ImageView iv_back;
     SharedPreferences sharedPreferences;
+    TextView txt_Jobid,txt_Starttime,txt_Lift;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -37,6 +41,9 @@ public class Preventive_StatusActivity extends AppCompatActivity {
         material = findViewById(R.id.card_material);
         lift = findViewById(R.id.card_lift);
         iv_back = (ImageView) findViewById(R.id.iv_back);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
+        txt_Lift = findViewById(R.id.txt_lift);
 
         Spannable name_Upload = new SpannableString("PM Status ");
         name_Upload.setSpan(new ForegroundColorSpan(Preventive_StatusActivity.this.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -47,7 +54,23 @@ public class Preventive_StatusActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         value_s = sharedPreferences.getString("value","default value");
+        job_id = sharedPreferences.getString("job_id","L1234");
         Log.e("Value",""+value_s);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        String LiftType = job_id.substring(0,1);
+        Log.e("Hi","Lift Type "+ LiftType);
+
+        if (LiftType.equals("E")){
+
+            txt_Lift.setText("Escalator Shutdown");
+        }
+
 
 
         Bundle extras = getIntent().getExtras();

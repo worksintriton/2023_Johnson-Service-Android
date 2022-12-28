@@ -3,6 +3,7 @@ package com.triton.johnson_tap_app.Service_Activity.Breakdown_Services;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,9 +13,11 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +27,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.VolleyLog;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.Adapter.CardViewDataAdapter;
 import com.triton.johnson_tap_app.Db.CommonUtil;
@@ -37,10 +41,22 @@ import com.triton.johnson_tap_app.UserTypeSelectListener1;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.BD_DetailsRequest;
+import com.triton.johnson_tap_app.requestpojo.Breakdowm_Submit_Request;
+import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.BD_DetailsResponse;
+import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
+import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -56,13 +72,17 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
     List<BD_DetailsResponse.DataBean> breedTypedataBeanList;
     BD_DetailsAdapter activityBasedListAdapter;
     private String PetBreedType = "";
-    String message,se_user_mobile_no,status, se_user_name, se_id,check_id, service_title,str_job_id,data="";
-    private String Title,petimage;
+    String message,se_user_mobile_no,status, se_user_name, se_id,check_id, service_title,str_job_id,data="",str_BDDetails="";
+    private String Title,petimage,str_StartTime,str_job_status,compno,sertype;
     AlertDialog alertDialog;
     ProgressDialog progressDialog;
     Context context;
     ArrayList<String> mydata = new ArrayList<>();
+    TextView txt_Jobid,txt_Starttime;
+    String networkStatus="";
+    SharedPreferences sharedPreferences;
 
+    @SuppressLint("SetTextI18n")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -77,6 +97,8 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         ic_paused = (ImageView) findViewById(R.id.ic_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -85,20 +107,42 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
             Log.e("Status",""+status);
         }
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
         se_user_mobile_no = sharedPreferences.getString("user_mobile_no", "default value");
         se_user_name = sharedPreferences.getString("user_name", "default value");
         service_title = sharedPreferences.getString("service_title", "default value");
         str_job_id = sharedPreferences.getString("job_id","123");
-
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
         Log.e("Name",service_title);
         Log.e("JobID",str_job_id);
+        Log.e("Start Time",str_StartTime);
+        compno = sharedPreferences.getString("compno","123");
+        sertype = sharedPreferences.getString("sertype","123");
 
+//        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
+//        String currentDateandTime = sdf.format(new Date());
 
-      //  CommonUtil.dbUtil.reportDeletePreventiveListDelete(str_job_id,service_title);
+        txt_Jobid.setText("Job ID : " + str_job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
+//        CommonUtil.dbUtil.reportDeletePreventiveListDelete(str_job_id,service_title);
 
        // jobFindResponseCall("L-F3183");
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }
+        else{
+
+            jobFindResponseCall(str_job_id);
+        }
 
         if (status.equals("new")){
 
@@ -106,55 +150,62 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
         }
         else{
 
+            if (!Objects.equals(networkStatus, "Not connected to Internet")){
+
+
+                retrive_LocalValue();
+            }
+            else{
+                NoInternetDialog();
+            }
 
         }
-        jobFindResponseCall(str_job_id);
 
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 Log.e("BD SIZE",""+breedTypedataBeanList.size());
-
-                Cursor curs = CommonUtil.dbUtil.getBDdetails(str_job_id,service_title, "1");
-                Log.e("BD",""+curs.getCount());
+                Cursor curs;
 
                 for (int i = 0; i < breedTypedataBeanList.size(); i++) {
                     BD_DetailsResponse.DataBean singleStudent = breedTypedataBeanList.get(i);
-                    if (singleStudent.isSelected() == true || curs.getCount() > 0) {
+                    if (singleStudent.isSelected()) {
                         data = breedTypedataBeanList.get(i).getTitle().toString();
                         Log.e("My BD DATA",""+data);
-                        CommonUtil.dbUtil.addBDDetails(str_job_id,service_title,data,"1");
-                            Intent send = new Intent(BD_DetailsActivity.this, Feedback_GroupActivity.class);
-                            send.putExtra("bd_details",data);
-                            send.putExtra("job_id",str_job_id);
-                            send.putExtra("status",status);
-                            startActivity(send);
-//                        }
 
-                    } else {
-//                        if(curs.getCount() > 0){
+//                        CommonUtil.dbUtil.addBDDetails(str_job_id,service_title,data,"1");
 //                            Intent send = new Intent(BD_DetailsActivity.this, Feedback_GroupActivity.class);
 //                            send.putExtra("bd_details",data);
 //                            send.putExtra("job_id",str_job_id);
+//                            send.putExtra("status",status);
 //                            startActivity(send);
-//                        }
-                        //else{
-
-//                        alertDialog = new AlertDialog.Builder(BD_DetailsActivity.this)
-//                                .setTitle("Please Selected Value")
-//                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-//                                    public void onClick(DialogInterface dialogInterface, int i) {
-//                                        alertDialog.dismiss();
-//                                    }
-//                                })
-//                                .show();
-                    //    }
 
                     }
                 }
+
+                curs = CommonUtil.dbUtil.getBDdetails(str_job_id,service_title, "1");
+                Log.e("BD",""+curs.getCount());
+
+                if(curs.getCount() >0){
+                    Intent send = new Intent(BD_DetailsActivity.this, Feedback_GroupActivity.class);
+                    send.putExtra("bd_details",data);
+                    send.putExtra("job_id",str_job_id);
+                    send.putExtra("status",status);
+                    startActivity(send);
+                }
+                else{
+
+                    alertDialog = new AlertDialog.Builder(BD_DetailsActivity.this)
+                            .setTitle("Please Selected Value")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                        alertDialog.dismiss();
+                                    }
+                                })
+                                .show();
+                }
             }
         });
-
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -177,23 +228,83 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
         });
 
         ic_paused.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+            @Override
+            public void onClick(View view) {
 
-//                progressDialog = new ProgressDialog(BD_DetailsActivity.this);
-//                progressDialog.setMessage("Please Wait ...");
-//                progressDialog.setCancelable(false);
-//                progressDialog.show();
-//
-//                for (int i = 0; i < breedTypedataBeanList.size(); i++) {
-//                    BD_DetailsResponse.DataBean singleStudent = breedTypedataBeanList.get(i);
-//                    if (singleStudent.isSelected() == true) {
-//                        data = breedTypedataBeanList.get(i).getTitle().toString();
-//                    }
-//                }
-//
-//                locationAddResponseCall();
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
+                alertDialog = new AlertDialog.Builder(context)
+                        .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                str_job_status = "Job Paused";
+                                Job_status_update();
+                                createLocalvalue();
+
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                alertDialog.dismiss();
+                            }
+                        })
+                        .show();
             }
         });
+
+    }
+
+    @SuppressLint("LongLogTag")
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveLocalValueBRResponse> call = apiInterface.retriveLocalValueBRCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.e("Retrive Local Value url  :%s"," "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveLocalValueBRResponse>() {
+            @Override
+            public void onResponse(Call<RetriveLocalValueBRResponse> call, Response<RetriveLocalValueBRResponse> response) {
+                Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+                if (response.body() != null){
+
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if (response.body().getData() != null){
+                            Log.d("msg",message);
+
+                            str_BDDetails = response.body().getData().getBd_details();
+                            Log.e("Retive BD",""+str_BDDetails);
+
+//                            setView(breedTypedataBeanList);
+                        }
+                    }else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveLocalValueBRResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest localRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJob_id(str_job_id);
+        custom.setSMU_SCH_COMPNO(compno);
+        //  custom.setSMU_SCH_SERTYPE(sertype);
+        Log.e("Request Data ",""+ new Gson().toJson(custom));
+        return custom;
 
     }
 
@@ -251,31 +362,27 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
 
     private void setView(List<BD_DetailsResponse.DataBean> dataBeanList) {
 
-//        Cursor cur = CommonUtil.dbUtil.getBDdetails(str_job_id,service_title, "1");
-//        Log.e("BD Details Get",""+cur.getCount());
-//        if(cur.getCount() >0 && cur.moveToFirst()){
-//
-//            do{
-//                @SuppressLint("Range")
-//                String abc = cur.getString(cur.getColumnIndex(DbHelper.BD_DETAILS));
-//                Log.e("Datas Get",""+abc);
-//                mydata.add(abc);
-//            }while (cur.moveToNext());
-//
-//        }
-
-//        if (cur.moveToLast()){
-//            @SuppressLint("Range")
-//            String abc = cur.getString(cur.getColumnIndex(DbHelper.BD_DETAILS));
-//            Log.e("BD Data Get",""+abc);
-//            mydata.add(abc);
-//        }
-
+        getBDDetails();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        activityBasedListAdapter = new BD_DetailsAdapter(getApplicationContext(), dataBeanList,this,status);
+        activityBasedListAdapter = new BD_DetailsAdapter(getApplicationContext(), dataBeanList,this,status,str_BDDetails);
         recyclerView.setAdapter(activityBasedListAdapter);
+    }
+
+    @SuppressLint("Range")
+    private void getBDDetails() {
+
+        Cursor curs = CommonUtil.dbUtil.getBDdetails(str_job_id,service_title, "1");
+        Log.e("BD Count",""+curs.getCount());
+
+        if (curs.getCount()>0 && curs.moveToLast()){
+
+            str_BDDetails = curs.getString(curs.getColumnIndex(DbHelper.BD_DETAILS));
+            Log.e("BD Data Get",""+str_BDDetails);
+        }
+
+
     }
 
     public void userTypeSelectListener1(String usertype, String usertypevalue) {
@@ -368,6 +475,169 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
 //        return submitDailyRequest;
 //    }
 
+    public void NoInternetDialog() {
+
+        android.app.AlertDialog.Builder mBuilder = new android.app.AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
+    private void Job_status_update() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<Job_status_updateResponse> call = apiInterface.job_status_updateResponseCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(), job_status_updateRequest());
+        Log.w(VolleyLog.TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<Job_status_updateResponse>() {
+            @SuppressLint("LogNotTimber")
+            @Override
+            public void onResponse(@NonNull Call<Job_status_updateResponse> call, @NonNull Response<Job_status_updateResponse> response) {
+
+                Log.w(VolleyLog.TAG,"SignupResponse" + new Gson().toJson(response.body()));
+                if (response.body() != null) {
+
+                    message = response.body().getMessage();
+
+                    if (200 == response.body().getCode()) {
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+                        }
+
+
+                    } else {
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+
+                    }
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Job_status_updateResponse> call, @NonNull Throwable t) {
+                Log.e("OTP", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private Job_status_updateRequest job_status_updateRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setService_name(service_title);
+        custom.setJob_id(str_job_id);
+        custom.setStatus(str_job_status);
+        custom.setSMU_SCH_COMPNO(compno);
+        custom.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+        Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));
+        return custom;
+    }
+
+    private void createLocalvalue() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<SuccessResponse> call = apiInterface.createLocalvalueBD(com.triton.johnson_tap_app.utils.RestUtils.getContentType(), createLocalRequest());
+        Log.w(VolleyLog.TAG,"Create Local Value Response url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<SuccessResponse>() {
+            @Override
+            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+
+                Log.w(VolleyLog.TAG,"Create Local Value Response" + "" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+                            Intent send = new Intent(context, ServicesActivity.class);
+                            startActivity(send);
+                        }
+
+                    } else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Breakdowm_Submit_Request createLocalRequest() {
+
+        getBDDetails();
+
+        String codelist="", feedbackdetails="";
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
+        String currentDateandTime = sdf.format(new Date());
+
+        Breakdowm_Submit_Request submitDailyRequest = new Breakdowm_Submit_Request();
+        submitDailyRequest.setBd_details(str_BDDetails);
+        //submitDailyRequest.setFeedback_details(sstring);
+        submitDailyRequest.setCode_list(String.valueOf(codelist));
+        submitDailyRequest.setFeedback_details(String.valueOf(feedbackdetails));
+        submitDailyRequest.setFeedback_remark_text("");
+        submitDailyRequest.setMr_status("-");
+        submitDailyRequest.setMr_1("");
+        submitDailyRequest.setMr_2("");
+        submitDailyRequest.setMr_3("");
+        submitDailyRequest.setMr_4("");
+        submitDailyRequest.setMr_5("");
+        submitDailyRequest.setMr_6("");
+        submitDailyRequest.setMr_7("");
+        submitDailyRequest.setMr_8("");
+        submitDailyRequest.setMr_9("");
+        submitDailyRequest.setMr_10("");
+        submitDailyRequest.setBreakdown_service("");
+        submitDailyRequest.setTech_signature("");
+        submitDailyRequest.setCustomer_name("");
+        submitDailyRequest.setCustomer_number("");
+        submitDailyRequest.setCustomer_acknowledgemnet("");
+        submitDailyRequest.setDate_of_submission(currentDateandTime);
+        submitDailyRequest.setUser_mobile_no(se_user_mobile_no);
+        submitDailyRequest.setJob_id(str_job_id);
+        submitDailyRequest.setSMU_SCH_COMPNO(compno);
+        submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+        Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));
+        return submitDailyRequest;
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -389,3 +659,22 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
                 .show();
     }
 }
+
+
+//                        if(curs.getCount() > 0){
+//                            Intent send = new Intent(BD_DetailsActivity.this, Feedback_GroupActivity.class);
+//                            send.putExtra("bd_details",data);
+//                            send.putExtra("job_id",str_job_id);
+//                            startActivity(send);
+//                        }
+//else{
+
+//                        alertDialog = new AlertDialog.Builder(BD_DetailsActivity.this)
+//                                .setTitle("Please Selected Value")
+//                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+//                                    public void onClick(DialogInterface dialogInterface, int i) {
+//                                        alertDialog.dismiss();
+//                                    }
+//                                })
+//                                .show();
+//    }

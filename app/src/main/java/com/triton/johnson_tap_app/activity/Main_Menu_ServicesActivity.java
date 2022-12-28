@@ -10,13 +10,17 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -37,10 +41,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
+import com.triton.johnson_tap_app.NetworkUtility.ConnectionReceiver;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.Service_Activity.Agent_ProfileActivity;
-import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Job_StatusActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
+import com.triton.johnson_tap_app.ViewStatus.Job_StatusActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.CheckAttenRequest;
@@ -51,6 +56,8 @@ import com.triton.johnson_tap_app.responsepojo.CheckAttenResponse;
 import com.triton.johnson_tap_app.responsepojo.CountResponse;
 import com.triton.johnson_tap_app.responsepojo.CreateResponse;
 import com.triton.johnson_tap_app.responsepojo.LogoutResponse;
+import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import org.json.JSONArray;
@@ -69,10 +76,10 @@ import retrofit2.Callback;
 
 public class Main_Menu_ServicesActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
-   LinearLayout menu_service, menu_view_status, menu_change_password, menu_agent_profile;
+   LinearLayout menu_service, menu_view_status, menu_change_password, menu_agent_profile,menu_Notifications;
    ImageView iv_back,profile_gray,profile_green, profile_red;
     AlertDialog alertDialog1;
-    String str_value,message;
+    String str_value,message = "Not Present";
     TextView spinner_txt,txt_service_count,txt_view_count;
     LinearLayout logout,ll_Menu;
     Spinner spinner;
@@ -84,12 +91,14 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
     String latitude, longitude, no_of_hours;
     String endDateandTime, currentDateandTime,currentDate,str_spinner,current,start;
     long elapsedHours,elapsedMinutes;
-    String se_user_mobile_no, se_user_name, se_id,check_id, view_count, service_count;
+    String se_user_mobile_no, se_user_name, se_id,check_id, view_count, service_count,notification_count,networkStatus="";
     private ArrayList<String> students;
     private JSONArray result;
     AlertDialog alertDialog;
     Context context;
     SharedPreferences sharedPreferences;
+    TextView txt_NotficationCount;
+    BroadcastReceiver broadcastReceiver;
 
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +119,8 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
         txt_service_count = (TextView) findViewById(R.id.txt_service_count);
         txt_view_count = (TextView) findViewById(R.id.txt_view_count);
         ll_Menu = findViewById(R.id.ll_menu);
+        menu_Notifications = findViewById(R.id.menu_notification);
+        txt_NotficationCount = findViewById(R.id.txt_notifocationcount);
 
        // ll_Menu.setEnabled(false);
 
@@ -129,9 +140,24 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
 
         Log.w(TAG, "userrole  : " + se_id + se_user_mobile_no);
 
-        Count();
+//        broadcastReceiver = new ConnectionReceiver();
+//        registerNetworkBroadcast();
 
-        CheckAttendanceResponseCall();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+        }
+        else {
+            CheckAttendanceResponseCall();
+
+            Count();
+        }
+
+
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -274,6 +300,31 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
             }
         });
 
+        menu_Notifications.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(message.equals("Not Present")){
+
+                    alertDialog = new AlertDialog.Builder(context)
+                            //.setTitle("Please Login to Continue!")
+                            .setMessage("Please Login to Continue!")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    alertDialog.dismiss();
+                                }
+                            })
+                            .show();
+
+                }
+                else{
+                    Intent send = new Intent(Main_Menu_ServicesActivity.this, Notification_Activity.class);
+                    startActivity(send);
+                }
+
+            }
+        });
+
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -316,17 +367,18 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm aa");
 
 
-                            try {
-                                Date date1 = simpleDateFormat.parse(start);
-                                Date date2 = simpleDateFormat.parse(endDateandTime);
+//                            try {
+//                                Date date1 = simpleDateFormat.parse(start);
+//                                Date date2 = simpleDateFormat.parse(endDateandTime);
+//
+//                                printDifference(date1, date2);
+//
+//                            } catch (ParseException e) {
+//                                e.printStackTrace();
+//                            }
 
-                                printDifference(date1, date2);
-
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-
-                            logoutResponseCall(check_id, endDateandTime, str_spinner,latitude,longitude,no_of_hours);
+//                            logoutResponseCall(check_id, endDateandTime, str_spinner,latitude,longitude,no_of_hours);
+                           logoutResponseCall();
                            dialog.dismiss();
 
                        }
@@ -368,6 +420,7 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
 
         Log.d("time", elapsedHours + "." + elapsedMinutes);
     }
+
 
     private void CheckAttendanceResponseCall() {
 
@@ -438,6 +491,7 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
         });
 
     }
+
     private CheckAttenRequest checkattRequest() {
 
         /**
@@ -526,19 +580,19 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
         return creaRequest;
     }
 
-    private void logoutResponseCall(String id, String att_end_time, String att_reason, String att_end_lat, String att_end_long, String att_no_of_hrs) {
+    private void logoutResponseCall() {
        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
-        Call<LogoutResponse> call = apiInterface.logoutResponseCall(RestUtils.getContentType(), addReviewRequest(id,att_end_time,att_reason,att_end_lat,att_end_long, att_no_of_hrs));
+        Call<SuccessResponse> call = apiInterface.LogoutCall(RestUtils.getContentType(), addReviewRequest());
         Log.w(TAG,"addReviewResponseCall url  :%s"+" "+ call.request().url().toString());
 
 
-        call.enqueue(new Callback<LogoutResponse>() {
+        call.enqueue(new Callback<SuccessResponse>() {
             @Override
-            public void onResponse(@NonNull Call<LogoutResponse> call, @NonNull retrofit2.Response<LogoutResponse> response) {
+            public void onResponse(@NonNull Call<SuccessResponse> call, @NonNull retrofit2.Response<SuccessResponse> response) {
 
                 Log.w(TAG,"AddReviewResponse"+ "--->" + new Gson().toJson(response.body()));
 
-                Log.w(TAG,"Response"+ "--->" + "_id : " + id + "," + "att_end_time : " + att_end_time + ","+ "att_reason : " + att_reason + "," + "att_end_lat : " + att_end_lat + "," + "att_end_long : " + att_end_long + ","+ "att_no_of_hrs : " + att_no_of_hrs);
+            //    Log.w(TAG,"Response"+ "--->" + "_id : " + id + "," + "att_end_time : " + att_end_time + ","+ "att_reason : " + att_reason + "," + "att_end_lat : " + att_end_lat + "," + "att_end_long : " + att_end_long + ","+ "att_no_of_hrs : " + att_no_of_hrs);
 
                 if (response.body() != null) {
                     if(response.body().getCode() == 200){
@@ -561,7 +615,7 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
 
             @SuppressLint("LongLogTag")
             @Override
-            public void onFailure(@NonNull Call<LogoutResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<SuccessResponse> call, @NonNull Throwable t) {
 
                 Log.w(TAG,"AddReviewResponse flr"+"--->" + t.getMessage());
             }
@@ -569,15 +623,15 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
 
     }
 
-    private LogoutRequest addReviewRequest(String id, String att_end_time, String att_reason, String att_end_lat, String att_end_long, String att_no_hrs) {
+    private LogoutRequest addReviewRequest() {
 
         LogoutRequest addReviewRequest = new LogoutRequest();
-        addReviewRequest.set_id(id);
-        addReviewRequest.setAtt_end_time(att_end_time);
-        addReviewRequest.setAtt_reason(att_reason);
-        addReviewRequest.setAtt_end_lat(att_end_lat);
-        addReviewRequest.setAtt_end_long(att_end_long);
-        addReviewRequest.setAtt_no_of_hrs(att_no_hrs);
+//        addReviewRequest.set_id(id);
+//        addReviewRequest.setAtt_end_time(att_end_time);
+        addReviewRequest.setAtt_reason(str_spinner);
+//        addReviewRequest.setAtt_end_lat(att_end_lat);
+//        addReviewRequest.setAtt_end_long(att_end_long);
+//        addReviewRequest.setAtt_no_of_hrs(att_no_hrs);
         addReviewRequest.setUser_mobile_no(se_user_mobile_no);
         Log.w(TAG,"addReviewRequest" + new Gson().toJson(addReviewRequest));
         return addReviewRequest;
@@ -590,7 +644,7 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
         Log.w(TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
 
         call.enqueue(new Callback<CountResponse>() {
-            @SuppressLint("LogNotTimber")
+            @SuppressLint({"LogNotTimber", "SetTextI18n"})
             @Override
             public void onResponse(@NonNull Call<CountResponse> call, @NonNull retrofit2.Response<CountResponse> response) {
 
@@ -603,8 +657,12 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
 
                             view_count = response.body().getData().getView_status();
                             service_count = response.body().getData().getServices_count();
+                            notification_count = response.body().getData().getNotificaion_count();
                             txt_service_count.setText(service_count);
                             txt_view_count.setText(view_count);
+                            txt_NotficationCount.setText("("+notification_count+")");
+
+
                            // Log.d("count", service_count + "," + view_count);
 
                         }
@@ -740,5 +798,27 @@ public class Main_Menu_ServicesActivity extends AppCompatActivity implements Ada
     public void onBackPressed() {
         Intent send = new Intent(Main_Menu_ServicesActivity.this, Dashbaord_MainActivity.class);
         startActivity(send);
+    }
+
+
+    protected void registerNetworkBroadcast(){
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            registerReceiver(broadcastReceiver,new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+        }else{
+
+        }
+
+    }
+
+    protected  void unRegisterNetwork(){
+
+        try{
+            unregisterReceiver(broadcastReceiver);
+
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }
     }
 }

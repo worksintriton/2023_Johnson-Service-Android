@@ -2,6 +2,7 @@ package com.triton.johnson_tap_app.Service_Activity.SiteAudit;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -19,6 +21,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +32,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.VolleyLog;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
@@ -38,18 +42,28 @@ import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.Technici
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Job_Details_PreventiveActivity;
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Material_Request_PreventiveActivity;
 import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Quarterly_Top_PitActivity;
+import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.interfaces.GetNumberListener;
 import com.triton.johnson_tap_app.interfaces.GetSpinnerListener;
 import com.triton.johnson_tap_app.interfaces.GetStringListener;
 import com.triton.johnson_tap_app.interfaces.GetStringRemarksListener;
+import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.GetFieldListRequest;
+import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
+import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -81,12 +95,28 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
     String string_value, message, service_id, activity_id, job_id, group_id, status, job_detail_no,osacompno,se_user_mobile_no;
     String s1,_id,value,service_title,data,data1,data2,data3,data4,data5,field_value,field_name,field_comments,field_cat_id,field_group_id,field_remarks,str,str1,str2,str3,str4,str5,service_type;
     private Dialog alertDialog;
-    ImageView iv_back;
+    ImageView iv_back,img_Pause;
     LinearLayout footerView;
     String List;
     SharedPreferences sharedPreferences;
     Context context;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime,str_job_status="";
+    ProgressDialog progressDialog;
 
+    String form1_value = "";
+    String form1_name;
+    String form1_comments;
+    String form1_cat_id;
+    String form1_group_id;
+    String form_remarks;
+
+    ArrayList <String>myFieldValue = new ArrayList();
+    ArrayList<String> myname = new ArrayList();
+    ArrayList<String> comments = new ArrayList();
+    ArrayList<String> catid = new ArrayList();
+    ArrayList<String> groupid = new ArrayList();
+    ArrayList<String> remarks = new ArrayList<>();
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,7 +132,11 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         btn_pending = (Button) findViewById(R.id.btn_pending);
         btn_clear = (Button) findViewById(R.id.btn_clear);
         iv_back = (ImageView) findViewById(R.id.iv_back);
+        img_Pause = findViewById(R.id.img_paused);
         footerView = (LinearLayout) findViewById(R.id.footerView);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
+//        img_Pause.setVisibility(View.INVISIBLE);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -129,11 +163,16 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         osacompno = sharedPreferences.getString("osacompno","ADT2020202020");
         service_type = sharedPreferences.getString("service_type","value");
         Log.e("Service Type", "" + service_type);
-
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("Jobid", "" +job_id);
         Log.e("osocompno",""+ osacompno);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
 
 //        Intent intent = getIntent();
@@ -143,7 +182,17 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
      //   Log.e("List New", "" +List);
 
-        jobFindResponseCall();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+        }else {
+
+            jobFindResponseCall();
+        }
         networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
         iv_back.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +204,87 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
             }
         });
 
+        img_Pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+                String date = df.format(Calendar.getInstance().getTime());
+
+                Log.e("Page Number",""+currentPage);
+                alertDialog = new AlertDialog.Builder(context)
+                        .setTitle("Are you sure to pause this job ?")
+                        .setMessage(date)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                                List<GetFieldListResponse.DataBean> dataBeanListS = new ArrayList<>();
+                                int startItem = currentPage * ITEMS_PER_PAGE;
+
+                                if (currentPage == 0) {
+                                    for (int j = 0; j < 6; j++) {
+
+                                        form1_value = dataBeanList.get(j).getField_value().toString();
+                                        myFieldValue.add(form1_value);
+                                        form1_name = dataBeanList.get(j).getField_name().toString();
+                                        myname.add(form1_name);
+                                        form1_comments = dataBeanList.get(j).getField_comments().toString();
+                                        comments.add(form1_comments);
+                                        form1_cat_id = dataBeanList.get(j).getCat_id().toString();
+                                        catid.add(form1_cat_id);
+                                        form1_group_id = dataBeanList.get(j).getGroup_id().toString();
+                                        groupid.add(form1_group_id);
+                                        form_remarks = dataBeanList.get(j).getField_remarks().toString();
+                                        remarks.add(form_remarks);
+
+
+                                        Log.e("Resuktt", form1_value);
+                                        Log.e("Resuktt", "" + myFieldValue.size());
+
+                                    }
+
+                                }else {
+                                    int enditem = (currentPage + 1) * ITEMS_PER_PAGE;
+                                    Log.w(TAG, "currentPage else currentPage : " + currentPage + " startItem : " + startItem + " enditem : " + enditem + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE);
+
+                                    Log.w(TAG, "btnnext enditem : " + enditem);
+
+                                    for (int j = startItem; j < dataBeanList.size(); j++) {
+                                        //   Result1 = dataBeanList.get(i).getField_value().toString();
+
+                                        form1_value = dataBeanList.get(j).getField_value().toString();
+                                        myFieldValue.add(form1_value);
+                                        form1_name = dataBeanList.get(j).getField_name().toString();
+                                        myname.add(form1_name);
+                                        form1_comments = dataBeanList.get(j).getField_comments().toString();
+                                        comments.add(form1_comments);
+                                        form1_cat_id = dataBeanList.get(j).getCat_id().toString();
+                                        catid.add(form1_cat_id);
+                                        form1_group_id = dataBeanList.get(j).getGroup_id().toString();
+                                        groupid.add(form1_group_id);
+                                        form_remarks = dataBeanList.get(j).getField_remarks().toString();
+                                        remarks.add(form_remarks);
+
+                                        Log.e("Resuktt", form1_value);
+                                    }
+                                }
+
+                                str_job_status = "Job Paused";
+                                Job_status_update();
+                                createLocalValue();
+//                                Intent send = new Intent(context, ServicesActivity.class);
+//                                startActivity(send);
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                alertDialog.dismiss();
+                            }
+                        })
+                        .show();
+
+            }
+        });
 
         btn_next.setOnClickListener(new View.OnClickListener() {
             @SuppressLint({"ResourceAsColor", "SetTextI18n"})
@@ -181,11 +311,24 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                 String Result = "";
                 if (currentPage == 0) {
+
                     for (int i = 0; i < 6; i++) {
 
-                        Result = dataBeanList.get(i).getField_value().toString();
+                        form1_value = dataBeanList.get(i).getField_value().toString();
+                        myFieldValue.add(form1_value);
+                        form1_name = dataBeanList.get(i).getField_name().toString();
+                        myname.add(form1_name);
+                        form1_comments = dataBeanList.get(i).getField_comments().toString();
+                        comments.add(form1_comments);
+                        form1_cat_id = dataBeanList.get(i).getCat_id().toString();
+                        catid.add(form1_cat_id);
+                        form1_group_id = dataBeanList.get(i).getGroup_id().toString();
+                        groupid.add(form1_group_id);
+                        form_remarks = dataBeanList.get(i).getField_remarks().toString();
+                        remarks.add(form_remarks);
 
-                        Log.e("Resuktt", Result);
+                        Log.e("Resuktt", form1_value);
+                        Log.e("Resuktt", ""+ myFieldValue.size());
 
 
                         if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
@@ -207,8 +350,22 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                     Log.w(TAG, "btnnext enditem : " + enditem);
                     for (int i = startItem; i < enditem; i++) {
-                        Result1 = dataBeanList.get(i).getField_value().toString();
-                        Log.e("Resuktt", Result1);
+//                        Result1 = dataBeanList.get(i).getField_value().toString();
+//                        Log.e("Resuktt", Result1);
+
+                        form1_value = dataBeanList.get(i).getField_value().toString();
+                        myFieldValue.add(form1_value);
+                        form1_name = dataBeanList.get(i).getField_name().toString();
+                        myname.add(form1_name);
+                        form1_comments = dataBeanList.get(i).getField_comments().toString();
+                        comments.add(form1_comments);
+                        form1_cat_id = dataBeanList.get(i).getCat_id().toString();
+                        catid.add(form1_cat_id);
+                        form1_group_id = dataBeanList.get(i).getGroup_id().toString();
+                        groupid.add(form1_group_id);
+                        form_remarks = dataBeanList.get(i).getField_remarks().toString();
+                        remarks.add(form_remarks);
+
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
                         if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
@@ -225,8 +382,6 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 //
 //                            showErrorLoading();
 //                        }
-
-
 
                     }
 
@@ -302,6 +457,18 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                         setView(dataBeanListS, ITEMS_PER_PAGE, TOTAL_NUM_ITEMS);
                         Log.w(TAG, "btnnext else setView " + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE + " TOTAL_NUM_ITEMS : " + TOTAL_NUM_ITEMS + " dataBeanListS :  " + new Gson().toJson(dataBeanListS));
                         toggleButtons();
+
+                        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                        Log.e("Network",""+networkStatus);
+                        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                            NoInternetDialog();
+
+                        }else{
+
+                            createLocalFormcheck();
+                        }
                     } else {
 
                         showErrorLoading();
@@ -378,12 +545,14 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                     Toasty.warning(getApplicationContext(), "No Internet", Toasty.LENGTH_LONG).show();
 
-                } else {
+
+                }
+                else {
 
                     boolean flag = true;
                     for (int i = 0; i < dataBeanList.size(); i++) {
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
-                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
+                        if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
                                 dataBeanList.get(i).setField_value("LIFT");
                             }/*else if(dataBeanList.get(i).getField_type() !=  null && dataBeanList.get(i).getField_type().equalsIgnoreCase("File upload")){
@@ -398,6 +567,13 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                     Log.w(TAG, "flag " + flag);
 
                     if (flag) {
+
+                        Log.e(TAG, "inside");
+
+                        progressDialog = new ProgressDialog(context);
+                        progressDialog.setMessage("Please Wait..");
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
 
                         for (int i = 0; i < dataBeanList.size(); i++) {
 
@@ -443,14 +619,29 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                             editor.putString("Field_remarks",str5);
                             editor.apply();
 
+                        }
 
-                            dialog = new Dialog(context, R.style.NewProgressDialog);
-                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            dialog.setContentView(R.layout.progroess_popup);
-                            dialog.show();
+                        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                        Log.e("Network",""+networkStatus);
+                        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                            NoInternetDialog();
+
+                        }else {
+
+                            createLocalFormcheck();
+                            long delayInMillis = 5000;
+                            Timer timer = new Timer();
+                            timer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                }
+                            }, delayInMillis);
 
                             Intent send = new Intent(AuditChecklist.this, MaterialRequest_AuditActivity.class);
-                            send.putExtra("job_id",job_id);
+                            send.putExtra("job_id", job_id);
 //                            send.putExtra("value",value);
 //                            send.putExtra("service_title",service_title);
 //                            send.putExtra("Form1_value",str);
@@ -460,7 +651,6 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 //                            send.putExtra("Form1_group_id",str4);
                             send.putExtra("status", status);
                             startActivity(send);
-                            dialog.dismiss();
                         }
 
                     } else {
@@ -473,6 +663,124 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
 
                 }
+
+            }
+        });
+    }
+
+    private void createLocalFormcheck() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<SuccessResponse> call = apiInterface.createLocalValueformcheckAudit(RestUtils.getContentType(),createLocalRequest());
+        Log.w(TAG, " Create local Data Call url  :%s" + " " + call.request().url().toString());
+
+        call.enqueue(new Callback<SuccessResponse>() {
+            @Override
+            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+
+                Log.w(TAG, "Create Local Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (200 == response.body().getCode()) {
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+                        }
+                    }
+                    else {
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+
+                    }
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void createLocalValue() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<SuccessResponse> call = apiInterface.createLocalValueCallAudit(RestUtils.getContentType(),createLocalRequest());
+        Log.w(TAG, " Check Local Value Form Call url  :%s" + " " + call.request().url().toString());
+
+        call.enqueue(new Callback<SuccessResponse>() {
+            @Override
+            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+
+                Log.w(TAG, "Check Local Value Form Response" + new Gson().toJson(response.body()));
+            }
+
+            @Override
+            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private AuditRequest createLocalRequest() {
+
+        AuditRequest localreq = new AuditRequest();
+        localreq.setJobId(job_id);
+        localreq.setCustomerSignature("");
+        localreq.setOmOsaCompno(osacompno);
+        localreq.setUserMobileNo(se_user_mobile_no);
+
+        List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
+
+        for(int j =0; j <myFieldValue.size(); j++){
+            AuditRequest.FieldValueDatum myfiled = new AuditRequest.FieldValueDatum();
+
+            myfiled.setFieldValue(myFieldValue.get(j));
+            myfiled.setFieldName(myname.get(j));
+            myfiled.setFieldComments(comments.get(j));
+            myfiled.setFieldCatId(catid.get(j));
+            myfiled.setFieldGroupId(groupid.get(j));
+            myfiled.setFieldRemarks(remarks.get(j));
+            fielddata.add(myfiled);
+
+        }
+
+        Log.e("Nish List",""+dataBeanList.size());
+
+        localreq.setFieldValueData(fielddata);
+
+        Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(localreq));
+        return localreq;
+    }
+
+    public void NoInternetDialog() {
+
+        android.app.AlertDialog.Builder mBuilder = new android.app.AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
 
             }
         });
@@ -595,11 +903,8 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
         private GetFieldListRequest getFieldListRequest() {
         GetFieldListRequest getFieldListRequest = new GetFieldListRequest();
-//        getFieldListRequest.setJob_id(job_id);
-//        getFieldListRequest.setJob_status_type(value);
-//        getFieldListRequest.setJob_date(List);
-            getFieldListRequest.setJob_id(job_id);
-            getFieldListRequest.setService_type(service_type);
+        getFieldListRequest.setJob_id(job_id);
+        getFieldListRequest.setService_type(service_type);
         Log.w(TAG, "GetFieldListRequest " + new Gson().toJson(getFieldListRequest));
         return getFieldListRequest;
     }
@@ -662,5 +967,55 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         Intent send = new Intent(context, Checklist_AuditActivity.class);
         send.putExtra("status", status);
         startActivity(send);
+    }
+
+    private void Job_status_update() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<Job_status_updateResponse> call = apiInterface.job_status_updateAuditResponseCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(), job_status_updateRequest());
+        Log.w(VolleyLog.TAG,"Response url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<Job_status_updateResponse>() {
+            @SuppressLint("LogNotTimber")
+            @Override
+            public void onResponse(@NonNull Call<Job_status_updateResponse> call, @NonNull Response<Job_status_updateResponse> response) {
+
+                Log.w(VolleyLog.TAG,"Response" + new Gson().toJson(response.body()));
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (200 == response.body().getCode()) {
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+                        }
+
+
+                    } else {
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+
+                    }
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Job_status_updateResponse> call, @NonNull Throwable t) {
+                Log.e("OTP", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest job_status_updateRequest() {
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setService_name(service_title);
+        custom.setJob_id(job_id);
+        custom.setStatus(str_job_status);
+        custom.setOM_OSA_COMPNO(osacompno);
+        Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
+        return custom;
     }
 }

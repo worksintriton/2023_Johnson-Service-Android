@@ -15,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,18 +32,15 @@ import com.android.volley.VolleyLog;
 import com.bumptech.glide.Glide;
 import com.github.gcacace.signaturepad.views.SignaturePad;
 import com.google.gson.Gson;
-import com.squareup.picasso.Picasso;
 import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
-import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.TechnicianSignature_PreventiveMRActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Breakdowm_Submit_Request;
-import com.triton.johnson_tap_app.requestpojo.Feedback_DetailsRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_Details_TextRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_statusRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
@@ -54,6 +53,7 @@ import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
 import com.triton.johnson_tap_app.responsepojo.SubmitBreakdownResponseee;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -89,21 +89,25 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
     String userid;
     ImageView image;
     String str2="",sstring;
-    private String uploadimagepath = "";
+    private String uploadimagepath = "",signfile="";
     private List<Breakdown_submitrResponse.DataBean.Feedback_detailsBean> defaultLocationList ;
     List<Feedback_DetailsResponse.DataBean> pet_imgList = new ArrayList();
-    String value="",job_id,feedback_group,Str_feedback_details,bd_dta,feedback_remark,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,tech_signature,customer_name,customer_no,str_customer_acknowledgement="";
+    String value="",job_id,feedback_group,Str_feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,tech_signature="",customer_name,customer_no,str_customer_acknowledgement="";
     String se_user_mobile_no, se_user_name, se_id,check_id,service_title;
     String str_job_status,message;
     ProgressDialog progressDialog;
     TextView job_details_text;
     Bitmap signatureBitmap;
     Dialog dialog;
-    String compno, sertype, str_BDDetails,status,s_mr1,s_mr2,s_mr3,s_mr4,s_mr5,s_mr6,s_mr7,s_mr8,s_mr9,s_mr10;
+    String compno, sertype, str_BDDetails,status,s_mr1="",s_mr2="",s_mr3="",s_mr4="",s_mr5="",s_mr6="",s_mr7="",s_mr8="",s_mr9="",s_mr10="";
     ArrayList<String> list = new ArrayList<>();
     Context context;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime,networkStatus="";
+    ArrayList<String> mydata = new ArrayList<>();
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -122,6 +126,8 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
         iv_back = (ImageView) findViewById(R.id.iv_back);
        image = (ImageView)findViewById(R.id.image);
         job_details_text = (TextView) findViewById(R.id.job_details_text);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -150,11 +156,16 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
         Log.e("Feedback Remarks",feedback_remark);
      //   Log.e("breakdown servies ",breakdown_servies);
         Log.e("tech_signature",tech_signature);
-//
 
        // arLi_FeedbackDetails = Str_feedback_details
     //    list = (ArrayList<String>) Arrays.asList(Str_feedback_details);
      //   Log.e("List", String.valueOf(list));
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -170,21 +181,54 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
         }
 
 
+        getBdDetails();
 
-        Job_status();
+        getFeedbackDetails();
 
-        job_details_in_text();
+        getFeedbackGroup();
+
+        getCustomer(job_id,service_title);
+
+        getData(job_id,service_title);
+
+        getFeedback();
+
+        getSign(job_id, service_title);
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }
+        else{
+            Job_status();
+
+            job_details_in_text();
+        }
+
+
+
 
         if (status.equals("new")){
-            getBdDetails();
 
-            getCustomer(job_id,service_title);
-
-            getData(job_id,service_title);
         }else{
 
-            retrive_LocalValue();
+            if (networkStatus != "Not connected to Internet"){
+
+                retrive_LocalValue();
+            }
+            else{
+
+                NoInternetDialog();
+
+            }
+
         }
+
+        getSample();
 
 //        str2 =  feedback_details.substring(1, feedback_details.length());
 //        String[] sArr = str2.split(",");
@@ -225,11 +269,6 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(Customer_AcknowledgementActivity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Acknowledgment_Signature" + ".jpg");
@@ -248,16 +287,20 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest();
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                    NoInternetDialog();
+
+                }
+                else{
+                    uploadDigitalSignatureImageRequest();
+
+                }
+
+
             }
         });
 
@@ -276,7 +319,17 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
                 }
                 else {
 
-                    locationAddResponseCall();
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                        NoInternetDialog();
+
+                    }else {
+
+                        locationAddResponseCall();
+                    }
                 }
 
             }
@@ -394,6 +447,144 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
 //                }
             }
         });
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
+    private void getFeedbackGroup() {
+
+        mydata = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getFeedbackgroup(job_id, service_title, "2");
+        Log.e("Checklist get Data", "" + cur.getCount());
+
+        if (cur.getCount() > 0 && cur.moveToFirst()) {
+
+            do {
+                @SuppressLint("Range")
+                String abc = cur.getString(cur.getColumnIndex(DbHelper.FEEDBACK_GROUP));
+                Log.e("Data Get", "" + abc);
+                mydata.add(abc);
+
+            } while (cur.moveToNext());
+
+        }
+
+        ArrayList<String>  outputList = new ArrayList<String>();
+        for (String item : mydata) {
+            //outputList.add("\""+item+"\"");
+            outputList.add("" + item + "");
+            outputList.remove("null");
+        }
+
+        feedback_group = String.valueOf(outputList);
+        Log.e("FeedBack Details",""+feedback_group);
+    }
+
+    private void getFeedbackDetails() {
+
+        Cursor cur = CommonUtil.dbUtil.getFeedbackDesc(job_id,service_title, "3");
+        Log.e("FeedBack DEsc get",""+cur.getCount());
+        mydata = new ArrayList<>();
+        if(cur.getCount() >0 && cur.moveToFirst()){
+
+            do{
+                @SuppressLint("Range")
+                String abc = cur.getString(cur.getColumnIndex(DbHelper.FEEDBACK_DESCRIPTION));
+                Log.e("Datas",""+abc);
+                mydata.add(abc);
+            }while (cur.moveToNext());
+
+        } else{
+            Log.e("Datasss",""+cur);
+
+        }
+
+        ArrayList<String> outputList = new ArrayList<String>();
+        for (String item: mydata) {
+            //outputList.add("\""+item+"\"");
+            outputList.add(""+item+"");
+            outputList.remove("null");
+        }
+        Str_feedback_details = String.valueOf(outputList);
+//                   pre_check = pre_check.replaceAll("\\[", "").replaceAll("\\]","");
+//                  System.out.println("EEEEEEEEEEE"+ddd);
+
+        //  Log.e("FEEDBACK GROUP", String.valueOf(mydata));
+        Log.e("FeedBack Group",""+Str_feedback_details);
+
+
+    }
+
+    private Breakdowm_Submit_Request getSample() {
+
+        Log.e( "before ", Str_feedback_details);
+        Str_feedback_details  = Str_feedback_details.replaceAll("\n", "").replaceAll("","");
+        Log.e( "after ", Str_feedback_details);
+
+        Log.e( "before ", feedback_group);
+        feedback_group  = feedback_group.replaceAll("\n", "").replaceAll("","");
+        Log.e( "after ", feedback_group);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
+        String currentDateandTime = sdf.format(new Date());
+
+        Breakdowm_Submit_Request submitDailyRequest = new Breakdowm_Submit_Request();
+        submitDailyRequest.setBd_details(str_BDDetails);
+        //submitDailyRequest.setFeedback_details(sstring);
+        submitDailyRequest.setFeedback_details(Str_feedback_details);
+         submitDailyRequest.setCode_list(feedback_group);
+        submitDailyRequest.setFeedback_remark_text(feedback_remark);
+        submitDailyRequest.setMr_status(value);
+        submitDailyRequest.setMr_1(s_mr1);
+        submitDailyRequest.setMr_2(s_mr2);
+        submitDailyRequest.setMr_3(s_mr3);
+        submitDailyRequest.setMr_4(s_mr4);
+        submitDailyRequest.setMr_5(s_mr5);
+        submitDailyRequest.setMr_6(s_mr6);
+        submitDailyRequest.setMr_7(s_mr7);
+        submitDailyRequest.setMr_8(s_mr8);
+        submitDailyRequest.setMr_9(s_mr9);
+        submitDailyRequest.setMr_10(s_mr10);
+        submitDailyRequest.setBreakdown_service(breakdown_servies);
+        submitDailyRequest.setTech_signature(tech_signature);
+        submitDailyRequest.setCustomer_name(customer_name);
+        submitDailyRequest.setCustomer_number(customer_no);
+        submitDailyRequest.setCustomer_acknowledgemnet("-");
+        submitDailyRequest.setDate_of_submission(currentDateandTime);
+        submitDailyRequest.setUser_mobile_no(se_user_mobile_no);
+        submitDailyRequest.setJob_id(job_id);
+        submitDailyRequest.setSMU_SCH_COMPNO(compno);
+        submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+        Log.e("Feedback Details",""+ Str_feedback_details);
+        Log.e("BD Details",""+ str_BDDetails);
+        Log.w(TAG," locationAddRequest"+ new Gson().toJson(submitDailyRequest));
+        return submitDailyRequest;
     }
 
     private void Job_status() {
@@ -554,16 +745,16 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
                             customer_no = response.body().getData().getCustomer_number();
                             tech_signature = response.body().getData().getTech_signature();
                             value = response.body().getData().getMr_status();
-                            mr1 = response.body().getData().getMr_1();
-                            mr2 = response.body().getData().getMr_2();
-                            mr3 = response.body().getData().getMr_3();
-                            mr4 = response.body().getData().getMr_4();
-                            mr5 = response.body().getData().getMr_5();
-                            mr6 = response.body().getData().getMr_6();
-                            mr7 = response.body().getData().getMr_7();
-                            mr8 = response.body().getData().getMr_8();
-                            mr9 = response.body().getData().getMr_9();
-                            mr10 = response.body().getData().getMr_10();
+                            s_mr1 = response.body().getData().getMr_1();
+                            s_mr2 = response.body().getData().getMr_2();
+                            s_mr3 = response.body().getData().getMr_3();
+                            s_mr4 = response.body().getData().getMr_4();
+                            s_mr5 = response.body().getData().getMr_5();
+                            s_mr6 = response.body().getData().getMr_6();
+                            s_mr7 = response.body().getData().getMr_7();
+                            s_mr8 = response.body().getData().getMr_8();
+                            s_mr9 = response.body().getData().getMr_9();
+                            s_mr10 = response.body().getData().getMr_10();
                             feedback_remark = response.body().getData().getFeedback_remark_text();
                             str_BDDetails = response.body().getData().getBd_details();
                             Str_feedback_details = response.body().getData().getFeedback_details();
@@ -664,7 +855,6 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
 
                             Log.d("msg",message);
 
-
                             Intent send = new Intent(context, ServicesActivity.class);
                             startActivity(send);
                         }
@@ -747,9 +937,24 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
 
     private void uploadDigitalSignatureImageRequest() {
 
+        progressDialog = new ProgressDialog(Customer_AcknowledgementActivity.this);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 10000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")
@@ -801,13 +1006,24 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
     }
 
     public void locationAddResponseCall(){
+
         dialog = new Dialog(Customer_AcknowledgementActivity.this, R.style.NewProgressDialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.progroess_popup);
         dialog.show();
+
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<SubmitBreakdownResponseee> call = apiInterface.submitAddResponseCall(RestUtils.getContentType(),submitDailyRequest());
         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<SubmitBreakdownResponseee>() {
             @SuppressLint("LogNotTimber")
@@ -817,7 +1033,11 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
                 Log.w(TAG, "AddLocationResponse" + new Gson().toJson(response.body()));
                 Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
+                message = response.body().getMessage();
+                Log.e("Message",""+message);
+
                 if (response.body() != null) {
+
                     dialog.dismiss();
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
@@ -843,6 +1063,7 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
                     }else{
                         //  showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -855,6 +1076,35 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
     }
 
     private Breakdowm_Submit_Request submitDailyRequest() {
@@ -1014,17 +1264,96 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
     public void onBackPressed() {
    // super.onBackPressed();
 
-        if(status.equals("new")){
-            Intent intent = new Intent(context,Customer_Details_BreakdownActivity.class);
-            intent.putExtra("status",status);
-            intent.putExtra("breakdown_service", breakdown_servies);
-            startActivity(intent);
-        }else{
-            Intent intent = new Intent(context,Customer_Details_BreakdownActivity.class);
-            intent.putExtra("status",status);
-            intent.putExtra("breakdown_service", breakdown_servies);
-            startActivity(intent);
+//        if(status.equals("new")){
+//            Intent intent = new Intent(context,Customer_Details_BreakdownActivity.class);
+//            intent.putExtra("status",status);
+//            intent.putExtra("breakdown_service", breakdown_servies);
+//            startActivity(intent);
+//        }
+//        else{
+//            Intent intent = new Intent(context,Customer_Details_BreakdownActivity.class);
+//            intent.putExtra("status",status);
+//            intent.putExtra("breakdown_service", breakdown_servies);
+//            startActivity(intent);
+//
+//            alertDialog = new AlertDialog.Builder(context)
+//                    .setTitle("Are you sure to Close this job ?")
+//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            Intent send = new Intent(context, ServicesActivity.class);
+//                            startActivity(send);
+//                        }
+//                    })
+//                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            alertDialog.dismiss();
+//                        }
+//                    })
+//                    .show();
+//        }
+
+        Intent intent = new Intent(context,Customer_Details_BreakdownActivity.class);
+        intent.putExtra("status",status);
+        intent.putExtra("breakdown_service", breakdown_servies);
+        startActivity(intent);
+
+    }
+
+    @SuppressLint("Range")
+    private void getFeedback() {
+
+        Cursor cur = CommonUtil.dbUtil.getFeedback(job_id,service_title,"4");
+
+        Log.e("GET FEEDBACK ",""+cur.getCount());
+
+        if (cur.getCount()>0 && cur.moveToLast()){
+
+            feedback_remark= cur.getString(cur.getColumnIndex(DbHelper.FEEDBACK_REMARKS));
+            Log.e("Remarks",""+feedback_remark);
+
         }
 
+    }
+
+    @SuppressLint("Range")
+    private void getSign(String job_id, String service_title) {
+        Log.e("Sign", "Hi");
+        Log.e("Nish",""+job_id);
+        Log.e("Nish",""+service_title);
+        Cursor cur =  CommonUtil.dbUtil.getEngSign(job_id,service_title);
+        Cursor curs =  CommonUtil.dbUtil.getEngSign();
+        Log.e("ENg Sign", " " + cur.getCount());
+
+        if (cur.getCount()>0 && cur.moveToLast()){
+
+            //  do{
+            signfile = cur.getString(cur.getColumnIndex(DbHelper.SIGN_FILE));
+            String jon = cur.getString(cur.getColumnIndex(DbHelper.JOBID));
+            String ss = cur.getString(cur.getColumnIndex(DbHelper.MYACTIVITY));
+            tech_signature = cur.getString(cur.getColumnIndex(DbHelper.SIGN_PATH));
+
+            Log.e("job" , ""+jon);
+            Log.e("act" , ""+ss);
+            Log.e("path" , ""+uploadimagepath);
+
+
+            ///  BitmapDrawable drawable = (BitmapDrawable) img_Siganture.getDrawable();
+            //  Bitmap bitmap = drawable.getBitmap();
+            ///  bitmap = Bitmap.createScaledBitmap(bitmap, 70, 70, true);
+            //  photo.setImageBitmap(bitmap)
+            // Bitmap image = ((BitmapDrawable)img_Siganture.getDrawable()).getBitmap();
+
+
+            //  File file = new File(signfile);
+            //  String filePath = file.getPath();
+            //   Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+            // img_Siganture.setImageBitmap(bitmap);
+            // signaturePad.setSignatureBitmap(bitmap);
+            //  signaturePad.setSignatureBitmap(bitmap);
+            // signatureBitmap = signaturePad.getSignatureBitmap();
+            //    }while (cur.moveToNext());
+
+
+        }
     }
 }

@@ -9,7 +9,7 @@ import java.io.File;
 
 public class DbUtil {
 
-    static SQLiteDatabase db;
+    public static SQLiteDatabase db;
     Context context;
     ContentValues values;
     DbHelper dbHelper;
@@ -39,7 +39,18 @@ public class DbUtil {
             DbHelper.PART_NO,
             DbHelper.QUANTITY,
             DbHelper.STATUS,
+            DbHelper.MYACTIVITY,
             DbHelper.JOBID
+    };
+
+    public static final String[] MRLISTS_FIELD = {
+            DbHelper.ID,
+            DbHelper.PART_NAME,
+            DbHelper.PART_NO,
+            DbHelper.QUANTITY,
+            DbHelper.STATUS,
+            DbHelper.JOBID,
+            DbHelper.MYACTIVITY
     };
 
     public static final String[] P_MRList_FIELD = {
@@ -100,6 +111,7 @@ public class DbUtil {
             DbHelper.MYACTIVITY,
             DbHelper.ID,
             DbHelper.MONTH,
+            DbHelper.MYNUM,
             DbHelper.CHECKLIST,
             DbHelper.PREVENTIVE_CHECKLIST,
             DbHelper.BD_DETAILS,
@@ -175,12 +187,6 @@ public class DbUtil {
     public Cursor getPMR(String job_id) {
         return db.query(DbHelper.P_MR_TABLE,P_MRList_FIELD,DbHelper.JOBID + "= '" + job_id + "'",null,null,null,null);
     }
-
-
-    public int deletePMR(String toString) {
-        return db.delete(DbHelper.P_MR_TABLE,DbHelper.P_MR_ID + "= '" + toString + "'",null);
-    }
-
 
 
     public long addBreakdownMRList(String s_mr1, String s_mr2, String s_mr3, String s_mr4,
@@ -482,11 +488,10 @@ public class DbUtil {
         return db.insert(DbHelper.CHECK_TABLE,null,values);
     }
 
-    public int deleteBDdetails(String str_job_id, String service_title, String data, String s) {
+    public int deleteBDdetails(String str_job_id, String service_title, String s) {
 
         return db.delete(DbHelper.CHECK_TABLE,DbHelper.JOBID + "= '" + str_job_id + "'"
                 + "AND " + DbHelper.MYACTIVITY + "= '" + service_title + "'"
-                + "AND " + DbHelper.BD_DETAILS + "= '" + data + "'"
                 + "AND " + DbHelper.STATUS + "= '" + s + "'",null) ;
     }
 
@@ -532,4 +537,76 @@ public class DbUtil {
                         + "AND " + DbHelper.STATUS + "= '" + s + "'"
                 ,null,null,null,null);
     }
+ /////// For MR LISTS PART NAME and PART NO
+
+    public long addMRList(String partno, String partName, String s, String job_id, String service_title, String quantity) {
+        values.clear();
+        values.put(DbHelper.PART_NO,partno);
+        values.put(DbHelper.PART_NAME,partName);
+        values.put(DbHelper.JOBID,job_id);
+        values.put(DbHelper.STATUS,s);
+        values.put(DbHelper.MYACTIVITY,service_title);
+        values.put(DbHelper.QUANTITY,quantity);
+        return db.insert(DbHelper.MRLIST_TABLE,null,values);
+
+    }
+
+    public Cursor getMRList(String job_id, String s, String service_title) {
+        return db.query(DbHelper.MRLIST_TABLE,MRLISTS_FIELD,DbHelper.JOBID + "= '" + job_id + "'"
+                        + "AND " + DbHelper.STATUS + "= '" + s + "'"
+                        + "AND " + DbHelper.MYACTIVITY + "= '" + service_title + "'"
+                ,null,null,null,null);
+    }
+
+    public int deleteMRList(String partno, String partName, String s, String job_id, String service_title) {
+
+        return db.delete(DbHelper.MRLIST_TABLE,DbHelper.PART_NO + "= '" + partno + "'"
+                + "AND " + DbHelper.PART_NAME + "= '" + partName + "'"
+                        + "AND " + DbHelper.STATUS + "= '" + s + "'"
+                        + "AND " + DbHelper.JOBID + "= '" + job_id + "'"
+                + "AND " + DbHelper.MYACTIVITY + "= '" + service_title + "'"
+               ,null) ;
+    }
+
+    public int deleteMRPartno(String toString) {
+        return db.delete(DbHelper.MRLIST_TABLE,DbHelper.ID + "= '" + toString + "'",null);
+    }
+
+    public boolean hasMRList(String partno, String partName, String s, String job_id, String service_title) {
+
+        String abc = DbHelper.PART_NO + "= '" + partno + "'" + "AND " + DbHelper.PART_NAME + "= '" + partName + "'"
+                + "AND " + DbHelper.JOBID+ "= '" + job_id + "'"
+                + "AND " + DbHelper.MYACTIVITY + "= '" + service_title + "'"
+                + "AND " + DbHelper.STATUS+ "= '" + s + "'";
+        Cursor cursor = db.rawQuery("SELECT * FROM " + DbHelper.MRLIST_TABLE + " WHERE " + abc , null);
+        if (cursor.getCount()<= 0 ){
+            cursor.close();
+            return false;
+        }
+        cursor.close();
+        return  true;
+    }
+
+    public int UpdateMRList(String partno, String partname, String status, String qty, String id, String service_title, String job_id) {
+        values.clear();
+        values.put(DbHelper.PART_NO,partno);
+        values.put(DbHelper.PART_NAME,partname);
+        values.put(DbHelper.STATUS, status);
+        values.put(DbHelper.QUANTITY,qty);
+        values.put(DbHelper.ID,id);
+        values.put(DbHelper.MYACTIVITY,service_title);
+        values.put(DbHelper.JOBID,job_id);
+        return db.update(DbHelper.MRLIST_TABLE,values,
+                DbHelper.ID + " = ' " + id + " ' ",null);
+    }
+
+    public int deleteMRTable(String job_id, String s, String service_title) {
+
+        return db.delete(DbHelper.MRLIST_TABLE,  DbHelper.STATUS + "= '" + s + "'"
+                        + "AND " + DbHelper.JOBID + "= '" + job_id + "'"
+                        + "AND " + DbHelper.MYACTIVITY + "= '" + service_title + "'"
+                ,null) ;
+    }
+
+
 }

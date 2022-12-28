@@ -33,7 +33,8 @@ public class Preventive_Submit_Request {
     private String job_date;
     private String SMU_SCH_COMPNO;
     private String SMU_SCH_SERTYPE;
-    private String page_number;
+    private int page_number;
+    private int subPage_number;
     @SerializedName("field_value_data")
     @Expose
     private List<Field_valueDatum> field_valueData = null;
@@ -238,13 +239,22 @@ public class Preventive_Submit_Request {
         this.job_date = job_date;
     }
 
-    public String getPage_number() {
+    public int getPage_number() {
         return page_number;
     }
 
-    public void setPage_number(String page_number) {
+    public void setPage_number(int page_number) {
         this.page_number = page_number;
     }
+
+    public int getSubPage_number() {
+        return subPage_number;
+    }
+
+    public void setSubPage_number(int subPage_number) {
+        this.subPage_number = subPage_number;
+    }
+
 
     public static class Field_valueDatum {
 

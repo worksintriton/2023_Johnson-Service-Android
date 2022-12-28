@@ -42,14 +42,15 @@ public class BD_DetailsAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
     Boolean isStringExists;
     SharedPreferences sharedPreferences;
     ArrayList<String> myData = new ArrayList<>();
-    String abc,status;
+    String abc,status,str_BdDetails;
 
 
-    public BD_DetailsAdapter(Context context, List<BD_DetailsResponse.DataBean> breedTypedataBeanList, UserTypeSelectListener1 userTypeSelectListener, String mystatus) {
+    public BD_DetailsAdapter(Context context, List<BD_DetailsResponse.DataBean> breedTypedataBeanList, UserTypeSelectListener1 userTypeSelectListener, String mystatus, String str_BDDetails) {
         this.context = context;
         this.breedTypedataBeanList = breedTypedataBeanList;
         this.userTypeSelectListener = userTypeSelectListener;
         this.status = mystatus;
+        this.str_BdDetails = str_BDDetails;
       //  this.myData = mydata;
 
         CommonUtil.dbUtil = new DbUtil(context);
@@ -63,6 +64,7 @@ public class BD_DetailsAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
         Log.e("JobID",""+jobid);
         Log.e("Name",""+service_title);
         Log.e("Status",""+status);
+        Log.e("My BD",""+str_BdDetails);
     }
 
     @NonNull
@@ -88,37 +90,45 @@ public class BD_DetailsAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
 //        intent.putExtra("cont_no" , currentItem.getCONTNO());
 //        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-        Cursor curs = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
-        Log.e("BD Count",""+curs.getCount());
-
-
-
         if(currentItem.getTitle() != null){
             holder.text_title.setText(currentItem.getTitle());
             holder.chkSelected.setChecked(breedTypedataBeanList.get(position).isSelected());
             holder.chkSelected.setTag(new Integer(position));
         }
 
-        if (curs.getCount()>0 && curs.moveToLast()){
+//        Cursor curs = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
+//        Log.e("BD Count",""+curs.getCount());
+//
+//        if (curs.getCount()>0 && curs.moveToLast()){
+//
+//            abc = curs.getString(curs.getColumnIndex(DbHelper.BD_DETAILS));
+//            Log.e("BD Data Get",""+abc);
+//
+//            String feedback = holder.text_title.getText().toString();
+//            Log.e("BD DETAILS",""+feedback);
+//
+//            isStringExists = abc.contains(feedback);
+//            Log.e("isChecked",""+isStringExists);
+//
+//            if(isStringExists){
+//                Log.e("Nish","inside" + holder.text_title.getText().toString());
+//                //holder.chkSelected.setSelected(true);
+//                // breedTypedataBeanList.get(position).setSelected(true);
+//                holder.chkSelected.setChecked(true);
+//                lastChecked =holder.chkSelected;
+//            }
+//        }
+        String bddetails = holder.text_title.getText().toString();
 
-            abc = curs.getString(curs.getColumnIndex(DbHelper.BD_DETAILS));
-            Log.e("BD Data Get",""+abc);
+        isStringExists = bddetails.equals(str_BdDetails);
 
-            String feedback = holder.text_title.getText().toString();
-            Log.e("BD DETAILS",""+feedback);
-
-            isStringExists = abc.contains(feedback);
-            Log.e("isChecked",""+isStringExists);
-
-            if(isStringExists){
-                Log.e("Nish","inside" + holder.text_title.getText().toString());
-                //holder.chkSelected.setSelected(true);
-                // breedTypedataBeanList.get(position).setSelected(true);
-                holder.chkSelected.setChecked(true);
-                lastChecked =holder.chkSelected;
-            }
+        if(isStringExists){
+            Log.e("Nish","inside" + holder.text_title.getText().toString());
+            //holder.chkSelected.setSelected(true);
+            // breedTypedataBeanList.get(position).setSelected(true);
+            holder.chkSelected.setChecked(true);
+            lastChecked =holder.chkSelected;
         }
-
 
 
         if(position == 0 && breedTypedataBeanList.get(0).isSelected() && holder.chkSelected.isChecked())
@@ -144,8 +154,6 @@ public class BD_DetailsAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
 //            holder.chkSelected.setChecked(true);
 //        }
 
-
-
         holder.chkSelected.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -156,29 +164,46 @@ public class BD_DetailsAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
 
                 if(cb.isChecked()) {
 
-                    if(lastChecked != null)
-                    {
+                    Log.e("hi ","Nish 1");
+
+                    if(lastChecked != null) {
+                        Log.e("hi ","Nish 2");
                         lastChecked.setChecked(false);
                         breedTypedataBeanList.get(lastCheckedPos).setSelected(false);
                         breedTypedataBeanList.get(position).setSelected(true);
                         data = breedTypedataBeanList.get(position).getTitle();
                         Log.e("My BD Data", data);
-
-                        CommonUtil.dbUtil.deleteBDdetails(jobid,service_title,data,"1");
-
-                        Cursor cur = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
-                        Log.e("COunt Last",""+cur.getCount());
-                     //   holder.chkSelected.setChecked(false);
+                        CommonUtil.dbUtil.addBDDetails(jobid,service_title,data,"1");
+                        Cursor curs = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
+                        Log.e("BD",""+curs.getCount());
                     }
+                    else{
+                        breedTypedataBeanList.get(lastCheckedPos).setSelected(false);
+                        breedTypedataBeanList.get(position).setSelected(true);
+                        data = breedTypedataBeanList.get(position).getTitle();
+                        Log.e("My BD Data 1", data);
+
+                        CommonUtil.dbUtil.addBDDetails(jobid,service_title,data,"1");
+                        Cursor curs = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
+                        Log.e("BD",""+curs.getCount());
+                    }
+
 
                     lastChecked = cb;
                     lastCheckedPos = clickedPos;
                 }
 
-                else
+                else{
+                    Log.e("hi ","Nish 3");
                     lastChecked = null;
+                    breedTypedataBeanList.get(clickedPos).setSelected(cb.isChecked());
+                    CommonUtil.dbUtil.deleteBDdetails(jobid,service_title,"1");
+//                    CommonUtil.dbUtil.addBDDetails(jobid,service_title,data,"1");
+                    Cursor curs = CommonUtil.dbUtil.getBDdetails(jobid,service_title, "1");
+                    Log.e("COunt Add",""+curs.getCount());
+                    holder.chkSelected.setChecked(false);
 
-                breedTypedataBeanList.get(clickedPos).setSelected(cb.isChecked());
+                }
 
             }
         });

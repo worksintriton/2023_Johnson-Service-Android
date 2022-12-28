@@ -5,33 +5,42 @@ import com.triton.johnson_tap_app.requestpojo.Agent_new_screenRequest;
 import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.Change_PasswordRequest;
 import com.triton.johnson_tap_app.GetFieldListResponse;
+import com.triton.johnson_tap_app.requestpojo.CheckOutstandingJobRequest;
 import com.triton.johnson_tap_app.requestpojo.Check_Pod_StatusRequest;
+import com.triton.johnson_tap_app.requestpojo.FbTokenRequest;
 import com.triton.johnson_tap_app.requestpojo.Fetch_MrList_Request;
 import com.triton.johnson_tap_app.requestpojo.GetCustomer_Engineer_Request;
 import com.triton.johnson_tap_app.requestpojo.GetFieldListRequest;
 import com.triton.johnson_tap_app.requestpojo.Joblist_new_screenRequest;
 import com.triton.johnson_tap_app.requestpojo.LRService_SubmitRequest;
+import com.triton.johnson_tap_app.requestpojo.NotificationListRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_ChecklistRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequest;
 import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
 import com.triton.johnson_tap_app.requestpojo.BreedTypeRequest1;
+import com.triton.johnson_tap_app.requestpojo.SkipJobDetailRequest;
+import com.triton.johnson_tap_app.requestpojo.UpdateOutstandingJobRequest;
 import com.triton.johnson_tap_app.responsepojo.Agent_new_screenResponse;
 import com.triton.johnson_tap_app.responsepojo.Agent_pop_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Auditcheckresponse;
 import com.triton.johnson_tap_app.responsepojo.BreedTypeResponse1;
 import com.triton.johnson_tap_app.responsepojo.Change_PasswordResponse;
+import com.triton.johnson_tap_app.responsepojo.CheckOutstandingJobResponse;
 import com.triton.johnson_tap_app.responsepojo.Check_Pod_StatusResponse;
 import com.triton.johnson_tap_app.responsepojo.CustomerDetails_EngineerResponse;
 import com.triton.johnson_tap_app.responsepojo.Fetch_MrList_Response;
 import com.triton.johnson_tap_app.responsepojo.FormDataStoreResponse;
 import com.triton.johnson_tap_app.responsepojo.GetFetchLatestVersionResponse;
 import com.triton.johnson_tap_app.requestpojo.JobFindRequest;
+import com.triton.johnson_tap_app.responsepojo.GetPopUpImageRequest;
+import com.triton.johnson_tap_app.responsepojo.GetPopupImageResponse;
 import com.triton.johnson_tap_app.responsepojo.Joblist_new_screenResponse;
 import com.triton.johnson_tap_app.responsepojo.JobnoFindResponse;
 import com.triton.johnson_tap_app.responsepojo.LR_DetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.MR_DetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.Material_DetailsResponseACK;
+import com.triton.johnson_tap_app.responsepojo.NotificationListResponse;
 import com.triton.johnson_tap_app.responsepojo.Preventive_ChecklistResponse;
 import com.triton.johnson_tap_app.responsepojo.RTGS_PopResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
@@ -42,6 +51,7 @@ import com.triton.johnson_tap_app.responsepojo.Service_list_new_screenResponse;
 import com.triton.johnson_tap_app.responsepojo.SubmitDailyResponse;
 import com.triton.johnson_tap_app.responsepojo.SubmitPreventiveResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.responsepojo.UpdatePopImageRequest;
 import com.triton.johnson_tap_app.responsepojo.UserTypeListResponse;
 import com.triton.johnson_tap_app.data.form3submit.Form3SubmitIP;
 import com.triton.johnson_tap_app.requestpojo.ActivityGetListNumberRequest;
@@ -158,7 +168,7 @@ public interface APIInterface {
     @POST("service_userdetails/pause_job_list")
     Call<Pasused_ListResponse> Pasused_listResponseCall(@Header("Content-Type") String type, @Body Pasused_ListRequest pasusedRequest);
 
-    @POST("service_userdetails/view_status")
+    @POST("service_userdetails/fetch_view_status")
     Call<ViewStatusResponse> View_statusResponseCall(@Header("Content-Type") String type, @Body ViewStatusRequest viewRequest);
 
     @POST("service_userdetails/new_job_list")
@@ -200,7 +210,7 @@ public interface APIInterface {
     @POST("activity/form3_submit")
     Call<SubmitDailyResponse> locationAddResponseCall(@Header("Content-Type") String type, @Body Form3SubmitIP locationAddRequest);
 
-    @POST("service_userdetails/breakdown_data_submit")
+    @POST("service_userdetails/breakdown_data_submit_test_one")
     Call<SubmitBreakdownResponseee> submitAddResponseCall(@Header("Content-Type") String type, @Body Breakdowm_Submit_Request locationAddRequest);
 
     @POST("activity/getlist_number")
@@ -425,11 +435,14 @@ public interface APIInterface {
     @POST("audit_data_management/fetch_mr_list")
     Call<Fetch_MrList_Response> FetchMrListAuditCall(@Header("Content-Type") String type, @Body Fetch_MrList_Request fetchMrListRequest);
 
-
     @POST("audit_data_management/submit")
     Call<SuccessResponse> AuditSubmiCall(@Header("Content-Type") String type, @Body AuditRequest auditRequest);
 
+    @POST("service_temp_data/create_local_value_form_7")
+    Call<SuccessResponse> createLocalValueCallAudit(@Header("Content-Type") String type, @Body AuditRequest auditRequest);
 
+    @POST("service_temp_data/create_local_value_form_check_two")
+    Call<SuccessResponse> createLocalValueformcheckAudit(@Header("Content-Type") String type, @Body AuditRequest auditRequest);
     ///////
 
     @POST("service_admin/getlist_userlist")
@@ -466,4 +479,42 @@ public interface APIInterface {
 
     @POST("service_userdetails/update_logout_time")
     Call<SuccessResponse> LogoutCall(@Header("Content-Type") String type , @Body LogoutRequest logoutRequest);
+
+    /*Notification token update*/
+    @POST("service_userdetails/mobile/update/fb_token")
+    Call<SuccessResponse> fBTokenUpdateResponseCall(@Header("Content-Type") String type, @Body FbTokenRequest fbTokenRequest);
+
+    /* Check Outstanding Jobs */
+    @POST("service_userdetails/check_outstanding_job")
+    Call<CheckOutstandingJobResponse> CheckOutstandingJobCall(@Header("Content-Type") String type, @Body CheckOutstandingJobRequest checkOutstandingJobRequest);
+
+    /* Update Outstanding Jobs */
+    @POST("service_userdetails/pending_job_pause")
+    Call<SuccessResponse> UpdateOutstandingJobCall(@Header("Content-Type") String type, @Body UpdateOutstandingJobRequest updateOutstandingJobRequest);
+
+    /* Notication List */
+    @POST("pop_notification/getlist_by_mobile_no")
+    Call<NotificationListResponse> NotificationListCall(@Header("Content-Type") String type, @Body NotificationListRequest notificationListRequest);
+
+    @POST("notification/update_view_status")
+    Call<SuccessResponse> NotificationupdateCall(@Header("Content-Type") String type, @Body NotificationListRequest notificationListRequest);
+
+
+    @POST("notification/delete_notificaiton")
+    Call<SuccessResponse> NotificationdeleteCall(@Header("Content-Type") String type, @Body NotificationListRequest notificationListRequest);
+
+    // Skip Job Details API //
+
+    @POST("breakdown_data_management/skip_job_detail")
+    Call<SuccessResponse> SkipJobDetails(@Header("Content-Type") String type, @Body SkipJobDetailRequest skipJobDetailRequest);
+
+    // PopUp Image API //
+
+    @POST("pop_notification/check_image")
+    Call<GetPopupImageResponse> getPopUpImage(@Header("Content-Type") String type, @Body GetPopUpImageRequest getPopUpImageRequest);
+
+
+    @POST("pop_notification/update_status")
+    Call<SuccessResponse> updatePopUpImage(@Header("Content-Type") String type, @Body UpdatePopImageRequest updatePopImageRequest);
 }
+

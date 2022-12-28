@@ -12,6 +12,9 @@ public class Job_status_updateRequest {
     private String SMU_SCQH_QUOTENO;
     private String SMU_ACK_COMPNO;
     private String OM_OSA_COMPNO;
+    private String JOB_LOCATION;
+    private double JOB_START_LAT;
+    private double JOB_START_LONG;
 
     public String getUser_mobile_no() {
         return user_mobile_no;
@@ -91,5 +94,29 @@ public class Job_status_updateRequest {
 
     public void setJobId(String jobId) {
         this.jobId = jobId;
+    }
+
+    public String getJOB_LOCATION() {
+        return JOB_LOCATION;
+    }
+
+    public void setJOB_LOCATION(String JOB_LOCATION) {
+        this.JOB_LOCATION = JOB_LOCATION;
+    }
+
+    public double getJOB_START_LAT() {
+        return JOB_START_LAT;
+    }
+
+    public void setJOB_START_LAT(double JOB_START_LAT) {
+        this.JOB_START_LAT = JOB_START_LAT;
+    }
+
+    public double getJOB_START_LONG() {
+        return JOB_START_LONG;
+    }
+
+    public void setJOB_START_LONG(double JOB_START_LONG) {
+        this.JOB_START_LONG = JOB_START_LONG;
     }
 }

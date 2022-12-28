@@ -4,7 +4,7 @@ public class Job_status_updateResponse {
 
     private String Status;
     private String Message;
-
+    private String time;
     private DataBean Data;
     private int Code;
 
@@ -38,6 +38,14 @@ public class Job_status_updateResponse {
 
     public void setCode(int Code) {
         this.Code = Code;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public static class DataBean {

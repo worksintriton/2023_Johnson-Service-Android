@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -41,6 +44,7 @@ import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import java.io.File;
@@ -72,9 +76,10 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
     Bitmap signatureBitmap;
     MultipartBody.Part siganaturePart;
     String userid, uploadimagepath = "";
-    String myactivity = "Parts Replacement ACK",signfile,str_job_status,str_ACKCompno,service_type;
+    String myactivity = "Parts Replacement ACK",signfile,str_job_status,str_ACKCompno,service_type,networkStatus="";
     AlertDialog alertDialog;
-
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,6 +100,8 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         img_Back = findViewById(R.id.img_back);
         img_Pause = findViewById(R.id.img_paused);
         img_Signature = findViewById(R.id.image1);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -104,11 +111,18 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         service_title = sharedPreferences.getString("service_title", "Services");
         str_ACKCompno = sharedPreferences.getString("ackcompno","123");
         service_type = sharedPreferences.getString("service_type","PSM");
+        job_id = sharedPreferences.getString("job_id","L-1234");
         // compno = sharedPreferences.getString("compno","123");
         // sertype = sharedPreferences.getString("sertype","123");
-
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
+        Log.e("JobID",""+job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -116,19 +130,30 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
             status = extras.getString("status");
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("JobID",""+job_id);
+      //      job_id = extras.getString("job_id");
+            //Log.e("JobID",""+job_id);
             str_Techsign = extras.getString("tech_signature");
             str_CustAck = extras.getString("cust_ack");
         }
 
 
-        if (status.equals("new")){
-            getSign(job_id,myactivity);
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+          NoInternetDialog();
+
+        }else{
+            if (status.equals("new")){
+                getSign(job_id,myactivity);
+            }
+            else{
+                retrive_LocalValue();
+            }
         }
-        else{
-            retrive_LocalValue();
-        }
+
+
 
         btn_Save.setEnabled(false);
         btn_Clear.setEnabled(false);
@@ -156,11 +181,6 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(context);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Technician Signature" + ".jpg");
@@ -184,16 +204,18 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
 
-                uploadDigitalSignatureImageRequest(file);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                    NoInternetDialog();
+
+                }else{
+
+                    uploadDigitalSignatureImageRequest(file);
+                }
+
 
                 //Toast.makeText(context,"Signature Saved",Toast.LENGTH_SHORT).show();
             }
@@ -209,26 +231,28 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         img_Back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
-                // send.putExtra("service_title",service_title);
-                send.putExtra("job_id",job_id);
-                send.putExtra("status" , status);
-                send.putExtra("tech_signature", uploadimagepath);
-                send.putExtra("cust_ack",str_CustAck);
-                startActivity(send);
+//                Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
+//                // send.putExtra("service_title",service_title);
+//                send.putExtra("job_id",job_id);
+//                send.putExtra("status" , status);
+//                send.putExtra("tech_signature", uploadimagepath);
+//                send.putExtra("cust_ack",str_CustAck);
+//                startActivity(send);
+                onBackPressed();
             }
         });
 
         btn_Prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
-                // send.putExtra("service_title",service_title);
-                send.putExtra("job_id",job_id);
-                send.putExtra("status" , status);
-                send.putExtra("tech_signature", uploadimagepath);
-                send.putExtra("cust_ack",str_CustAck);
-                startActivity(send);
+//                Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
+//                // send.putExtra("service_title",service_title);
+//                send.putExtra("job_id",job_id);
+//                send.putExtra("status" , status);
+//                send.putExtra("tech_signature", uploadimagepath);
+//                send.putExtra("cust_ack",str_CustAck);
+//                startActivity(send);
+                onBackPressed();
             }
         });
 
@@ -280,6 +304,32 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     private void retrive_LocalValue() {
@@ -488,9 +538,23 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
 
     private void uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")
@@ -551,12 +615,26 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
-        // send.putExtra("service_title",service_title);
-        send.putExtra("job_id",job_id);
-        send.putExtra("status" , status);
-        send.putExtra("tech_signature", uploadimagepath);
-        send.putExtra("cust_ack",str_CustAck);
-        startActivity(send);
+//        Intent send = new Intent(context, MaterialDetailsACK_Activity.class);
+//        // send.putExtra("service_title",service_title);
+//        send.putExtra("job_id",job_id);
+//        send.putExtra("status" , status);
+//        send.putExtra("tech_signature", uploadimagepath);
+//        send.putExtra("cust_ack",str_CustAck);
+//        startActivity(send);
+        alertDialog = new AlertDialog.Builder(context)
+                .setTitle("Are you sure to close this job ?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent send = new Intent(context, ServicesActivity.class);
+                        startActivity(send);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        alertDialog.dismiss();
+                    }
+                })
+                .show();
     }
 }

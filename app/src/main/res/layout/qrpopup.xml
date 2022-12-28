@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/round_corner"
+    android:layout_marginBottom="@dimen/_30dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+
+            <ImageView
+                android:id="@+id/img_success"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="70dp"
+                android:layout_marginTop="25dp"
+                android:visibility="gone"
+                android:src="@drawable/success"/>
+
+            <ImageView
+                android:id="@+id/img_fail"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="70dp"
+                android:layout_marginTop="25dp"
+                android:visibility="gone"
+                android:src="@drawable/failure"/>
+
+        <ImageView
+            android:id="@+id/img_alert"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_marginTop="25dp"
+            android:visibility="gone"
+            android:src="@drawable/alert"/>
+
+            <TextView
+                android:id="@+id/txt_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textFontWeight="@integer/google_play_services_version"
+                android:gravity="center"
+                android:layout_marginTop="20dp"
+                android:textStyle="bold"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/txt_popup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textFontWeight="@integer/google_play_services_version"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="25sp" />
+
+
+        <LinearLayout
+            android:id="@+id/ll_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginVertical="25dp"
+            android:orientation="vertical">
+
+            <Button
+                android:visibility="gone"
+                android:id="@+id/btn_ok"
+                android:layout_width="@dimen/_200dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/okbtn_background"
+                android:elevation="1dp"
+                android:stateListAnimator="@animator/button_elevation"
+                android:text="OK"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <Button
+                android:visibility="gone"
+                android:id="@+id/btn_back"
+                android:layout_width="@dimen/_200dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backbtn_background"
+                android:elevation="1dp"
+                android:stateListAnimator="@animator/button_elevation"
+                android:text="Back"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txt_message"
+            android:layout_centerVertical="true"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="@dimen/_20dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <Button
+                android:id="@+id/btn_no"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="0.35"
+                android:background="@drawable/backbtn_background"
+                android:elevation="1dp"
+                android:stateListAnimator="@animator/button_elevation"
+                android:text="NO"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.05" />
+
+            <Button
+                android:id="@+id/btn_yes"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="0.35"
+                android:background="@drawable/okbtn_background"
+                android:elevation="1dp"
+                android:stateListAnimator="@animator/button_elevation"
+                android:text="YES"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>
+ 

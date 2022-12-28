@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -36,6 +38,7 @@ import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Material_DetailsResponseACK;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.List;
 
@@ -55,9 +58,12 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     List<Material_DetailsResponseACK.DataBean> breedTypedataBeanList;
     MaterialDetailsACK_Adapter petBreedTypesListAdapter;
-    private String PetBreedType = "",str_job_status,service_type;
+    private String PetBreedType = "",str_job_status,service_type,networkStatus="";
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +80,10 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
         img_Back = findViewById(R.id.img_back);
         recyclerView  =findViewById(R.id.recyclerView);
         img_Pause = findViewById(R.id.img_paused);
+        img_Pause.setVisibility(View.GONE);
         txt_no_records = findViewById(R.id.txt_no_records);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -83,12 +92,19 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
         service_title = sharedPreferences.getString("service_title", "Services");
         str_ACKCompno = sharedPreferences.getString("ackcompno","123");
         service_type = sharedPreferences.getString("service_type","PSM");
+        job_id = sharedPreferences.getString("job_id","L-1234");
         // compno = sharedPreferences.getString("compno","123");
         // sertype = sharedPreferences.getString("sertype","123");
-
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("ACKCompno","" +str_ACKCompno);
+        Log.e("JobID",""+job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
 
@@ -97,13 +113,23 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
             status = extras.getString("status");
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("JobID",""+job_id);
+//            job_id = extras.getString("job_id");
+//            Log.e("JobID",""+job_id);
             str_Techsign = extras.getString("tech_signature");
             str_CustAck = extras.getString("cust_ack");
         }
 
-        materialDetailscall();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else {
+
+            materialDetailscall();
+        }
 
         img_Back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,7 +163,7 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                Intent send = new Intent(context, TechnicianSignature_ACKServiceActivity.class);
+                Intent send = new Intent(context, StartJob_ACK_Activity.class);
                 // send.putExtra("service_title",service_title);
                 send.putExtra("job_id",job_id);
                 send.putExtra("status" , status);
@@ -170,6 +196,30 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
         });
     }
 
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
     private void createLocalValueCall() {
 
         APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
@@ -376,20 +426,7 @@ public class MaterialDetailsACK_Activity extends AppCompatActivity {
 //        send.putExtra("cust_ack",str_CustAck);
 //        startActivity(send);
 
-        alertDialog = new AlertDialog.Builder(context)
-                .setTitle("Are you sure to close this job ?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent send = new Intent(context, ServicesActivity.class);
-                        startActivity(send);
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        alertDialog.dismiss();
-                    }
-                })
-                .show();
-
+        super.onBackPressed();
+        finish();
     }
 }

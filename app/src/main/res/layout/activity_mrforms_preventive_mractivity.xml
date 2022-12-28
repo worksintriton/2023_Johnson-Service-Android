@@ -38,11 +38,44 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <RelativeLayout
+        android:id="@+id/rel_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_bar"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/txt_jobid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:id="@+id/txt_starttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/txt_jobid"
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="80dp"
-        android:layout_below="@id/main_bar">
+        android:layout_below="@id/rel_id">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -84,7 +117,7 @@
                     <EditText
                         android:id="@+id/mr1"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -129,7 +162,7 @@
                     <EditText
                         android:id="@+id/mr2"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -174,7 +207,7 @@
                     <EditText
                         android:id="@+id/mr3"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -219,7 +252,7 @@
                     <EditText
                         android:id="@+id/mr4"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -264,7 +297,7 @@
                     <EditText
                         android:id="@+id/mr5"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -309,7 +342,7 @@
                     <EditText
                         android:id="@+id/mr6"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -354,7 +387,7 @@
                     <EditText
                         android:id="@+id/mr7"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -399,7 +432,7 @@
                     <EditText
                         android:id="@+id/mr8"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -444,7 +477,7 @@
                     <EditText
                         android:id="@+id/mr9"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"
@@ -489,7 +522,7 @@
                     <EditText
                         android:id="@+id/mr10"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:singleLine="true"
                         android:layout_marginRight="10dp"
                         android:paddingLeft="5dp"

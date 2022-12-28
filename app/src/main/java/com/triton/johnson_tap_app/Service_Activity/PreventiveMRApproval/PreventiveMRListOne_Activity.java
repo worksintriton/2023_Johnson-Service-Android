@@ -1,5 +1,7 @@
 package com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval;
 
+import static com.triton.johnson_tap_app.Db.DbUtil.db;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -13,28 +15,33 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
-import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMRListOne_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.Service_Adapter.PreventiveMRListOne_Adapter;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
+import com.triton.johnson_tap_app.interfaces.QuantityListener;
 import com.triton.johnson_tap_app.materialeditext.MaterialEditText;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
+import com.triton.johnson_tap_app.responsepojo.Fetch_MrList_Response;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
@@ -51,7 +58,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PreventiveMRListOne_Activity extends AppCompatActivity {
+public class PreventiveMRListOne_Activity extends AppCompatActivity implements QuantityListener {
 
     private String TAG ="MRListONE";
 
@@ -59,21 +66,30 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
     ImageButton imgbtnSearch;
     RecyclerView recyclerView;
     ImageView iv_back,img_clearsearch,iv_pause;
-    Button addButton, submitButton, prevButton;
+    Button submitButton, prevButton;
+    FloatingActionButton addButton;
     String se_user_mobile_no, se_user_name, se_id,check_id, service_title,job_id,status,str_job_status;
-    String strPartname, strPartno,strPartid, strQuantity,compno,sertype,str_Partid,str_Partno,str_Quantity,str_Partname,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="",message;
+    String strPartname, strPartno,strPartid, strQuantity,compno,sertype,str_Partid,str_Partno,str_Quantity =" ",str_Partname,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="",message;
     private String PetBreedType = "";
     Context context;
     AlertDialog.Builder builder;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime,Quantity;
 
     ArrayList<String> arli_Partname;
-    ArrayList<String> arli_Partno;
+    ArrayList<String>  arli_Partno;
     ArrayList<String> arli_Partid;
     ArrayList<String> arli_Quantity;
+    int index = 0;
+
+    String Partno = "",PartName, PartQty,PartID;
+    String[] strLi_PartNo, strLi_PartName,strLi_PartQty,strLi_PartID;
 
     List<Retrive_LocalValueResponse.Data.MrDatum> databean;
+    private List<Fetch_MrList_Response.Datum> breedTypedataBeanList;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -95,6 +111,8 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         prevButton = findViewById(R.id.btn_show);
         recyclerView = findViewById(R.id.recyclerView);
         iv_pause = findViewById(R.id.ic_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
 //        partnameMaterialEdittext.setOnTouchListener((view, motionEvent) -> {
 //
@@ -103,9 +121,6 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
 //            quantityMaterialEdittext.setFocusableInTouchMode(true);
 //            return false;
 //        });
-
-
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
         se_user_mobile_no = sharedPreferences.getString("user_mobile_no", "default value");
@@ -117,6 +132,11 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         Log.e("Name",""+ service_title);
         Log.e("Job ID",""+ job_id);
 
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -127,8 +147,8 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         }
         if (extras != null) {
            // job_id = extras.getString("job_id");
-            strPartname = extras.getString("partname");
-            strPartno = extras.getString("partno");
+//            strPartname = extras.getString("partname");
+//            strPartno = extras.getString("partno");
             str_mr1 = extras.getString("mr1");
             str_mr2 = extras.getString("mr2");
             str_mr3 = extras.getString("mr3");
@@ -139,13 +159,23 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
             str_mr8 = extras.getString("mr8");
             str_mr9 = extras.getString("mr9");
             str_mr10 = extras.getString("mr10");
-
             Log.e("JobId","" + job_id );
 
+//            Partno = extras.getString("partno");
+//            PartName = extras.getString("partname");
+//            Log.e("Part No","" + Partno);
+//            if (Partno !=null){
+//                strLi_PartNo = Partno.split(",");
+//                arli_Partno = new ArrayList<String>(Arrays.asList(strLi_PartNo));
+//                Log.e("Part No List",""+ arli_Partno);
+//                strLi_PartName = PartName.split(",");
+//                arli_Partname = new ArrayList<String>(Arrays.asList(strLi_PartName));
+//                Log.e("Part Name List",""+ arli_Partname);
+//            }
 
-            partnameMaterialEdittext.setText(strPartname);
-            partnoMaterialEdittext.setText(strPartno);
-            quantityMaterialEdittext.setFocusableInTouchMode(true);
+//            partnameMaterialEdittext.setText(strPartname);
+//            partnoMaterialEdittext.setText(strPartno);
+//            quantityMaterialEdittext.setFocusableInTouchMode(true);
 
         }
 
@@ -153,15 +183,17 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         editor.putString("service_title", service_title);
         editor.apply();
 
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
-
-        Log.e("MR List Count",""+ cursor.getCount());
+//        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//        Log.e("MR List Count",""+ cursor.getCount());
 
         if (status.equals("pause")){
             Log.e("Inside", "Paused Job");
 
-            CommonUtil.dbUtil.Preportdelete(job_id);
-
+            arli_Partid = new ArrayList<>();
+            arli_Partname = new ArrayList<>();
+            arli_Partno = new ArrayList<>();
+            arli_Quantity = new ArrayList<>();
 
             retrive_LocalValue();
            // addMrData(job_id);
@@ -172,85 +204,91 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
 
-                    Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
-
-                    Log.e("MR Count",""+ cursor.getCount());
-
-
-                    String strQuantity = quantityMaterialEdittext.getText().toString();
-                    String strPartname = partnameMaterialEdittext.getText().toString();
-                    String strPartno = partnoMaterialEdittext.getText().toString();
-
-
-                    Log.e("MR List Data","" + strQuantity + " " + strPartname + " " + strPartno );
-
-                    if (strQuantity.equals("")){
-                        quantityMaterialEdittext.setError("Please Enter the Quantity");
-                    } else if(strPartname.equals("")){
-                        partnameMaterialEdittext.setError("Please Select the Part Name");
-                    }else if(strPartno.equals("")){
-                        partnoMaterialEdittext.setError("Please Select the Part Name");
-                    }
-                    else {
-
-                        Cursor cur = CommonUtil.dbUtil.getPMR(job_id);
-
-                        Log.e("Count", ""+ cur.getCount());
-
-                        if (cur.getCount()>9){
-                            Toast.makeText(PreventiveMRListOne_Activity.this,"Only 10 Items to be Addes", Toast.LENGTH_SHORT).show();
-
-                        }
-                        else {
-                            CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity,job_id);
-                            Toast.makeText(PreventiveMRListOne_Activity.this,"Successfully Added", Toast.LENGTH_SHORT).show();
-                            addMrData(job_id);
-                            partnameMaterialEdittext.setText("");
-                            partnoMaterialEdittext.setText("");
-                            quantityMaterialEdittext.setText("");
-                        }
+                    createLocaldata();
+                    Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMRListtwo_Activity.class);
+                    send.putExtra("service_title",service_title);
+                    send.putExtra("job_id",job_id);
+                    send.putExtra("mr1", str_mr1);
+                    send.putExtra("mr2", str_mr2);
+                    send.putExtra("mr3", str_mr3);
+                    send.putExtra("mr4", str_mr4);
+                    send.putExtra("mr5", str_mr5);
+                    send.putExtra("mr6", str_mr6);
+                    send.putExtra("mr7", str_mr7);
+                    send.putExtra("mr8", str_mr8);
+                    send.putExtra("mr9", str_mr9);
+                    send.putExtra("mr10", str_mr10);
+                    send.putExtra("status", status);
+                    startActivity(send);
+//                    Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//                    Log.e("MR Count",""+ cursor.getCount());
+//
+//                    String strQuantity = quantityMaterialEdittext.getText().toString();
+//                    String strPartname = partnameMaterialEdittext.getText().toString();
+//                    String strPartno = partnoMaterialEdittext.getText().toString();
+//
+//
+//                    Log.e("MR List Data","" + strQuantity + " " + strPartname + " " + strPartno );
+//
+//                    if (strQuantity.equals("")){
+//                        quantityMaterialEdittext.setError("Please Enter the Quantity");
+//                    } else if(strPartname.equals("")){
+//                        partnameMaterialEdittext.setError("Please Select the Part Name");
+//                    }else if(strPartno.equals("")){
+//                        partnoMaterialEdittext.setError("Please Select the Part Name");
+//                    }
+//                    else {
+//
+//                        Cursor cur = CommonUtil.dbUtil.getPMR(job_id);
+//
+//                        Log.e("Count", ""+ cur.getCount());
+//
+//                        if (cur.getCount()>9){
+//                            Toast.makeText(PreventiveMRListOne_Activity.this,"Only 10 Items to be Addes", Toast.LENGTH_SHORT).show();
+//
+//                        }
+//                        else {
+//                            CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity,job_id);
+//                            Toast.makeText(PreventiveMRListOne_Activity.this,"Successfully Added", Toast.LENGTH_SHORT).show();
+//                            addMrData(job_id);
+//                            partnameMaterialEdittext.setText("");
+//                            partnoMaterialEdittext.setText("");
+//                            quantityMaterialEdittext.setText("");
+//                        }
 
 //                    Intent send = new Intent(BreakdownMRListOne_Activity.this, BreakdownMRListOne_Activity.class);
 //                    startActivity(send);
 
-                    }
+                //    }
 
                 }
             });
-//            iv_pause.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//
-//
-//
-//                    builder = new AlertDialog.Builder(PreventiveMRListOne_Activity.this);
-//
-//                    builder.setMessage("Are You sure want to pause this job ?")
-//                            .setCancelable(false)
-//                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                                public void onClick(DialogInterface dialog, int id) {
-//
-//                                    addMrData(job_id);
-//                                    Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMR_Activity.class);
-//                                    send.putExtra("status", status);
-//                                    send.putExtra("service_title",service_title);
-//                                    send.putExtra("job_id",job_id);
-//                                    startActivity(send);
-//
-//                                }
-//                            })
-//                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                                public void onClick(DialogInterface dialog, int id) {
-//                                    dialog.cancel();
-//                                }
-//                            });
-//
-//                    AlertDialog alert = builder.create();
-//                    //Setting the title manually
-//                    alert.show();
-//
-//                }
-//            });
+
+            imgbtnSearch.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.e("Hi Nish","pause Search");
+                    createLocaldata();
+                    Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMRListtwo_Activity.class);
+                    send.putExtra("service_title",service_title);
+                    send.putExtra("job_id",job_id);
+                    send.putExtra("mr1", str_mr1);
+                    send.putExtra("mr2", str_mr2);
+                    send.putExtra("mr3", str_mr3);
+                    send.putExtra("mr4", str_mr4);
+                    send.putExtra("mr5", str_mr5);
+                    send.putExtra("mr6", str_mr6);
+                    send.putExtra("mr7", str_mr7);
+                    send.putExtra("mr8", str_mr8);
+                    send.putExtra("mr9", str_mr9);
+                    send.putExtra("mr10", str_mr10);
+                    send.putExtra("status", status);
+
+                    startActivity(send);
+
+                }
+            });
 
         }
 
@@ -259,54 +297,115 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
 
             iv_pause.setVisibility(View.VISIBLE);
 
-            addMrData(job_id);
+            arli_Partid = new ArrayList<>();
+            arli_Partname = new ArrayList<>();
+            arli_Partno = new ArrayList<>();
+            arli_Quantity = new ArrayList<>();
+
+//            Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+//            Log.e("List Count",""+cur.getCount());
+
+                getMRList();
+           // addMrData(job_id);
 
             addButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+                    Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+                    Log.e("List Count",""+cur.getCount());
+//
+//                    if (cur.getCount()>9){
+//                        Toast.makeText(context,"Only 10 Items to be Addes", Toast.LENGTH_SHORT).show();
+//
+//                    }
+               //     else{
+                        Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMRListtwo_Activity.class);
+                        send.putExtra("service_title",service_title);
+                        send.putExtra("job_id",job_id);
+                        send.putExtra("mr1", str_mr1);
+                        send.putExtra("mr2", str_mr2);
+                        send.putExtra("mr3", str_mr3);
+                        send.putExtra("mr4", str_mr4);
+                        send.putExtra("mr5", str_mr5);
+                        send.putExtra("mr6", str_mr6);
+                        send.putExtra("mr7", str_mr7);
+                        send.putExtra("mr8", str_mr8);
+                        send.putExtra("mr9", str_mr9);
+                        send.putExtra("mr10", str_mr10);
+                        send.putExtra("status", status);
+                        startActivity(send);
+               //     }
 
-                    Log.e("MR Count",""+ cursor.getCount());
-
-                    String strQuantity = quantityMaterialEdittext.getText().toString();
 
 
-                    Log.e("MR List Data","" + strQuantity + " " + strPartname + " " + strPartno );
+////                    Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+////
+////                    Log.e("MR Count",""+ cursor.getCount());
+////
+////                    String strQuantity = quantityMaterialEdittext.getText().toString();
+////
+////
+////                    Log.e("MR List Data","" + strQuantity + " " + strPartname + " " + strPartno );
+////
+////                    if (strQuantity.equals("")){
+////                        quantityMaterialEdittext.setError("Please Enter the Quantity");
+////                    } else if(strPartname.equals("")){
+////                        partnameMaterialEdittext.setError("Please Select the Part Name");
+////                    }else if(strPartno.equals("")){
+////                        partnoMaterialEdittext.setError("Please Select the Part Name");
+////                    }
+////                    else {
+////
+////                        Cursor cur = CommonUtil.dbUtil.getPMR(job_id);
+////
+////                        Log.e("Count", ""+ cur.getCount());
+////
+////                        if (cur.getCount()>9){
+////                            Toast.makeText(PreventiveMRListOne_Activity.this,"Only 10 Items to be Addes", Toast.LENGTH_SHORT).show();
+////
+////                        }
+////                        else {
+////                            CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity,job_id);
+////                            Toast.makeText(PreventiveMRListOne_Activity.this,"Successfully Added", Toast.LENGTH_SHORT).show();
+////                            addMrData(job_id);
+////                            partnameMaterialEdittext.setText("");
+////                            partnoMaterialEdittext.setText("");
+////                            quantityMaterialEdittext.setText("");
+////                        }
+//
+////                    Intent send = new Intent(BreakdownMRListOne_Activity.this, BreakdownMRListOne_Activity.class);
+////                    startActivity(send);
+//
+//                //    }
+//
+                }
+            });
+//
+            imgbtnSearch.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
 
-                    if (strQuantity.equals("")){
-                        quantityMaterialEdittext.setError("Please Enter the Quantity");
-                    } else if(strPartname.equals("")){
-                        partnameMaterialEdittext.setError("Please Select the Part Name");
-                    }else if(strPartno.equals("")){
-                        partnoMaterialEdittext.setError("Please Select the Part Name");
-                    }
-                    else {
+                    Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMRListtwo_Activity.class);
+                    send.putExtra("service_title",service_title);
+                    send.putExtra("job_id",job_id);
+                    send.putExtra("mr1", str_mr1);
+                    send.putExtra("mr2", str_mr2);
+                    send.putExtra("mr3", str_mr3);
+                    send.putExtra("mr4", str_mr4);
+                    send.putExtra("mr5", str_mr5);
+                    send.putExtra("mr6", str_mr6);
+                    send.putExtra("mr7", str_mr7);
+                    send.putExtra("mr8", str_mr8);
+                    send.putExtra("mr9", str_mr9);
+                    send.putExtra("mr10", str_mr10);
+                    send.putExtra("status", status);
 
-                        Cursor cur = CommonUtil.dbUtil.getPMR(job_id);
-
-                        Log.e("Count", ""+ cur.getCount());
-
-                        if (cur.getCount()>9){
-                            Toast.makeText(PreventiveMRListOne_Activity.this,"Only 10 Items to be Addes", Toast.LENGTH_SHORT).show();
-
-                        }
-                        else {
-                            CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity,job_id);
-                            Toast.makeText(PreventiveMRListOne_Activity.this,"Successfully Added", Toast.LENGTH_SHORT).show();
-                            addMrData(job_id);
-                            partnameMaterialEdittext.setText("");
-                            partnoMaterialEdittext.setText("");
-                            quantityMaterialEdittext.setText("");
-                        }
-
-//                    Intent send = new Intent(BreakdownMRListOne_Activity.this, BreakdownMRListOne_Activity.class);
-//                    startActivity(send);
-
-                    }
+                    startActivity(send);
 
                 }
             });
+
 
         }
 
@@ -341,7 +440,10 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                checkLocaldata();
+                if (status.equals("pause")){
+                    Log.e("Hi Nish","Pause JOB");
+                    createLocaldata();
+                }
                 Intent send = new Intent(PreventiveMRListOne_Activity.this, MRForms_PreventiveMRActivity.class);
                 send.putExtra("service_title",service_title);
                 send.putExtra("job_id",job_id);
@@ -365,7 +467,11 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                checkLocaldata();
+                if (status.equals("pause")){
+                    Log.e("Hi Nish","Pause JOB");
+                    createLocaldata();
+                }
+
                 Intent send = new Intent(PreventiveMRListOne_Activity.this, MRForms_PreventiveMRActivity.class);
                 send.putExtra("service_title",service_title);
                 send.putExtra("job_id",job_id);
@@ -384,41 +490,93 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
             }
         });
 
-        imgbtnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent send = new Intent(PreventiveMRListOne_Activity.this, PreventiveMRListtwo_Activity.class);
-                send.putExtra("service_title",service_title);
-                send.putExtra("job_id",job_id);
-                send.putExtra("mr1", str_mr1);
-                send.putExtra("mr2", str_mr2);
-                send.putExtra("mr3", str_mr3);
-                send.putExtra("mr4", str_mr4);
-                send.putExtra("mr5", str_mr5);
-                send.putExtra("mr6", str_mr6);
-                send.putExtra("mr7", str_mr7);
-                send.putExtra("mr8", str_mr8);
-                send.putExtra("mr9", str_mr9);
-                send.putExtra("mr10", str_mr10);
-                send.putExtra("status", status);
-
-                startActivity(send);
-
-            }
-        });
-
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//
+//                Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//                Log.e("MR Count",""+ cursor.getCount());
 
-                Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+                if (status.equals("pause")){
+                    Log.e("Hi Nish","Pause JOB");
+                    createLocaldata();
+                }
+//
+//                Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+//                Log.e("List Count",""+cur.getCount());
 
-                Log.e("MR Count",""+ cursor.getCount());
+//                if (cur.getCount()>0){
+//
+//                    createLocaldata();
+//                    Intent send = new Intent(PreventiveMRListOne_Activity.this, TechnicianSignature_PreventiveMRActivity.class);
+//                    send.putExtra("service_title",service_title);
+//                    send.putExtra("job_id",job_id);
+//                    send.putExtra("mr1", str_mr1);
+//                    send.putExtra("mr2", str_mr2);
+//                    send.putExtra("mr3", str_mr3);
+//                    send.putExtra("mr4", str_mr4);
+//                    send.putExtra("mr5", str_mr5);
+//                    send.putExtra("mr6", str_mr6);
+//                    send.putExtra("mr7", str_mr7);
+//                    send.putExtra("mr8", str_mr8);
+//                    send.putExtra("mr9", str_mr9);
+//                    send.putExtra("mr10", str_mr10);
+//                    send.putExtra("status", status);
+//                    startActivity(send);
+//                }
+//                else{
+//
+//                    alertDialog = new AlertDialog.Builder(context)
+//                            //.setTitle("Please Login to Continue!")
+//                            .setMessage("Please add MR")
+//                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                                public void onClick(DialogInterface dialogInterface, int i) {
+//                                    alertDialog.dismiss();
+//                                }
+//                            })
+//                            .show();
+//
+//                }
 
-                if (cursor.getCount()>0){
 
-                    checkLocaldata();
+//
+//                Log.e("Size",""+arli_Partno.size());
+//                for (int i = 0 ; i < arli_Partno.size(); i++){
+//
+//                    Partno = arli_Partno.get(i).toString();
+//                    Log.e("Part No Final",""+Partno);
+//
+//                }
+
+                getMRList();
+
+                if (arli_Partno.size() == 0){
+
+                    alertDialog = new AlertDialog.Builder(context)
+                            //.setTitle("Please Login to Continue!")
+                            .setMessage("Please add MR")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    alertDialog.dismiss();
+                                }
+                            })
+                            .show();
+//                    if(arli_Quantity.contains("")){
+//
+//                        alertDialog = new AlertDialog.Builder(context)
+//                                //.setTitle("Please Login to Continue!")
+//                                .setMessage("Please add MR Quantity")
+//                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                                    public void onClick(DialogInterface dialogInterface, int i) {
+//                                        alertDialog.dismiss();
+//                                    }
+//                                })
+//                                .show();
+//                    }
+                }
+                else{
+//                    createLocaldata();
                     Intent send = new Intent(PreventiveMRListOne_Activity.this, TechnicianSignature_PreventiveMRActivity.class);
                     send.putExtra("service_title",service_title);
                     send.putExtra("job_id",job_id);
@@ -435,23 +593,49 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
                     send.putExtra("status", status);
                     startActivity(send);
                 }
-                else{
-
-                    alertDialog = new AlertDialog.Builder(context)
-                            //.setTitle("Please Login to Continue!")
-                            .setMessage("Please add MR")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    alertDialog.dismiss();
-                                }
-                            })
-                            .show();
-
-                }
-
-
             }
         });
+    }
+
+    public void getMRList() {
+
+        arli_Partid = new ArrayList<>();
+        arli_Partname = new ArrayList<>();
+        arli_Partno = new ArrayList<>();
+        arli_Quantity = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+
+        if (cur.getCount()>0 &&cur.moveToFirst()){
+
+            do {
+               str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+               str_Partno= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+               str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                Log.e("Quantity",""+str_Quantity);
+                arli_Partid.add(str_Partid);
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+            } while (cur.moveToNext());
+        }
+        cur.close();
+
+        Log.e("Nish",""+arli_Partid.size());
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        PreventiveMRListOne_Adapter adapter = new PreventiveMRListOne_Adapter(arli_Partid,arli_Partname,arli_Partno, arli_Quantity,context,this);
+        recyclerView.setAdapter(adapter);
+//        adapter.setOnItemClickListener(new PreventiveMRListOne_Adapter.onItemClickListener() {
+//            @Override
+//            public void onItemClick(int position) {
+//                arli_Partid.remove(position);
+//                adapter.notifyItemRemoved(position);
+//            }
+//        });
     }
 
     private void createLocalValueCall() {
@@ -474,6 +658,11 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
+//                            CommonUtil.dbUtil.deleteMRTable(job_id,"1",service_title);
+//
+//                            Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+//                            Log.e("List Count",""+cur.getCount());
 
                             Intent send = new Intent(context, ServicesActivity.class);
                             startActivity(send);
@@ -506,96 +695,140 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         local.setSMU_SCH_SERTYPE(sertype);
         local.setEngSignature("-");
 
+//        List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
+//
+//        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//        Log.e("MR Count",""+ cursor.getCount());
+//
+//
+//        int i =0;
+//        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+//
+//            do {
+//                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
+//                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
+//                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
+//                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+//
+//                int mynum = i+1;
+//
+//                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+//                mrDatum.setTitle("Mr"+mynum);
+//                if(mynum==1) {
+//                    //   mrDatum.setValue(mr1);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==2) {
+//                    // mrDatum.setValue(mr2);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==3) {
+//
+//                    //   mrDatum.setValue(mr3);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==4) {
+//
+//                    //   mrDatum.setValue(mr4);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==5) {
+//
+//                    //   mrDatum.setValue(mr5);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==6) {
+//
+//                    //  mrDatum.setValue(mr6);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==7) {
+//
+//                    //  mrDatum.setValue(mr7);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==8) {
+//
+//                    // mrDatum.setValue(mr8);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==9) {
+//
+//                    //  mrDatum.setValue(mr9);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==10) {
+//
+//                    //  mrDatum.setValue(mr10);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                }
+//
+//                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
+//                mrData.add(mrDatum);
+//
+//                i++;
+//
+//            }while (cursor.moveToNext());
+//        }
+//
+//        local.setMrData(mrData);
+
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
+            }while (cur.moveToNext());
+
+            for (int i = 0; i<arli_Partno.size();i++){
                 int mynum = i+1;
 
                 ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    //   mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    // mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
 
-                    //   mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
+                mrDatum.setValue("MR "+mynum);
+                mrDatum.setPartno(arli_Partno.get(i));
+                mrDatum.setPartname(arli_Partname.get(i));
+                mrDatum.setReq(arli_Quantity.get(i));
 
-                    //   mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    //   mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    //  mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    //  mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    // mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    //  mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    //  mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
                 mrData.add(mrDatum);
 
-                i++;
+            }
 
-            }while (cursor.moveToNext());
         }
 
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         local.setMrData(mrData);
-
 
         Log.w(TAG,"Local Request "+ new Gson().toJson(local));
         return local;
@@ -604,7 +837,7 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
     private void Job_status_update() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
-        Call<Job_status_updateResponse> call = apiInterface.BreakdownMrJobWorkStatusResponseCall(RestUtils.getContentType(), job_status_updateRequest());
+        Call<Job_status_updateResponse> call = apiInterface.PreventiveMrJobWorkStatusResponseCall(RestUtils.getContentType(), job_status_updateRequest());
         Log.w(TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
 
         call.enqueue(new Callback<Job_status_updateResponse>() {
@@ -683,6 +916,11 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
                                 Log.e("Nish",""+databean.toString());
                                 Log.e("Nish",""+databean.size());
 
+                       //         if (databean.size() > 0){
+
+//                                    CommonUtil.dbUtil.Preportdelete(job_id);
+                             //   }
+
                                 for (int i =0 ; i < databean.size(); i++){
                                     //  datre =  response.body().getData();
 
@@ -697,17 +935,29 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
 
                                     Log.e("jobID",""+ job_id);
 
-                                    if(!CommonUtil.dbUtil.hasPMR(strPartname,job_id,strPartno,strQuantity)) {
-                                        Log.e("Nish","inside");
 
-                                        CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity, job_id);
-                                    } else{
-                                        Log.e("Nish","outside");
-
-                                    }
-
+//                                    if(!CommonUtil.dbUtil.hasPMR(strPartname,job_id,strPartno,strQuantity)) {
+//                                        Log.e("Nish","inside");
+//
+//                                        CommonUtil.dbUtil.addPMR(strPartname, strPartno, strQuantity, job_id);
+//                                    } else{
+//                                        Log.e("Nish","outside");
+//
+//                                    }
                                 }
-                                addMrData(job_id);
+
+                                if (CommonUtil.dbUtil.hasMRList(strPartno,strPartname,"2",job_id,service_title)) {
+                                    Log.e("Hi Nish", "Had Data");
+                                    CommonUtil.dbUtil.deleteMRList(strPartno, strPartname, "2", job_id, service_title);
+                                    Cursor cur = CommonUtil.dbUtil.getMRList(job_id, "2", service_title);
+                                    Log.e("List Count", "" + cur.getCount());
+                                    CommonUtil.dbUtil.addMRList(strPartno, strPartname, "2", job_id, service_title, strQuantity);
+                                    Cursor curs = CommonUtil.dbUtil.getMRList(job_id, "2", service_title);
+                                    Log.e("List Count", "" + curs.getCount());
+                                    Log.e("Nish","outside");
+                                }
+                              //  addMrData(job_id);
+                                getMRList();
                             }
                         }
                     }
@@ -724,6 +974,7 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
                 }
             });
         }
+
         private Job_status_updateRequest localRequest() {
             Job_status_updateRequest custom = new Job_status_updateRequest();
             custom.setUser_mobile_no(se_user_mobile_no);
@@ -737,8 +988,10 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
 
-
-        checkLocaldata();
+        if (status.equals("pause")){
+            Log.e("Hi Nish","Pause JOB");
+            createLocaldata();
+        }
         Intent send = new Intent(PreventiveMRListOne_Activity.this, MRForms_PreventiveMRActivity.class);
         send.putExtra("service_title",service_title);
         send.putExtra("job_id",job_id);
@@ -756,7 +1009,9 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         startActivity(send);
     }
 
-    private void checkLocaldata() {
+    private void createLocaldata() {
+
+        Log.e("Nish","Create Local Data");
 
         APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
         Call<SuccessResponse> call = apiInterface.createLocalValueCallPMR(RestUtils.getContentType(),createLocalDataRequest());
@@ -806,94 +1061,137 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         local.setSMU_SCH_SERTYPE(sertype);
         local.setEngSignature("-");
 
+//        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//        Log.e("MR Count",""+ cursor.getCount());
+//
+//
+//        int i =0;
+//        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+//
+//            do {
+//                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
+//                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
+//                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
+//                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+//
+//                int mynum = i+1;
+//
+//                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+//                mrDatum.setTitle("Mr"+mynum);
+//                if(mynum==1) {
+//                    //   mrDatum.setValue(mr1);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==2) {
+//                    // mrDatum.setValue(mr2);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==3) {
+//
+//                    //   mrDatum.setValue(mr3);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==4) {
+//
+//                    //   mrDatum.setValue(mr4);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==5) {
+//
+//                    //   mrDatum.setValue(mr5);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==6) {
+//
+//                    //  mrDatum.setValue(mr6);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==7) {
+//
+//                    //  mrDatum.setValue(mr7);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==8) {
+//
+//                    // mrDatum.setValue(mr8);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==9) {
+//
+//                    //  mrDatum.setValue(mr9);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==10) {
+//
+//                    //  mrDatum.setValue(mr10);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setPartname(str_Partname);
+//                    mrDatum.setReq(str_Quantity);
+//                }
+//
+//                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
+//                mrData.add(mrDatum);
+//
+//                i++;
+//
+//            }while (cursor.moveToNext());
+//        }
+//
+//        local.setMrData(mrData);
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
+            }while (cur.moveToNext());
+
+            for (int i = 0; i<arli_Partno.size();i++){
                 int mynum = i+1;
 
                 ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    //   mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    // mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
 
-                    //   mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
+                mrDatum.setValue("MR "+mynum);
+                mrDatum.setPartno(arli_Partno.get(i));
+                mrDatum.setPartname(arli_Partname.get(i));
+                mrDatum.setReq(arli_Quantity.get(i));
 
-                    //   mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    //   mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    //  mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    //  mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    // mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    //  mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    //  mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
                 mrData.add(mrDatum);
 
-                i++;
+            }
 
-            }while (cursor.moveToNext());
         }
 
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         local.setMrData(mrData);
 
 
@@ -942,12 +1240,21 @@ public class PreventiveMRListOne_Activity extends AppCompatActivity {
         Log.e("Nish",""+arli_Partid.size());
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        PreventiveMRListOne_Adapter adapter = new PreventiveMRListOne_Adapter(arli_Partid,arli_Partname,arli_Partno, arli_Quantity,context);
+        PreventiveMRListOne_Adapter adapter = new PreventiveMRListOne_Adapter(arli_Partid,arli_Partname,arli_Partno, arli_Quantity,context, this);
         recyclerView.setAdapter(adapter);
 
     }
 
     public void petBreedTypeSelectListener(String petbreedtitle, String petbreedid) {
         PetBreedType = petbreedtitle;
+    }
+
+    @Override
+    public void onQuantityChange(EditText edt_Qty, String s, int position) {
+
+        Quantity = s;
+        Log.e("Remarks 123",""+ Quantity +" "+position);
+
+
     }
 }

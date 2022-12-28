@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -55,13 +56,18 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
     String str_job_id,service_title,value,se_id,se_user_mobile_no,compno,sertype,pre_check,status,message,str_job_status;
     Context context;
     ArrayList<String> arli_Month = new ArrayList<String>();
+    ArrayList<String> arli_ID = new ArrayList<String>();
     ESCTRV_adapter petBreedTypesListAdapter;
     AlertDialog alertDialog;
     ArrayList<String> mydata = new ArrayList<>();
     String statustype,TAG = "ESCTRV";
     SharedPreferences sharedPreferences;
     List FieldData = Collections.singletonList("-");
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+    int PageNumber = 1;
 
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +86,8 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         iv_Back = findViewById(R.id.iv_back);
         img_Pause = findViewById(R.id.img_paused);
         btn_Next = findViewById(R.id.btn_next);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -88,6 +96,12 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         str_job_id = sharedPreferences.getString("job_id","L1234");
         statustype = sharedPreferences.getString("statustype","OD");
         Log.e("Value", statustype);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + str_job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -105,8 +119,15 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
 
         arli_Month.add("MONTHLY");
         arli_Month.add("QUARTERLY");
-        arli_Month.add("HALFYEARLY");
-        arli_Month.add("YEARLY");
+        arli_Month.add("HALF YEARLY");
+        arli_Month.add("ANNUALLY");
+
+        arli_ID.add("1");
+        arli_ID.add("2");
+        arli_ID.add("3");
+        arli_ID.add("4");
+
+
 
         Cursor cur = CommonUtil.dbUtil.getMonthlist(str_job_id,service_title, "1");
         Log.e("Checklist",""+cur.getCount());
@@ -123,7 +144,7 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        petBreedTypesListAdapter = new ESCTRV_adapter(arli_Month,this, (JobDateListener) this,mydata);
+        petBreedTypesListAdapter = new ESCTRV_adapter(arli_Month,this, (JobDateListener) this,mydata,arli_ID);
         recyclerView.setAdapter(petBreedTypesListAdapter);
 
 
@@ -136,7 +157,6 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
 
                 Cursor cur = CommonUtil.dbUtil.getMonthlist(str_job_id,service_title, "1");
                 Log.e("Checklist",""+cur.getCount());
-
 
                 if (cur.getCount() == 0){
                     alertDialog = new AlertDialog.Builder(context)
@@ -161,8 +181,6 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
                     intent.putExtra("status",status);
                     startActivity(intent);
                 }
-
-
 
             }
         });
@@ -247,6 +265,7 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         });
 
     }
+
     private Job_status_updateRequest job_status_updateRequest() {
 
         Job_status_updateRequest custom = new Job_status_updateRequest();
@@ -366,13 +385,14 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
             outputList.add(""+item+"");
         }
         pre_check = String.valueOf(outputList);
+        pre_check = pre_check.replace("ANNUALLY","YEARLY");
         //   pre_check = pre_check.replaceAll("\\[", "").replaceAll("\\]","");
         //  System.out.println("EEEEEEEEEEE"+ddd);
 
-        Log.e("Month List", String.valueOf(mydata));
+        Log.e("Month List", pre_check);
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("List", String.valueOf(mydata));
+        editor.putString("List", pre_check);
         editor.apply();
     }
 

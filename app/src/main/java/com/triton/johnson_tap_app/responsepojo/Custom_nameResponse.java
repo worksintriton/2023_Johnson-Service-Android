@@ -42,6 +42,8 @@ public class Custom_nameResponse {
 
     public static class DataBean {
         private String customer_name;
+        private String FRDT;
+        private String TODT;
 
         public String getCustomer_name() {
             return customer_name;
@@ -49,6 +51,22 @@ public class Custom_nameResponse {
 
         public void setCustomer_name(String customer_name) {
             this.customer_name = customer_name;
+        }
+
+        public String getFRDT() {
+            return FRDT;
+        }
+
+        public void setFRDT(String FRDT) {
+            this.FRDT = FRDT;
+        }
+
+        public String getTODT() {
+            return TODT;
+        }
+
+        public void setTODT(String TODT) {
+            this.TODT = TODT;
         }
     }
 }

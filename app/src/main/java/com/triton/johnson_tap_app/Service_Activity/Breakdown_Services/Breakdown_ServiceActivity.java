@@ -3,12 +3,17 @@ package com.triton.johnson_tap_app.Service_Activity.Breakdown_Services;
 import static com.android.volley.VolleyLog.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +28,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Count_pasusedRequest;
 import com.triton.johnson_tap_app.responsepojo.Count_pasusedResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import es.dmoral.toasty.Toasty;
@@ -33,13 +39,15 @@ public class Breakdown_ServiceActivity extends AppCompatActivity {
 
     ImageView iv_back;
     CardView cv_new_job, cv_pasused_job;
-    String service_title,se_user_mobile_no, se_user_name, se_id,check_id,message,paused_count;
+    String service_title,se_user_mobile_no, se_user_name, se_id,check_id,message,paused_count,networkStatus="";
+    Context context;
     TextView pasused_count,title_name;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_preventive_service);
+        context = this;
 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         cv_new_job = (CardView) findViewById(R.id.cv_new_job);
@@ -63,7 +71,19 @@ public class Breakdown_ServiceActivity extends AppCompatActivity {
             //title_name.setText(service_title);
         }
 
-        Count_paused();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else{
+
+            Count_paused();
+        }
+
+
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,6 +117,31 @@ public class Breakdown_ServiceActivity extends AppCompatActivity {
                 send.putExtra("status","paused");
               //  send.putExtra("service_title",service_title);
                 startActivity(send);
+
+            }
+        });
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
 
             }
         });

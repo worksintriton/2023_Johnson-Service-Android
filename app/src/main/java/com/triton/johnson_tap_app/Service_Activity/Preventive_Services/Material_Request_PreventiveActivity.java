@@ -1,5 +1,6 @@
 package com.triton.johnson_tap_app.Service_Activity.Preventive_Services;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -26,7 +27,10 @@ public class Material_Request_PreventiveActivity extends AppCompatActivity {
     ImageView iv_back;
     String job_id,Form1_value,Form1_name,Form1_comments,Form1_cat_id,Form1_group_id,service_title,status;
     SharedPreferences sharedPreferences;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -36,6 +40,8 @@ public class Material_Request_PreventiveActivity extends AppCompatActivity {
         yes = findViewById(R.id.card_yes);
         no = findViewById(R.id.card_no);
         iv_back = (ImageView) findViewById(R.id.iv_back);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -75,6 +81,12 @@ public class Material_Request_PreventiveActivity extends AppCompatActivity {
         job_id = sharedPreferences.getString("job_id","L1234");
         Log.e("Name",service_title);
         Log.e("JobID",job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Spannable name_Upload = new SpannableString("Raise MR ");
         name_Upload.setSpan(new ForegroundColorSpan(Material_Request_PreventiveActivity.this.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

@@ -102,6 +102,8 @@ public class AuditRequest {
 
         private String value;
 
+        private String partname;
+
        // private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
 
@@ -140,6 +142,14 @@ public class AuditRequest {
 
         public void setValue(String value) {
             this.value = value;
+        }
+
+        public String getPartname() {
+            return partname;
+        }
+
+        public void setPartname(String partname) {
+            this.partname = partname;
         }
 
 

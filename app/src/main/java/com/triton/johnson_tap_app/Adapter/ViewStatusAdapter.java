@@ -25,11 +25,11 @@ public class ViewStatusAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
 
     private  String TAG = "PetBreedTypesListAdapter";
     private Context context;
-    ViewStatusResponse.DataBean currentItem;
-    private List<ViewStatusResponse.DataBean> breedTypedataBeanList;
+    ViewStatusResponse.Data currentItem;
+    private List<ViewStatusResponse.Data> breedTypedataBeanList;
     private PetBreedTypeSelectListener petBreedTypeSelectListener;
 
-    public ViewStatusAdapter(Context context, List<ViewStatusResponse.DataBean> breedTypedataBeanList, PetBreedTypeSelectListener petBreedTypeSelectListener ) {
+    public ViewStatusAdapter(Context context, List<ViewStatusResponse.Data> breedTypedataBeanList, PetBreedTypeSelectListener petBreedTypeSelectListener ) {
         this.context = context;
         this.breedTypedataBeanList = breedTypedataBeanList;
         this.petBreedTypeSelectListener = petBreedTypeSelectListener;
@@ -59,13 +59,13 @@ public class ViewStatusAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
 //        intent.putExtra("cont_no" , currentItem.getCONTNO());
 //        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-        if(currentItem.getStatus_title() != null){
-            holder.job_id.setText(currentItem.getStatus_title());
+//        if(currentItem.getStatus_title() != null){
+//            holder.job_id.setText(currentItem.getStatus_title());
 
            // Log.d("ssss", String.valueOf(currentItem.getService_listdata()));
 //            holder.service_name.setText(currentItem.getS());
 //            holder.count.setText(currentItem.getPaused_at());
-        }
+//        }
 
 //        holder.ll_root.setOnClickListener(new View.OnClickListener() {
 //            public void onClick(View v) {
@@ -94,7 +94,7 @@ public class ViewStatusAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHo
         return breedTypedataBeanList.size();
     }
 
-    public void filterList(List< ViewStatusResponse.DataBean> breedTypedataBeanListFiltered) {
+    public void filterList(List< ViewStatusResponse.Data> breedTypedataBeanListFiltered) {
         breedTypedataBeanList = breedTypedataBeanListFiltered;
         Log.w(TAG,"breedTypedataBeanList : "+new Gson().toJson(breedTypedataBeanList));
 

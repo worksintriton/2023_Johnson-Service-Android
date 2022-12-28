@@ -301,14 +301,11 @@
                 android:layout_marginTop="30dp"
                 android:layout_marginRight="100dp"
                 android:layout_marginBottom="20dp"
-                android:background="@color/blue_btn_bg_color"
+                android:background="@drawable/blue_button_background_with_radius"
                 android:text="Continue"
                 android:textColor="#ffffff"
                 android:textSize="15dp" />
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="20dp"/>
 
 
         </LinearLayout>

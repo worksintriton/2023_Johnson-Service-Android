@@ -15,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,23 +38,17 @@ import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
-import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.TechnicianSignature_BreakdownMR_Activity;
-import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Customer_AcknowledgementActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_statusRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
-import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
 import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,19 +87,27 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
     MultipartBody.Part siganaturePart;
     String userid,value;
     String uploadimagepath = "",signfile;
+    String osacompno;
+    String jsonString = "",str_Partid,str_Partname,str_Partno,str_Quantity,networkStatus ="";
+    AlertDialog alertDialog;
+    List<AuditRequest.MrDatum> mrData = new ArrayList<>();
+    List<GetFieldListResponse.DataBean> FieldData;
+    GetFieldListResponse.DataBean dataBean;
+    //String checklist = new ArrayList<?>();
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+
     String form1_value;
     String form1_name;
     String form1_comments;
     String form1_cat_id;
     String form1_group_id;
     String form_remarks;
-    String osacompno;
-    String jsonString = "",str_Partid,str_Partname,str_Partno,str_Quantity;
-    AlertDialog alertDialog;
-    List<AuditRequest.MrDatum> mrData = new ArrayList<>();
-    List<GetFieldListResponse.DataBean> FieldData;
-    GetFieldListResponse.DataBean dataBean;
-    //String checklist = new ArrayList<?>();
+
+    ArrayList<String> arli_Partname = new ArrayList<>();
+    ArrayList<String>  arli_Partno = new ArrayList<>();
+    ArrayList<String> arli_Partid = new ArrayList<>();
+    ArrayList<String> arli_Quantity = new ArrayList<>();
 
     ArrayList<String> mmyvalue;
     ArrayList<String> myname;
@@ -139,6 +143,8 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         iv_back = (ImageView) findViewById(R.id.iv_back);
         iv_pause = findViewById(R.id.ic_paused);
         img_Siganture.setVisibility(View.VISIBLE);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -155,11 +161,16 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         osacompno = sharedPreferences.getString("osacompno","ADT2020202020");
         value = sharedPreferences.getString("value","value");
         Log.e("Value", "" + value);
-
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("Jobid",""+ job_id);
         Log.e("osocompno",""+ osacompno);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
@@ -216,7 +227,25 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
        // alert();
 
-        jobStatuscall();
+//        getSample();
+//
+//        CommonUtil.dbUtil.deleteMRTable(job_id,"3",service_title);
+//
+//        Cursor curs = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+//        Log.e("List Count",""+curs.getCount());
+
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else {
+
+            jobStatuscall();
+        }
 
         getSign(job_id,myactivity);
 
@@ -255,10 +284,6 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(context);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
 
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
@@ -290,16 +315,17 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest(file);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                 NoInternetDialog();
+
+                }else {
+                    uploadDigitalSignatureImageRequest(file);
+
+                }
 
 
             }
@@ -327,11 +353,120 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                 if (signatureBitmap == null) {
                     Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }else{
-                    serviceUserDetailsRequestResponse();
+
+
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                        NoInternetDialog();
+
+                    }else {
+                        serviceUserDetailsRequestResponse();
+                    }
                 }
 
             }
         });
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
+    private AuditRequest getSample() {
+
+        AuditRequest auditRequest = new AuditRequest();
+        auditRequest.setJobId(job_id);
+        auditRequest.setOmOsaCompno(osacompno);
+        auditRequest.setCustomerSignature("-");
+        auditRequest.setUserMobileNo(se_user_mobile_no);
+
+        List<AuditRequest.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
+
+            do {
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
+
+            }while (cur.moveToNext());
+
+        }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+            mrData.add(mrDatum);
+
+        }
+        Log.e("Nish MR Data",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        auditRequest.setMrData(mrData);
+
+        List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
+
+        for(int j =0; j <mmyvalue.size(); j++){
+            AuditRequest.FieldValueDatum myfiled = new AuditRequest.FieldValueDatum();
+
+            myfiled.setFieldValue(mmyvalue.get(j));
+            myfiled.setFieldName(myname.get(j));
+            myfiled.setFieldComments(comments.get(j));
+            myfiled.setFieldCatId(catid.get(j));
+            myfiled.setFieldGroupId(groupid.get(j));
+            myfiled.setFieldRemarks(remarks.get(j));
+            fielddata.add(myfiled);
+
+        }
+
+        Log.e("Nish",""+ fielddata.size());
+        Log.e(TAG," Audit Request field"+ new Gson().toJson(fielddata));
+
+//        Log.e(TAG," Audit Request"+ new Gson().toJson(auditRequest));
+        auditRequest.setFieldValueData(fielddata);
+
+        Log.e(TAG," Audit Request"+ new Gson().toJson(auditRequest));
+        return auditRequest;
+
     }
 
     private void jobStatuscall() {
@@ -428,7 +563,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 Job_status_update();
-                               // createLocalValueCall();
+                                createLocalValueCall();
                                 dialog.dismiss();
                             }
                         })
@@ -482,13 +617,19 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                 if (response.body() != null) {
                     dialog.dismiss();
-                    String message = response.body().getMessage();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
 //                        servicedetailsrequestbean = response.body().getData();
 
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
-                        CommonUtil.dbUtil.reportdelete(job_id);
+//                        CommonUtil.dbUtil.reportdelete(job_id);
+
+                        CommonUtil.dbUtil.deleteMRTable(job_id,"3",service_title);
+
+                        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+                        Log.e("List Count",""+cur.getCount());
 
                         CommonUtil.dbUtil.deleteSign(job_id,myactivity);
 
@@ -502,6 +643,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                     }else{
 //                          showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -515,6 +657,35 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
     }
 
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
+    }
+
     private AuditRequest submitRequest() {
 
         AuditRequest auditRequest = new AuditRequest();
@@ -523,88 +694,122 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         auditRequest.setCustomerSignature(uploadimagepath);
         auditRequest.setUserMobileNo(se_user_mobile_no);
 
+//        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+//
+//        Log.e("MR Count",""+ cursor.getCount());
+//
+//        int i =0;
+//
+//        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+//
+//            do {
+//                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.MR_ID));
+//                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NAME));
+//                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NO));
+//                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.QUANTITY));
+//
+//                int mynum = i+1;
+//
+//                AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
+//                mrDatum.setTitle("Mr"+mynum);
+//                if(mynum==1) {
+//                   // mrDatum.setValue(mr1);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==2) {
+//                   // mrDatum.setValue(mr2);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==3) {
+//                   // mrDatum.setValue(mr3);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==4) {
+//
+//                  //  mrDatum.setValue(mr4);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==5) {
+//
+//                   // mrDatum.setValue(mr5);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==6) {
+//
+//                   // mrDatum.setValue(mr6);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==7) {
+//
+//                   // mrDatum.setValue(mr7);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==8) {
+//
+//                   // mrDatum.setValue(mr8);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==9) {
+//
+//                   // mrDatum.setValue(mr9);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==10) {
+//
+//                    //mrDatum.setValue(mr10);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                }
+//
+//            //    Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
+//                mrData.add(mrDatum);
+//
+//                i++;
+//
+//
+//            }while (cursor.moveToNext());
+//        }
         List<AuditRequest.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
-
-        int i =0;
-
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                   // mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                   // mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-                   // mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                  //  mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                   // mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                   // mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                   // mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                   // mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                   // mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    //mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-            //    Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-
-            }while (cursor.moveToNext());
         }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+        Log.e("Nish MR Data",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         auditRequest.setMrData(mrData);
 
       List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
-
-
 
         for(int j =0; j <mmyvalue.size(); j++){
             AuditRequest.FieldValueDatum myfiled = new AuditRequest.FieldValueDatum();
@@ -726,6 +931,11 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
     private void  uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
@@ -763,7 +973,6 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                         }
                     }else{
-
                         long delayInMillis = 15000;
                         Timer timer = new Timer();
                         timer.schedule(new TimerTask() {
@@ -772,6 +981,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                                 progressDialog.dismiss();
                             }
                         }, delayInMillis);
+
                     }
 
                 }
@@ -785,8 +995,6 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
             }
         });
     }
-
-
 
     private void Job_status_update() {
 
@@ -831,6 +1039,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         });
 
     }
+
     private Job_status_updateRequest job_status_updateRequest() {
 
         Job_status_updateRequest custom = new Job_status_updateRequest();
@@ -838,8 +1047,103 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         custom.setService_name(service_title);
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
+        custom.setOM_OSA_COMPNO(osacompno);
         Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));
         return custom;
+    }
+
+    private void createLocalValueCall() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<SuccessResponse> call = apiInterface.createLocalValueCallAudit(RestUtils.getContentType(),createLocalRequest());
+        Log.w(TAG, " Check Local Value Form Call url  :%s" + " " + call.request().url().toString());
+
+        call.enqueue(new Callback<SuccessResponse>() {
+            @Override
+            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+
+                Log.w(TAG, "Check Local Value Form Response" + new Gson().toJson(response.body()));
+
+//                Intent send = new Intent(context, ServicesActivity.class);
+//                startActivity(send);
+            }
+
+            @Override
+            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private AuditRequest createLocalRequest() {
+
+        AuditRequest localreq = new AuditRequest();
+        localreq.setJobId(job_id);
+        localreq.setCustomerSignature("");
+        localreq.setOmOsaCompno(osacompno);
+        localreq.setUserMobileNo(se_user_mobile_no);
+
+        List<AuditRequest.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
+
+            do {
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
+
+            }while (cur.moveToNext());
+
+        }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+        Log.e("Nish MR Data",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        localreq.setMrData(mrData);
+
+        List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
+
+        for(int j =0; j <mmyvalue.size(); j++){
+            AuditRequest.FieldValueDatum myfiled = new AuditRequest.FieldValueDatum();
+
+            myfiled.setFieldValue(mmyvalue.get(j));
+            myfiled.setFieldName(myname.get(j));
+            myfiled.setFieldComments(comments.get(j));
+            myfiled.setFieldCatId(catid.get(j));
+            myfiled.setFieldGroupId(groupid.get(j));
+            myfiled.setFieldRemarks(remarks.get(j));
+            fielddata.add(myfiled);
+
+        }
+        Log.e(TAG,"Request field"+ new Gson().toJson(fielddata));
+        localreq.setFieldValueData(fielddata);
+
+        Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(localreq));
+        return localreq;
     }
 
     @Override

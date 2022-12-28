@@ -44,7 +44,10 @@ public class Material_RequestActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     Context context;
     String se_id,se_user_mobile_no,se_user_name,compno,sertype,message;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -55,6 +58,8 @@ public class Material_RequestActivity extends AppCompatActivity {
         yes = findViewById(R.id.card_yes);
         no = findViewById(R.id.card_no);
         iv_back = (ImageView) findViewById(R.id.iv_back);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -63,6 +68,14 @@ public class Material_RequestActivity extends AppCompatActivity {
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
         job_id = sharedPreferences.getString("job_id","123");
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+
+        Log.e("Start Time",str_StartTime);
+
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
           //  feedback_group = extras.getString("feedback_group");

@@ -70,13 +70,19 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     private String TAG ="LR SERVICE";
     List<Retrive_LocalValueResponse.Data> databeanList;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_customerdetails_lrservice);
         context = this;
+
+   //     attachKeyboardListeners();
 
 
         CommonUtil.dbUtil = new DbUtil(context);
@@ -93,6 +99,8 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
         img_Pause = findViewById(R.id.img_paused);
         txt_Custname = findViewById(R.id.txt_cust_name);
         txt_Custno = findViewById(R.id.txt_cust_no);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
 
@@ -101,8 +109,8 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
             status = extras.getString("status");
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("jobID", "" + job_id);
+//            job_id = extras.getString("job_id");
+//            Log.e("jobID", "" + job_id);
             str_Custname = extras.getString("C_name");
             str_Custno = extras.getString("C_no");
             str_Custremarks = extras.getString("C_remarks");
@@ -125,6 +133,14 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("QuoteNO", ""+ str_Quoteno);
+        job_id = sharedPreferences.getString("job_id","L-1234");
+        Log.e("jobID", "" + job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Spannable name_Upload = new SpannableString("Customer Name ");
         name_Upload.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -247,7 +263,6 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
         });
 
     }
-
     private void hi() {
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -508,7 +523,7 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
        // startActivity(send);
 
         alertDialog = new AlertDialog.Builder(context)
-                .setTitle("Are you sure to Pause this job ?")
+                .setTitle("Are you sure to Close this job ?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         addCutomerData();

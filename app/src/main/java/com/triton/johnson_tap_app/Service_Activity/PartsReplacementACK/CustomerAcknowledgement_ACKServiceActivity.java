@@ -15,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -48,6 +50,7 @@ import com.triton.johnson_tap_app.responsepojo.Job_Details_TextResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -85,9 +88,11 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
     Bitmap signatureBitmap;
     MultipartBody.Part siganaturePart;
     String userid, uploadimagepath = "",str_Techsign,str_CustAck,str_job_status,message,service_type,str_ACKCompno;
-    String myactivity = "Parts Replacement ACK",signfile;
+    String myactivity = "Parts Replacement ACK",signfile,networkStatus="";
 
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +113,8 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
         img_Pause = findViewById(R.id.img_paused);
         img_Signature = findViewById(R.id.image1);
         txt_JobDetails = findViewById(R.id.txt_jobdetails);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -115,8 +122,8 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
             status = extras.getString("status");
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("jobID", "" + job_id);
+//            job_id = extras.getString("job_id");
+//            Log.e("jobID", "" + job_id);
             str_Techsign = extras.getString("tech_signature");
             str_CustAck = extras.getString("cust_ack");
             // Picasso.get().load(str_CustAck).into((Target) signaturePad);
@@ -130,19 +137,36 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
         service_title = sharedPreferences.getString("service_title", "Services");
         service_type = sharedPreferences.getString("service_type","PSM");
         str_ACKCompno = sharedPreferences.getString("ackcompno","123");
-
+        job_id = sharedPreferences.getString("job_id","L-1234");
         Log.e("name",""+service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("Type", ""+ service_type);
         Log.e("ACKCompno","" +str_ACKCompno);
+        Log.e("JobID",""+job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
 
-        Job_status();
 
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else{
+
+            Job_status();
+            job_details_in_text();
+
+        }
         getSign(job_id,myactivity);
 
-
-        job_details_in_text();
 
         btn_Save.setEnabled(false);
         btn_Clear.setEnabled(false);
@@ -171,11 +195,6 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
             @Override
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(context);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Technician Signature" + ".jpg");
@@ -198,16 +217,20 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest(file);
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                   NoInternetDialog();
+
+                }else{
+
+                    uploadDigitalSignatureImageRequest(file);
+
+                }
+
                // Toast.makeText(context,"Signature Saved",Toast.LENGTH_SHORT).show();
             }
         });
@@ -254,12 +277,46 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
                     Toast.makeText(context, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }
                 else {
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                    submitAddResponseCall();
-                      }
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                      NoInternetDialog();
+
+                    }else {
+
+                        submitAddResponseCall();
+                    }
+
                 }
+            }
         });
 
+    }
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     private void Job_status() {
@@ -463,6 +520,8 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
 
                 if (response.body() != null) {
                     dialog.dismiss();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
@@ -481,6 +540,7 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
                     }else{
                         //  showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -493,6 +553,35 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
             }
         });
 
+    }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
     }
 
     private ACKService_SubmitRequest submitACKRequest() {
@@ -514,9 +603,24 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
     }
 
     private void uploadDigitalSignatureImageRequest(File file) {
+
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")
@@ -785,13 +889,15 @@ public class CustomerAcknowledgement_ACKServiceActivity extends AppCompatActivit
     }
 
     public void onBackPressed() {
-        Intent send = new Intent(context, TechnicianSignature_ACKServiceActivity.class);
-        // send.putExtra("service_title",service_title);
-        send.putExtra("status" , status);
-        send.putExtra("status" , status);
-        send.putExtra("job_id",job_id);
-        send.putExtra("tech_signature", str_Techsign);
-        send.putExtra("cust_ack", uploadimagepath);
-        startActivity(send);
+//        Intent send = new Intent(context, TechnicianSignature_ACKServiceActivity.class);
+//        // send.putExtra("service_title",service_title);
+//        send.putExtra("status" , status);
+//        send.putExtra("status" , status);
+//        send.putExtra("job_id",job_id);
+//        send.putExtra("tech_signature", str_Techsign);
+//        send.putExtra("cust_ack", uploadimagepath);
+//        startActivity(send);
+
+        super.onBackPressed();
     }
 }

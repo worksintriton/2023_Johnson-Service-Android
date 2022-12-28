@@ -324,8 +324,8 @@
                 android:layout_marginLeft="100dp"
                 android:layout_marginTop="30dp"
                 android:layout_marginRight="100dp"
-                android:layout_marginBottom="10dp"
-                android:background="@color/blue_btn_bg_color"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/blue_button_background_with_radius"
                 android:text="Continue"
                 android:textColor="#ffffff"
                 android:textSize="15dp" />

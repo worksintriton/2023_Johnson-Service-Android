@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -63,6 +64,9 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
     RetriveResponsePR.Data databean ;
     List<RetriveResponsePR.FieldValueDatum> databeanlist;
 
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+
     String form1_value;
     String form1_name;
     String form1_comments;
@@ -81,6 +85,7 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
     String[] strGroupid;
     String[] strCatid;
 
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -105,6 +110,8 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
         mr9 = (EditText) findViewById(R.id.mr9);
         mr10 = (EditText) findViewById(R.id.mr10);
         img_Pause = findViewById(R.id.img_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -203,6 +210,11 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
         Log.e("ValueB", statustype);
         Log.e("Month List", "" +List);
 
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");

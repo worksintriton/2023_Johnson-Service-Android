@@ -39,10 +39,43 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <RelativeLayout
+        android:id="@+id/rel_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_bar"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/txt_jobid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:id="@+id/txt_starttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/txt_jobid"
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/main_bar">
+        android:layout_below="@id/rel_id">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -74,7 +107,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/sourcesanspro_regular"
-                        android:text="The work is completed in a satisfactory manner and we hereby request to accept the same for JonID:L9761 Customer Name:BALA PADMAM FLATS-DR.SELVARANGAM and BDNO:TN01220700788"
+                        android:text="Please Try Again"
                         android:paddingLeft="30dp"
                         android:textColor="@color/colorPrimaryDark"
                         android:textSize="20sp"

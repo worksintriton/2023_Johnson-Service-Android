@@ -60,6 +60,8 @@ public class Fetch_MrList_Response {
         @SerializedName("partno")
         @Expose
         private String partno;
+        private String quantity;
+        private boolean isSelected;
 
         public String getPartname() {
             return partname;
@@ -77,6 +79,22 @@ public class Fetch_MrList_Response {
             this.partno = partno;
         }
 
+        public boolean isSelected() {
+            return isSelected;
+        }
+
+        public void setSelected(boolean selected) {
+            isSelected = selected;
+        }
+
+
+        public String getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(String quantity) {
+            this.quantity = quantity;
+        }
     }
 
 }

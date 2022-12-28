@@ -31,10 +31,43 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <RelativeLayout
+        android:id="@+id/rel_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_bar"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/txt_jobid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:id="@+id/txt_starttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/txt_jobid"
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
         android:id="@+id/rel_job"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/main_bar"
+        android:layout_below="@id/rel_id"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
@@ -87,37 +120,52 @@
 
     </RelativeLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/rel_job">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/rel_job"
+            android:layout_marginBottom="12dp"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_above="@id/btn_next"
                 android:scrollbars="vertical" />
 
-            <TextView
-                android:id="@+id/txt_no_records"
-                android:layout_width="wrap_content"
+
+            <Button
+                android:id="@+id/btn_next"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center"
-                android:fontFamily="@font/sourcesanspro_regular"
-                android:text="@string/no_service_list"
-                android:textColor="@color/blue_btn_bg_color"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
+                android:layout_alignParentBottom="true"
+                android:layout_gravity="bottom"
+                android:layout_margin="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/blue_button_background_with_radius"
+                android:drawableEnd="@drawable/icn_next"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="@string/next"
+                android:textColor="@color/white" />
 
-        </LinearLayout>
 
-    </ScrollView>
+        </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/txt_no_records"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:fontFamily="@font/sourcesanspro_regular"
+        android:text="@string/no_service_list"
+        android:textColor="@color/blue_btn_bg_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
 </RelativeLayout>

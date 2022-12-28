@@ -502,16 +502,39 @@
 
             <Button
                 android:id="@+id/btn_continue"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="100dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginRight="100dp"
-                android:layout_marginBottom="30dp"
-                android:background="@color/blue_btn_bg_color"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="45dp"
+                android:layout_gravity="center"
+                android:background="@drawable/blue_button_background_with_radius"
                 android:text="Continue"
                 android:textColor="#ffffff"
                 android:textSize="15dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="25dp"
+                android:weightSum="1"
+                android:visibility="gone"
+                android:orientation="horizontal">
+
+
+
+                <Button
+                    android:id="@+id/btn_skip"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/blue_button_background_with_radius"                    android:text="Skip"
+                    android:textColor="#ffffff"
+                    android:textSize="15dp">
+                </Button>
+
+            </LinearLayout>
 
             <!--            <Space-->
             <!--                android:layout_width="match_parent"-->

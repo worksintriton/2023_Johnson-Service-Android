@@ -1,5 +1,6 @@
 package com.triton.johnson_tap_app.Service_Activity.SiteAudit;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,7 +29,10 @@ public class Checklist_AuditActivity extends AppCompatActivity {
     String se_user_mobile_no, se_user_name,status,se_id,check_id, service_title,jobid,message,str_job_status,osacompno;
     SharedPreferences sharedPreferences;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +43,8 @@ public class Checklist_AuditActivity extends AppCompatActivity {
         img_Back = findViewById(R.id.img_back);
         cv_Lift = findViewById(R.id.cv_lift);
         cv_Escalator = findViewById(R.id.cv_escalator);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -46,11 +53,16 @@ public class Checklist_AuditActivity extends AppCompatActivity {
         service_title = sharedPreferences.getString("service_title", "Services");
         jobid =sharedPreferences.getString("jobid","L-1234");
         osacompno = sharedPreferences.getString("osacompno","ADT2020202020");
-
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("Jobid",""+ jobid);
         Log.e("osocompno",""+ osacompno);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + jobid);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {

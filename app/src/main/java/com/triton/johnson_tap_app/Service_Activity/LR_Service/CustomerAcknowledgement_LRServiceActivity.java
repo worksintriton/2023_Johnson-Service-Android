@@ -15,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -50,6 +52,7 @@ import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -86,10 +89,13 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
     ProgressDialog progressDialog;
     Bitmap signatureBitmap;
     MultipartBody.Part siganaturePart;
-    String userid, uploadimagepath = "",str_Techsign,str_CustAck,str_job_status,message,service_type,str_Quoteno;
+    String userid, uploadimagepath = "",str_Techsign,str_CustAck,str_job_status,message,service_type,str_Quoteno,networkStatus = "";
     String myactivity = "LR Service",signfile;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    @SuppressLint("MissingInflatedId")
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -109,6 +115,8 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
         img_Pause = findViewById(R.id.img_paused);
         img_Signature = findViewById(R.id.image1);
         txt_JobDetails = findViewById(R.id.txt_jobdetails);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -117,8 +125,8 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("jobID", "" + job_id);
+//            job_id = extras.getString("job_id");
+//            Log.e("jobID", "" + job_id);
             str_Custname = extras.getString("C_name");
             str_Custno = extras.getString("C_no");
             str_Custremarks = extras.getString("C_remarks");
@@ -136,21 +144,45 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
         service_title = sharedPreferences.getString("service_title", "Services");
         service_type = sharedPreferences.getString("service_type","PSM");
         str_Quoteno = sharedPreferences.getString("quoteno","123");
+        job_id = sharedPreferences.getString("job_id","L-1234");
+        Log.e("jobID", "" + job_id);
         Log.e("name",""+service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("Type", ""+ service_type);
         Log.e("QuoteNO", ""+ str_Quoteno);
 
-        Job_status();
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else{
+            Job_status();
+
+            job_details_in_text();
+        }
+
 
         if (status.equals("new")){
             getSign(job_id,myactivity);
         }
         else{
-            retrive_LocalValue();
-        }
+            if (!Objects.equals(networkStatus, "Not connected to Internet")){
+                retrive_LocalValue();
+            }
+            else{
+                Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
 
-        job_details_in_text();
+            }
+        }
 
         btn_Save.setEnabled(false);
         btn_Clear.setEnabled(false);
@@ -206,17 +238,19 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest(file);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                    NoInternetDialog();
+
+                }else{
+
+                    uploadDigitalSignatureImageRequest(file);
+
+                }
+
 
                 //Toast.makeText(context,"Signature Saved",Toast.LENGTH_SHORT).show();
             }
@@ -270,12 +304,46 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
                 }
                 else {
 
-                 submitAddResponseCall();
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                        NoInternetDialog();
+
+                    }else {
+
+                        submitAddResponseCall();
+                    }
                 }
             }
         });
     }
 
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
     private void Job_status() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -763,6 +831,9 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
 
                 if (response.body() != null) {
                     dialog.dismiss();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
+
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
@@ -781,6 +852,7 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
                     }else{
                         //  showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -793,6 +865,35 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
             }
         });
 
+    }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
     }
 
     private LRService_SubmitRequest submitLRRequest() {
@@ -818,9 +919,23 @@ public class CustomerAcknowledgement_LRServiceActivity extends AppCompatActivity
 
     private void  uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")

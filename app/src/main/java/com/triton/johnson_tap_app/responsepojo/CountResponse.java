@@ -43,6 +43,7 @@ public class CountResponse {
     public static class DataBean {
         private String services_count;
         private String view_status;
+        private String notificaion_count;
 
 
         public String getServices_count() {
@@ -62,5 +63,12 @@ public class CountResponse {
         }
 
 
+        public String getNotificaion_count() {
+            return notificaion_count;
+        }
+
+        public void setNotificaion_count(String notificaion_count) {
+            this.notificaion_count = notificaion_count;
+        }
     }
 }

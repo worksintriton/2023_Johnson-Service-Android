@@ -99,6 +99,7 @@ public class JobListAdapter_LRService extends RecyclerView.Adapter<RecyclerView.
              //   editor.putString("compno",compno);
               //  editor.putString("sertype", sertype);
                 editor.putString("quoteno", Quoteno);
+                editor.putString("job_id",s);
                 editor.apply();
 
                 Intent n_act = new Intent(context, LR_Details_Activity.class);

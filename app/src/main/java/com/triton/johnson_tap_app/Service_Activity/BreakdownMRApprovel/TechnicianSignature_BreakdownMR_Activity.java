@@ -17,9 +17,11 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -52,6 +54,7 @@ import com.triton.johnson_tap_app.responsepojo.Job_Details_TextResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -86,7 +89,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
     Bitmap signatureBitmap;
     TextView job_details_text;
     private String uploadimagepath = "";
-    String value="",job_id,feedback_group,feedback_details,bd_dta,feedback_remark,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,str_tech_signature="";
+    String value="",job_id,feedback_group,feedback_details,bd_dta,feedback_remark,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,str_tech_signature="",networkStatus="";
     ProgressDialog progressDialog;
     String se_user_mobile_no, se_user_name, se_id,check_id,service_title,message;
     String str2="",sstring,str_job_status;
@@ -101,8 +104,16 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
     AlertDialog.Builder builder;
     SharedPreferences sharedPreferences;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
-    @SuppressLint("WrongThread")
+
+    ArrayList<String> arli_Partname = new ArrayList<>();
+    ArrayList<String>  arli_Partno = new ArrayList<>();
+    ArrayList<String> arli_Partid = new ArrayList<>();
+    ArrayList<String> arli_Quantity = new ArrayList<>();
+
+    @SuppressLint({"WrongThread", "MissingInflatedId"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -122,6 +133,8 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         iv_pause = findViewById(R.id.ic_paused);
         img_Siganture.setVisibility(View.VISIBLE);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         //getSign(job_id,myactivity);
 
@@ -131,11 +144,16 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         se_user_name = sharedPreferences.getString("user_name", "default value");
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
-
         service_title = sharedPreferences.getString("service_title", "default value");
         job_id = sharedPreferences.getString("job_id", "default value");
         Log.e("Name",""+ service_title);
         Log.e("Job ID",""+ job_id);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
        // mysign = sharedPreferences.getBoolean("mysignkey",false);
       //  uploadimagepath = sharedPreferences.getString("ImagePath" , "");
@@ -218,11 +236,26 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         if (extras != null) {
             str_tech_signature = extras.getString("tech_signature");
             Picasso.get().load(str_tech_signature).into(img_Siganture);
-
-
         }
 
-        Job_status();
+//        getSample();
+//
+//        CommonUtil.dbUtil.deleteMRTable(job_id,"1",service_title);
+//
+//        Cursor curs = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+//        Log.e("List Count",""+curs.getCount());
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+           NoInternetDialog();
+
+        }else {
+
+            Job_status();
+        }
 
         getSign(job_id,myactivity);
 
@@ -239,8 +272,6 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
             iv_pause.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-
 
                     builder = new AlertDialog.Builder(TechnicianSignature_BreakdownMR_Activity.this);
 
@@ -264,7 +295,6 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
                             });
 
                     AlertDialog alert = builder.create();
-                    //Setting the title manually
                     alert.show();
 
                 }
@@ -299,10 +329,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(TechnicianSignature_BreakdownMR_Activity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
+
 
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
@@ -334,17 +361,19 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(),RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest(file);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
 
+                    Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+                }
+                else{
+
+                    uploadDigitalSignatureImageRequest(file);
+
+                }
 
             }
         });
@@ -395,7 +424,19 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
                 if (signatureBitmap == null) {
                     Toast.makeText(TechnicianSignature_BreakdownMR_Activity.this, "Please Drop Signature", Toast.LENGTH_SHORT).show();
                 }else{
-                    serviceUserDetailsRequestResponse();
+
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                      NoInternetDialog();
+
+                    }else{
+
+                        serviceUserDetailsRequestResponse();
+                    }
+
                 }
 
 
@@ -452,6 +493,97 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
                 startActivity(send);
             }
         });
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
+    private ServiceUserdetailsRequestResponse getSample() {
+
+        ServiceUserdetailsRequestResponse submitRequest = new ServiceUserdetailsRequestResponse();
+
+        submitRequest.setJobId(job_id);
+        submitRequest.setUserMobileNo(se_user_mobile_no);
+        submitRequest.setEngSignature("-");
+        submitRequest.setSMU_SCH_COMPNO(compno);
+        submitRequest.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+
+        List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
+
+            do {
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
+
+            }while (cur.moveToNext());
+
+        }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        submitRequest.setMrData(mrData);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ job_id);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ se_user_mobile_no);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ uploadimagepath);
+
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ new Gson().toJson(submitRequest));
+        return submitRequest;
+
+
     }
 
     private void Job_status() {
@@ -593,7 +725,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
     private void createLocalValueStopCall() {
 
         APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
-        Call<SuccessResponse> call = apiInterface.createLocalValueCallBMR(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),createstopLocalRequest());
+        Call<SuccessResponse> call = apiInterface.createLocalValueCallBMR(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),createLocalStopRequest());
         Log.w(VolleyLog.TAG,"Create Local Value url  :%s"+" "+ call.request().url().toString());
 
         call.enqueue(new Callback<SuccessResponse>() {
@@ -630,7 +762,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         });
     }
 
-    private ServiceUserdetailsRequestResponse createstopLocalRequest() {
+    private ServiceUserdetailsRequestResponse createLocalStopRequest() {
 
         ServiceUserdetailsRequestResponse local = new ServiceUserdetailsRequestResponse();
         local.setJobId(job_id);
@@ -642,97 +774,50 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
 
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    //   mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    // mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                    //   mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                    //   mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    //   mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    //  mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    //  mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    // mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    //  mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    //  mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-            }while (cursor.moveToNext());
         }
 
-        local.setMrData(mrData);
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
 
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        local.setMrData(mrData);
         Log.w(VolleyLog.TAG,"Local Request "+ new Gson().toJson(local));
         return local;
-
     }
 
     private void createLocalValueCall() {
@@ -781,98 +866,52 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         local.setSMU_SCH_COMPNO(compno);
         local.setSMU_SCH_SERTYPE(sertype);
         local.setEngSignature("-");
-       // local.setMrData(null);
+        // local.setMrData(null);
 
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    //   mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    // mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                    //   mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                    //   mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    //   mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    //  mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    //  mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    // mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    //  mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    //  mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-            }while (cursor.moveToNext());
         }
 
-        local.setMrData(mrData);
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
 
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        local.setMrData(mrData);
         Log.w(VolleyLog.TAG,"Local Request "+ new Gson().toJson(local));
         return local;
     }
@@ -982,6 +1021,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
     }
 
     private void serviceUserDetailsRequestResponse() {
+
         dialog = new Dialog(TechnicianSignature_BreakdownMR_Activity.this, R.style.NewProgressDialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.progroess_popup);
@@ -990,23 +1030,38 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         Call<SuccessResponse> call = apiInterface.ServiceUserdetailsRequestsubmitMRListCall(RestUtils.getContentType(),submitRequest());
         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        }, delayInMillis);
+
         call.enqueue(new Callback<SuccessResponse>() {
             @Override
             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
 
-
                 Log.w(TAG, "UserDetailsRequestResponse" + new Gson().toJson(response.body()));
-
 
                 if (response.body() != null) {
                     dialog.dismiss();
-                    String message = response.body().getMessage();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
+
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
 //                        servicedetailsrequestbean = response.body().getData();
 
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
-                        CommonUtil.dbUtil.reportdelete(job_id);
+//                        CommonUtil.dbUtil.reportdelete(job_id);
+
+                        CommonUtil.dbUtil.deleteMRTable(job_id,"1",service_title);
+
+                        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+                        Log.e("List Count",""+cur.getCount());
 
                         CommonUtil.dbUtil.deleteSign(job_id,myactivity);
 
@@ -1020,6 +1075,7 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
                     }else{
 //                          showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -1032,6 +1088,36 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         });
 
     }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
+    }
+
 
     private ServiceUserdetailsRequestResponse submitRequest() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
@@ -1047,85 +1133,54 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
 
+//
+//        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+//
+//        Log.e("MR Count",""+ cursor.getCount());
+
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-        Cursor cursor = CommonUtil.dbUtil.getMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                    mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                    mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-
-            }while (cursor.moveToNext());
         }
 
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         submitRequest.setMrData(mrData);
         Log.w(TAG," serviceUserDetailsRequestResponse"+ job_id);
         Log.w(TAG," serviceUserDetailsRequestResponse"+ se_user_mobile_no);
@@ -1138,9 +1193,23 @@ public class TechnicianSignature_BreakdownMR_Activity extends AppCompatActivity 
 
     private void  uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(TechnicianSignature_BreakdownMR_Activity.this);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 10000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")

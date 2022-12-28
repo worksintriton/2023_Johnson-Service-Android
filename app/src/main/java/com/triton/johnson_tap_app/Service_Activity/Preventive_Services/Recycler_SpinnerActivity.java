@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -30,6 +32,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -40,6 +43,7 @@ import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.ReAdapter;
 import com.triton.johnson_tap_app.RestUtils;
+import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.PreventiveMRListtwo_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -60,6 +64,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -96,6 +102,12 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
     String List,se_id,se_user_mobile_no,se_user_name,compno,sertype,str_job_status;
     Context context;
     SharedPreferences sharedPreferences;
+    ProgressDialog progressDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+    int PageNumber = 2;
+    int SubPage_Number = 0;
+    ArrayList<String> mydata = new ArrayList<>();
 
     ArrayList<String> myData = new ArrayList<>();
     String form1_value = "";
@@ -110,11 +122,13 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
     ArrayList<String> groupid = new ArrayList();
 
 
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_recycler_spinner);
         context = this;
+
 
         CommonUtil.dbUtil = new DbUtil(context);
         CommonUtil.dbUtil.open();
@@ -130,6 +144,8 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         iv_back = (ImageView) findViewById(R.id.iv_back);
         footerView = (LinearLayout) findViewById(R.id.footerView);
         img_Pause = findViewById(R.id.img_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -160,23 +176,41 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         Log.e("Name",service_title);
         Log.e("JobID",job_id);
         Log.e("Value", statustype);
-
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+      //  currentPage = sharedPreferences.getInt("currentpage",0);
 
 //        Intent intent = getIntent();
 //        Bundle args = intent.getBundleExtra("BUNDLE");
 //        ArrayList<String > object = (ArrayList<String>) args.getSerializable("ARRAYLIST");
-
+        Log.e("Current Page",""+currentPage);
         Log.e("List New", "" +List);
 
-        if (status.equals("new")) {
-            jobFindResponseCall();
-         //   getSpinnerData();
-        }else{
-            checklocalvaluecall();
+//        getPreventivecheck();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+           NoInternetDialog();
+
+        }
+        else{
+
+            if (status.equals("new")) {
+                jobFindResponseCall();
+                //   getSpinnerData();
+            }else{
+                checklocalvaluecall();
+            }
+
         }
 
 
-        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -193,15 +227,16 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                 DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
                 String date = df.format(Calendar.getInstance().getTime());
 
+                Log.e("Page Number",""+currentPage);
                 alertDialog = new AlertDialog.Builder(context)
                         .setTitle("Are you sure to pause this job ?")
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
 
-
                                 List<GetFieldListResponse.DataBean> dataBeanListS = new ArrayList<>();
                                 int startItem = currentPage * ITEMS_PER_PAGE;
+
                                 if (currentPage == 0) {
                                     for (int j = 0; j < 6; j++) {
 
@@ -220,9 +255,6 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                                         Log.e("Resuktt", form1_value);
                                         Log.e("Resuktt", "" + myFieldValue.size());
 
-
-
-
                                     }
 
                                 }else {
@@ -231,7 +263,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                                     Log.w(TAG, "btnnext enditem : " + enditem);
 
-                                    for (int j = startItem; j < enditem; j++) {
+                                    for (int j = startItem; j < dataBeanList.size(); j++) {
                                         //   Result1 = dataBeanList.get(i).getField_value().toString();
 
                                         form1_value = dataBeanList.get(j).getField_value().toString();
@@ -428,8 +460,9 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
             @Override
             public void onClick(View view) {
 
-                boolean flag = true;
+                Log.e("Page Number",""+currentPage);
 
+                boolean flag = true;
 
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -448,7 +481,6 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                 if (currentPage == 0) {
 
-                    Log.e("Hi","Current Page 0");
                     for (int i = 0; i < 6; i++) {
 
                         form1_value = dataBeanList.get(i).getField_value().toString();
@@ -598,7 +630,19 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                         toggleButtons();
 
-                        createLocalFormcheck();
+                        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                        Log.e("Network",""+networkStatus);
+                        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                           NoInternetDialog();
+
+                        }else{
+
+                            createLocalFormcheck();
+                        }
+
+
 
                     } else {
 
@@ -667,15 +711,20 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
             @SuppressLint({"NewApi", "ResourceAsColor"})
             @Override
             public void onClick(View v) {
-                Log.w(TAG, "inside");
 
                 if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                    Log.e("Hi","No Internet");
+                    progressDialog.dismiss();
 
                     Toasty.warning(getApplicationContext(), "No Internet", Toasty.LENGTH_LONG).show();
 
                 } else {
+                    Log.e("Hi","Have Internet");
+
                     boolean flag = true;
                     for (int i = 0; i < dataBeanList.size(); i++) {
+
                         Log.w(TAG, "loop fieldvalue : " + dataBeanList.get(i).getField_value() + " i : " + i);
                         if (dataBeanList.get(i).getField_value().isEmpty() || dataBeanList.get(i).getField_value().equalsIgnoreCase("Select Value")) {
                             if (dataBeanList.get(i).getField_type() != null && dataBeanList.get(i).getField_type().equalsIgnoreCase("Lift")) {
@@ -684,6 +733,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                                 dataBeanList.get(i).setField_value("File upload");
                             }*/
                             flag = false;
+
                         }
 
                     }
@@ -691,6 +741,13 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                     Log.w(TAG, "flag " + flag);
 
                     if (flag) {
+
+                        Log.e(TAG, "inside");
+
+                        progressDialog = new ProgressDialog(context);
+                        progressDialog.setMessage("Please Wait..");
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
 
                         for (int i = 0; i < dataBeanList.size(); i++) {
 
@@ -706,18 +763,13 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             field_cat_id = data3.replace("null","");
                             field_group_id = data4.replace("null","");
 
-//                            form1_value = dataBeanList.get(i).getField_value().toString();
                             myFieldValue.add(field_value);
-                          //  form1_name = dataBeanList.get(i).getField_name().toString();
                             myname.add(field_name);
-                          //  form1_comments = dataBeanList.get(i).getField_comments().toString();
                             comments.add(field_comments);
-                          //  form1_cat_id = dataBeanList.get(i).getCat_id().toString();
                             catid.add(field_cat_id);
-                          //  form1_group_id = dataBeanList.get(i).getGroup_id().toString();
                             groupid.add(field_group_id);
 
-                            Log.e("Size Value",""+myFieldValue.size());
+                      //      Log.e("Size Value",""+myFieldValue.size());
 
 
                             str = field_value;
@@ -741,14 +793,32 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                             editor.putString("Form1_group_id",str4);
                             editor.apply();
 
-                            dialog = new Dialog(context, R.style.NewProgressDialog);
-                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            dialog.setContentView(R.layout.progroess_popup);
-                            dialog.show();
-
                           //  createLocalValue();
 
                           //  createLocalFormcheck();
+
+                        }
+                        Log.e("Form Final Size ",""+myFieldValue.size());
+
+
+                        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                        Log.e("Network",""+networkStatus);
+                        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                           NoInternetDialog();
+
+                        }else{
+
+                            createLocalFormcheck();
+                            long delayInMillis = 5000;
+                            Timer timer = new Timer();
+                            timer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                }
+                            }, delayInMillis);
 
                             Intent send = new Intent(Recycler_SpinnerActivity.this, Material_Request_PreventiveActivity.class);
                             //send.putExtra("job_id",job_id);
@@ -761,10 +831,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 //                            send.putExtra("Form1_group_id",str4);
                             send.putExtra("status",status);
                             startActivity(send);
-                            dialog.dismiss();
                         }
-
-                        createLocalFormcheck();
 
                     } else {
                         Toast toast = Toast.makeText(getApplicationContext(), "please enter all required data", Toast.LENGTH_SHORT);
@@ -778,6 +845,71 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
             }
         });
+    }
+
+    public void NoInternetDialog() {
+
+        android.app.AlertDialog.Builder mBuilder = new android.app.AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
+    private void getPreventivecheck() {
+
+        Cursor cur = CommonUtil.dbUtil.getMonthlist(job_id,service_title, "1");
+        Log.e("Checklist",""+cur.getCount());
+        mydata = new ArrayList<>();
+        if(cur.getCount() >0 && cur.moveToFirst()){
+
+            do{
+                @SuppressLint("Range")
+                String abc = cur.getString(cur.getColumnIndex(DbHelper.MONTH));
+                Log.e("Datas",""+abc);
+                mydata.add(abc);
+            }while (cur.moveToNext());
+
+        } else {
+
+            Log.e("Datasss",""+cur);
+
+        }
+
+        ArrayList<String> outputList = new ArrayList<String>();
+        for (String item: mydata) {
+            //outputList.add("\""+item+"\"");
+            outputList.add(""+item+"");
+        }
+        List = String.valueOf(outputList);
+
+//        List = List.replace("ANUALLY","YEARLY");
+
+        //   pre_check = pre_check.replaceAll("\\[", "").replaceAll("\\]","");
+        //  System.out.println("EEEEEEEEEEE"+ddd);
+
+        Log.e("Month List", List);
+
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("List", List);
+//        editor.apply();
+
     }
 
     private void createLocalFormcheck() {
@@ -1038,11 +1170,12 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
+        localRequest.setSubPage_number(currentPage);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+job_id);
-
-
+        Log.w(TAG, " Local Form Check Request" + new Gson().toJson(currentPage));
         List<Preventive_Submit_Request.Field_valueDatum> fielddata = new ArrayList<>();
 
         for(int j =0; j <myFieldValue.size(); j++){

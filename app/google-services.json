@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "613754440606",
+    "project_id": "johnsonservice2022-30465",
+    "storage_bucket": "johnsonservice2022-30465.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:613754440606:android:cfe3e57ddff935379d248f",
+        "android_client_info": {
+          "package_name": "com.triton.johnson_tap_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "613754440606-tagu4rlu2njhvm0t46jbc6f76c4i9hjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbC51F7-_OzDGRHZ64C6FLkJTVKWaJxdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "613754440606-tagu4rlu2njhvm0t46jbc6f76c4i9hjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

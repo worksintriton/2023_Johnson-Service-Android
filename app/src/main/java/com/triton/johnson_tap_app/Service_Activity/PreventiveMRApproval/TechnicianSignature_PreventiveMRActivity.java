@@ -15,13 +15,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,19 +37,17 @@ import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMR_Activity;
-import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.TechnicianSignature_BreakdownMR_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
-import com.triton.johnson_tap_app.requestpojo.Job_Details_TextRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_statusRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.requestpojo.ServiceUserdetailsRequestResponse;
 import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
-import com.triton.johnson_tap_app.responsepojo.Job_Details_TextResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,10 +90,18 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
     String compno, sertype,status;
     String signfile;
     AlertDialog.Builder builder;
-    String myactivity = "PREVENTIVE MR";
+    String myactivity = "PREVENTIVE MR",networkStatus="";
     Context context;
     AlertDialog alertDialog;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
+    ArrayList<String> arli_Partname = new ArrayList<>();
+    ArrayList<String>  arli_Partno = new ArrayList<>();
+    ArrayList<String> arli_Partid = new ArrayList<>();
+    ArrayList<String> arli_Quantity = new ArrayList<>();
+
+    @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
@@ -110,13 +117,12 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         iv_pause = findViewById(R.id.ic_paused);
         img_Siganture = (ImageView)findViewById(R.id.image1);
-
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         btn_prev.setBackgroundResource(R.drawable.blue_button_background_with_radius);
         btn_prev.setTextColor(getResources().getColor(R.color.white));
         btn_prev.setEnabled(true);
-
-
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -128,6 +134,12 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         Log.e("Job ID",""+ job_id);
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -174,15 +186,27 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
             Picasso.get().load(str_tech_signature).into(img_Siganture);
         }
 
-        Job_status();
+//       getSample();
+//
+//        CommonUtil.dbUtil.deleteMRTable(job_id,"2",service_title);
+//
+//        Cursor curs = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+//        Log.e("List Count",""+curs.getCount());
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else{
+            Job_status();
+        }
 
         getSign(job_id,myactivity);
 
       //  job_details_in_text();
-
-
-        
-
 
         btn_prev.setBackgroundResource(R.drawable.blue_button_background_with_radius);
         btn_prev.setTextColor(getResources().getColor(R.color.white));
@@ -225,7 +249,9 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
                 }
             });
-        }else{
+        }
+
+        else{
             Log.e("Inside", "New Job ");
         }
 
@@ -324,11 +350,6 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                progressDialog = new ProgressDialog(TechnicianSignature_PreventiveMRActivity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
                 signatureBitmap = signaturePad.getSignatureBitmap();
                 Log.w(TAG, "signatureBitmap" + signatureBitmap);
                 File file = new File(getFilesDir(), "Technician Signature" + ".jpg");
@@ -347,16 +368,18 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                uploadDigitalSignatureImageRequest(file);
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                    NoInternetDialog();
+
+                }else {
+                    uploadDigitalSignatureImageRequest(file);
+
+                }
 
             }
         });
@@ -376,7 +399,20 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                 }
                 else {
 
-                    serviceUserDetailsRequestResponse();
+                    networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+                    Log.e("Network",""+networkStatus);
+                    if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+//                        Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+                        NoInternetDialog();
+
+
+                    }else {
+
+                        serviceUserDetailsRequestResponse();
+                    }
             }
 
             }
@@ -433,6 +469,72 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                 startActivity(send);
             }
         });
+    }
+
+    private ServiceUserdetailsRequestResponse getSample() {
+
+        ServiceUserdetailsRequestResponse submitRequest = new ServiceUserdetailsRequestResponse();
+
+        submitRequest.setJobId(job_id);
+        submitRequest.setUserMobileNo(se_user_mobile_no);
+        submitRequest.setEngSignature("-");
+        submitRequest.setSMU_SCH_COMPNO(compno);
+        submitRequest.setSMU_SCH_SERTYPE(sertype);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+
+        List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
+
+            do {
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
+
+            }while (cur.moveToNext());
+
+        }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        submitRequest.setMrData(mrData);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ job_id);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ se_user_mobile_no);
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ uploadimagepath);
+
+        Log.w(TAG," serviceUserDetailsRequestResponse"+ new Gson().toJson(submitRequest));
+        return submitRequest;
+
+
     }
 
     private void Job_status() {
@@ -622,92 +724,47 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                       mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                     mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                       mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                       mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                       mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                      mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                      mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                     mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                      mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                     mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-            }while (cursor.moveToNext());
         }
 
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         local.setMrData(mrData);
         Log.w(VolleyLog.TAG,"Local Request "+ new Gson().toJson(local));
         return local;
@@ -763,93 +820,47 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
         List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
 
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"1",service_title);
+        Log.e("List Count",""+cur.getCount());
 
-        Log.e("MR Count",""+ cursor.getCount());
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
 
-
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-
-                    mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                    mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                    mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                     mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setPartname(str_Partname);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-            }while (cursor.moveToNext());
         }
 
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         local.setMrData(mrData);
         Log.w(VolleyLog.TAG,"Local Request "+ new Gson().toJson(local));
         return local;
@@ -899,8 +910,6 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
          }
     }
-
-
 
     private void Job_status_update() {
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -963,6 +972,16 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         Call<SuccessResponse> call = apiInterface.ServiceUserdetailsRequestsubmitPrventiveMRCall(RestUtils.getContentType(),submitRequest());
         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
 
+
+        long delayInMillis = 15000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        }, delayInMillis);
+
         call.enqueue(new Callback<SuccessResponse>() {
             @Override
             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
@@ -973,22 +992,30 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 
                 if (response.body() != null) {
                     dialog.dismiss();
+                    message = response.body().getMessage();
+                    Log.e("Message",""+message);
                     String message = response.body().getMessage();
                     if(response.body().getCode() == 200){
                         dialog.dismiss();
 //                        servicedetailsrequestbean = response.body().getData();
 
                         Log.w(TAG,"url  :%s"+" "+ call.request().url().toString());
-
-                        CommonUtil.dbUtil.Preportdelete(job_id);
-
-                        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
-
-                        Log.e("MR List Count",""+ cursor.getCount());
+//
+//                        CommonUtil.dbUtil.Preportdelete(job_id);
+//
+//                        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//                        Log.e("MR List Count",""+ cursor.getCount());
 
                       //  CommonUtil.dbUtil.updatesign(job_id,myactivity,"1");
 
+                        CommonUtil.dbUtil.deleteMRTable(job_id,"2",service_title);
+
+                        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+                        Log.e("List Count",""+cur.getCount());
+
                         CommonUtil.dbUtil.deleteSign(job_id,myactivity);
+                        CommonUtil.dbUtil.deleteBreakdownMR(job_id,myactivity);
 
                         Toasty.success(TechnicianSignature_PreventiveMRActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
@@ -998,6 +1025,7 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                     }else{
 //                          showErrorLoading(response.body().getMessage());
                         dialog.dismiss();
+                        showErrorAlert(message);
                     }
 
                 }
@@ -1009,6 +1037,35 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
             }
         });
 
+    }
+
+    private void showErrorAlert(String message) {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.remarks_popup, null);
+
+        EditText edt_Remarks = mView.findViewById(R.id.edt_remarks);
+        Button btn_Submit = mView.findViewById(R.id.btn_submit);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        btn_Submit.setText("OK");
+        edt_Remarks.setVisibility(View.GONE);
+        txt_Message.setVisibility(View.VISIBLE);
+
+        mBuilder.setView(mView);
+        alertDialog= mBuilder.create();
+        alertDialog.show();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        txt_Message.setText(message);
+
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.dismiss();
+            }
+        });
     }
 
     private ServiceUserdetailsRequestResponse submitRequest() {
@@ -1025,11 +1082,9 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
 
-        List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
-
-        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
-
-        Log.e("MR Count",""+ cursor.getCount());
+//        Cursor cursor = CommonUtil.dbUtil.getPMR(job_id);
+//
+//        Log.e("MR Count",""+ cursor.getCount());
 
         //        for(int i=0; i<10 ; i++){
 //            int mynum = i+1;
@@ -1072,78 +1127,123 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
 //
 //        }
 
-        int i =0;
-        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+//<--- ---->
+        //// Old
+//        int i =0;
+//        if (cursor.getCount()>0 &&cursor.moveToFirst()) {
+//
+//            do {
+//                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
+//                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
+//                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
+//                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+//
+//                int mynum = i+1;
+//
+//                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+//                mrDatum.setTitle("Mr"+mynum);
+//                if(mynum==1) {
+//                    mrDatum.setValue(mr1);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==2) {
+//                    mrDatum.setValue(mr2);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==3) {
+//
+//                    mrDatum.setValue(mr3);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==4) {
+//
+//                    mrDatum.setValue(mr4);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==5) {
+//
+//                    mrDatum.setValue(mr5);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==6) {
+//
+//                    mrDatum.setValue(mr6);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==7) {
+//
+//                    mrDatum.setValue(mr7);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==8) {
+//
+//                    mrDatum.setValue(mr8);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==9) {
+//
+//                    mrDatum.setValue(mr9);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                } else if (mynum==10) {
+//
+//                    mrDatum.setValue(mr10);
+//                    mrDatum.setPartno(str_Partno);
+//                    mrDatum.setReq(str_Quantity);
+//                }
+//
+//                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
+//                mrData.add(mrDatum);
+//
+//                i++;
+//
+//
+//            }while (cursor.moveToNext());
+//        }
+
+        List<ServiceUserdetailsRequestResponse.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"2",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        arli_Partno.clear();
+        arli_Partname.clear();
+        arli_Quantity.clear();
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
 
             do {
-                str_Partid = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_MR_ID));
-                str_Partname = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NAME));
-                str_Partno = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_PART_NO));
-                str_Quantity = cursor.getString(cursor.getColumnIndexOrThrow(DbHelper.P_QUANTITY));
+                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
 
-                int mynum = i+1;
+            }while (cur.moveToNext());
 
-                ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
-                mrDatum.setTitle("Mr"+mynum);
-                if(mynum==1) {
-                    mrDatum.setValue(mr1);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==2) {
-                    mrDatum.setValue(mr2);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==3) {
-
-                    mrDatum.setValue(mr3);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==4) {
-
-                    mrDatum.setValue(mr4);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==5) {
-
-                    mrDatum.setValue(mr5);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==6) {
-
-                    mrDatum.setValue(mr6);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==7) {
-
-                    mrDatum.setValue(mr7);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==8) {
-
-                    mrDatum.setValue(mr8);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==9) {
-
-                    mrDatum.setValue(mr9);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                } else if (mynum==10) {
-
-                    mrDatum.setValue(mr10);
-                    mrDatum.setPartno(str_Partno);
-                    mrDatum.setReq(str_Quantity);
-                }
-
-                Log.e("Nish",""+mynum + mrDatum.getTitle() +" :"+ mrDatum.getValue());
-                mrData.add(mrDatum);
-
-                i++;
-
-
-            }while (cursor.moveToNext());
         }
 
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            ServiceUserdetailsRequestResponse.MrDatum mrDatum = new ServiceUserdetailsRequestResponse.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+
+        Log.e("Nish",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
         submitRequest.setMrData(mrData);
         Log.w(TAG," serviceUserDetailsRequestResponse"+ job_id);
         Log.w(TAG," serviceUserDetailsRequestResponse"+ se_user_mobile_no);
@@ -1152,13 +1252,28 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         Log.w(TAG," serviceUserDetailsRequestResponse"+ new Gson().toJson(submitRequest));
         return submitRequest;
 
+
     }
 
     private void uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(TechnicianSignature_PreventiveMRActivity.this);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 10000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")
@@ -1233,5 +1348,29 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         send.putExtra("status", status);
         send.putExtra("tech_signature", uploadimagepath);
         startActivity(send);
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 }

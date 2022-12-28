@@ -85,6 +85,7 @@ public class JobListAdapter_ACKService  extends RecyclerView.Adapter<RecyclerVie
 
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("ackcompno", ACKCompno);
+                editor.putString("job_id",s);
                 editor.apply();
 
                 Intent n_act = new Intent(context, MRDetails_Activity.class);

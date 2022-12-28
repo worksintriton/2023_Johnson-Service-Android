@@ -3,6 +3,7 @@ package com.triton.johnson_tap_app.Service_Activity.Preventive_Services;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,9 +14,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,6 +42,7 @@ import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,9 +80,10 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     SharedPreferences sharedPreferences;
     String se_id,se_user_mobile_no,se_user_name,signfile,status,List,statustype,compno,sertype,s_remark,message;
-    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="";
+    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",networkStatus="";
     RetriveResponsePR.Data databean ;
-
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     String form1_value;
     String form1_name;
@@ -118,6 +123,8 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         iv_back = (ImageView) findViewById(R.id.iv_back);
         img_Paused = findViewById(R.id.img_paused);
         img_Siganture = (ImageView)findViewById(R.id.image1);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -127,6 +134,12 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         service_title = sharedPreferences.getString("service_title", "default value");
         Log.e("JobID",""+job_id);
         Log.e("Name",""+service_title);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         List = sharedPreferences.getString("List","1");
         Log.e("Month List", "" +List);
@@ -250,9 +263,23 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
 //            Picasso.get().load(str_tech_signature).into(image);
         }
 
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+
+
         if (status.equals("paused")) {
 
-            retrive_LocalValue();
+            if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+               NoInternetDialog();
+
+            }else{
+
+                retrive_LocalValue();
+            }
+
+
 
         }else{
             Log.e("Way","New");
@@ -334,21 +361,19 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                progressDialog = new ProgressDialog(Technician_signature_preventiveActivity.this);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                uploadDigitalSignatureImageRequest(file);
+                Log.e("Network",""+networkStatus);
 
-                long delayInMillis = 1000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+                    NoInternetDialog();
+
+                }else{
+                    uploadDigitalSignatureImageRequest(file);
+
+
+                }
 
             }
         });
@@ -457,6 +482,31 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
 //                }
 
                 onBackPressed();
+            }
+        });
+    }
+
+    public void NoInternetDialog() {
+
+        android.app.AlertDialog.Builder mBuilder = new android.app.AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
             }
         });
     }
@@ -760,9 +810,23 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
 
     private void uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(Technician_signature_preventiveActivity.this);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s" + call.request().url().toString());
+
+        long delayInMillis = 1000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")

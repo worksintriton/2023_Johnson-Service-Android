@@ -1,26 +1,49 @@
 package com.triton.johnson_tap_app.activity;
 
 
+import static android.Manifest.permission.READ_PHONE_NUMBERS;
+import static android.Manifest.permission.READ_PHONE_STATE;
+import static android.Manifest.permission.READ_SMS;
+import static android.icu.text.DisplayContext.LENGTH_SHORT;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.multidex.BuildConfig;
 
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
+import com.triton.johnson_tap_app.NetworkUtility.NetworkChangeListener;
 import com.triton.johnson_tap_app.responsepojo.GetFetchLatestVersionResponse;
 import com.triton.johnson_tap_app.requestpojo.Getlatestversionrequest;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.session.SessionManager;
 import com.triton.johnson_tap_app.R;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,29 +64,70 @@ public class SplashActivity extends AppCompatActivity {
 
     int haslocationpermission;
     private SharedPreferences sharedpreferences;
-    String TAG = "SplashActivity",ID;
-    private String VersionUpdate,VersionUpdate1;
+    String TAG = "SplashActivity", ID;
+    private String VersionUpdate, VersionUpdate1;
     TextView device_id;
+    Context context;
+    String networkStatus = "";
+    LinearLayout loginMainLinearLayout;
+
+    NetworkChangeListener networkChangeListener = new NetworkChangeListener();
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        context = this;
         SimpleDateFormat currentDate = new SimpleDateFormat("dd.MM.yy");
         Date todayDate = new Date();
         String thisDate = currentDate.format(todayDate);
-        TextView txt_version = (TextView)findViewById(R.id.txt_version);
-        device_id = (TextView)findViewById(R.id.device_id);
+        TextView txt_version = (TextView) findViewById(R.id.txt_version);
+        device_id = (TextView) findViewById(R.id.device_id);
         ID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         device_id.setText(ID);
         Log.e("deviceid",ID);
 
+//        String[] permission = { Manifest.permission.READ_PHONE_NUMBERS};
+//        requestPermissions(permission,102);
+//        getMobileNumber();
+
         String versionName = BuildConfig.VERSION_NAME;
+
 
         sessionManager = new SessionManager(this);
 
-        getlatestversion();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
+
+        }
+        else {
+            getlatestversion();
+        }
+
+//        Intent intent = new Intent(SplashActivity.this, Dashbaord_MainActivity.class);
+//        startActivity(intent);
+//        overridePendingTransition(R.anim.new_right, R.anim.new_left);
+//        finish();
 
 
+    }
+
+
+    @SuppressLint("HardwareIds")
+    private void getMobileNumber() {
+        Log.e("Get Mobile Number","Hi");
+
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+//        txt_Mobilenumber.setText(telephonyManager.getLine1Number());
+        Log.e("Mobile Number",""+telephonyManager.getLine1Number());
     }
 
     private void getlatestversion() {
@@ -148,4 +212,16 @@ public class SplashActivity extends AppCompatActivity {
         return getlatestversionrequest;
     }
 
+    @Override
+    protected void onStart() {
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(networkChangeListener);
+        super.onStop();
+    }
 }

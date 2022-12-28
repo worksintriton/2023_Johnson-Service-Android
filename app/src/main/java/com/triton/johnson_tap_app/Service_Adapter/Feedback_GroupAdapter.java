@@ -33,9 +33,10 @@ public class Feedback_GroupAdapter extends  RecyclerView.Adapter<RecyclerView.Vi
     private List<Feedback_GroupResponse.DataBean> dataBeanList;
     private Context context;
     Feedback_GroupResponse.DataBean currentItem;
-    String data = "",jobid,service_title;
+    String data = "",jobid,service_title,str_FeedBackGroup;
     ArrayList<String> myData = new ArrayList<>();
     boolean isStringExists = false;
+
     SharedPreferences sharedPreferences;
     private int size;
     String pre_check;
@@ -45,6 +46,7 @@ public class Feedback_GroupAdapter extends  RecyclerView.Adapter<RecyclerView.Vi
         this.context = thiscontext;
         this.dataBeanList = dataBeanList;
         this.myData =mydata;
+//        this.str_FeedBackGroup = feedback_group;
       //  this.userTypeSelectListener = userTypeSelectListener;
 
         CommonUtil.dbUtil = new DbUtil(context);
@@ -56,6 +58,7 @@ public class Feedback_GroupAdapter extends  RecyclerView.Adapter<RecyclerView.Vi
         service_title = sharedPreferences.getString("service_title", "default value");
         Log.e("JobID",""+jobid);
         Log.e("Name",""+service_title);
+        Log.e("My Feedback Group",""+myData);
 
     }
 
@@ -91,19 +94,11 @@ public class Feedback_GroupAdapter extends  RecyclerView.Adapter<RecyclerView.Vi
         }
 
 
-//        if(currentItem.getTitle().contains("LEVEL PROBLEM")){
-//            holder.chx_usertypes.setChecked(true);
-//        }
-//        else {
-//            holder.chx_usertypes.setChecked(false);
-//        }
 
         String feedback = holder.code.getText().toString();
         String myfeedback = myData.toString();
 
         Log.e("Data Get 1",""+myfeedback);
-
-
 
         isStringExists = myfeedback.contains(feedback);
         Log.e("isChecked",""+isStringExists);

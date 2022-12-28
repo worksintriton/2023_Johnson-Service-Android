@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -63,10 +64,15 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
     ArrayList<String> arrayList;
     AlertDialog alertDialog;
     ArrayList<String> mydata = new ArrayList<>();
-      String TAG= "MONTHLIST",PAGE = "1";
+      String TAG= "MONTHLIST";
     SharedPreferences sharedPreferences;
     List FieldData = Collections.singletonList("-");
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
+    int PageNumber = 1;
+    String SubPageNumber = "-1" ;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +92,8 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
         img_Pause = findViewById(R.id.img_paused);
         btn_Prev = findViewById(R.id.btn_prev);
         btn_Next = findViewById(R.id.btn_next);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -96,6 +104,11 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
         Log.e("Name",service_title);
         Log.e("JobID",str_job_id);
         Log.e("Value", statustype);
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + str_job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
 
 //        CommonUtil.dbUtil.reportDeletePreventiveListDelete(str_job_id,service_title);
@@ -444,7 +457,8 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
         Log.e("JobID",""+str_job_id);
         // Log.e("Nish List",""+dataBeanList.size());
         localRequest.setField_valueData(FieldData);
-        localRequest.setPage_number(PAGE);
+        localRequest.setPage_number(PageNumber);
+        localRequest.setSubPage_number(Integer.parseInt(SubPageNumber));
         Log.w(TAG, "Create Local Request" + new Gson().toJson(localRequest));
         return  localRequest;
     }

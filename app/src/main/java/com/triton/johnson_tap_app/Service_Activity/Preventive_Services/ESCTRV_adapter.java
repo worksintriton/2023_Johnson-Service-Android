@@ -26,6 +26,7 @@ import java.util.ArrayList;
 public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private ArrayList<String> arliMonth;
+    private ArrayList<String> arliID;
     Context context;
     ArrayList<String> arliJobDate = new ArrayList<>();
     ArrayList<String> myData = new ArrayList<>();
@@ -34,8 +35,9 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     String jobid,service_title;
     Boolean isStringExists;
 
-    public ESCTRV_adapter(ArrayList<String> arliMonth, Context context, JobDateListener jobDateListener, ArrayList<String> mydata) {
+    public ESCTRV_adapter(ArrayList<String> arliMonth, Context context, JobDateListener jobDateListener, ArrayList<String> mydata, ArrayList<String> arli_ID) {
         this.arliMonth = arliMonth;
+        this.arliID = arli_ID;
         this.context = context;
         this.jobDateListener = jobDateListener;
         this.myData = mydata;
@@ -66,6 +68,7 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (arliMonth != null && arliMonth.size()>0){
 
             holder.name.setText(arliMonth.get(position));
+            holder.id.setText(arliID.get(position));
 
             String myMonth = holder.name.getText().toString();
            // Log.e("Nishmy 12",""+myMonth);
@@ -79,8 +82,6 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             if(isStringExists){
                 Log.e("Nish","inside" + holder.name.getText().toString());
-                //holder.chkSelected.setSelected(true);
-                // breedTypedataBeanList.get(position).setSelected(true);
                 holder.chx_usertypes.setChecked(true);
             }
 
@@ -89,6 +90,11 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 public void onClick(View view) {
 
                     String data = holder.name.getText().toString();
+                    String id = holder.id.getText().toString();
+
+                    Log.e("Data",""+data);
+
+//                    data = data.replace("ANUALLY","YEARLY");
 //                    if (holder.chx_usertypes.isChecked()){
 //
 //                        arliJobDate.add(arliMonth.get(position));
@@ -129,10 +135,10 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             });
         }
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("List", String.valueOf(arliJobDate));
-        editor.apply();
+//        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("List", String.valueOf(arliJobDate));
+//        editor.apply();
     }
 
     @Override
@@ -142,7 +148,7 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public class ViewHolderOne extends RecyclerView.ViewHolder {
 
-        TextView name,code;
+        TextView name,code,id;
         CardView cv_root;
         LinearLayout ll_usertypes;
         CheckBox chx_usertypes;
@@ -150,8 +156,11 @@ public class ESCTRV_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(view);
             name = view.findViewById(R.id.tvName);
             code = view.findViewById(R.id.codes);
+            id = view.findViewById(R.id.tvID);
             ll_usertypes = view.findViewById(R.id.ll_usertypes);
             chx_usertypes = view.findViewById(R.id.chkSelected);
+
+            id.setVisibility(View.GONE);
         }
     }
 }

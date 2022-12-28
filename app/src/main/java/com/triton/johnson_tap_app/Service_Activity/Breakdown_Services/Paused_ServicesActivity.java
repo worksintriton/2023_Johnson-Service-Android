@@ -9,12 +9,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +33,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Pasused_ListRequest;
 import com.triton.johnson_tap_app.responsepojo.Pasused_ListResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.List;
 
@@ -45,14 +51,16 @@ public class Paused_ServicesActivity extends AppCompatActivity implements PetBre
     private List<Pasused_ListResponse.DataBean> breedTypedataBeanList;
     String message;
     PasusedListAdapter petBreedTypesListAdapter;
-    private String PetBreedType = "",status;
+    private String PetBreedType = "",status,networkStatus="";
     TextView txt_Title,txt_NoRecords;
+    Context context;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_paused_services);
+        context = this;
 
         iv_back = (ImageView) findViewById(R.id.iv_back);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -96,7 +104,41 @@ public class Paused_ServicesActivity extends AppCompatActivity implements PetBre
             }
         });
 
-        jobFindResponseCall(se_user_mobile_no,service_title);
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else {
+            jobFindResponseCall(se_user_mobile_no, service_title);
+        }
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     private void jobFindResponseCall(String job_no, String title) {

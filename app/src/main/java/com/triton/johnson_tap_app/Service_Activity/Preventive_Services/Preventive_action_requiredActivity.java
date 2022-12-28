@@ -65,6 +65,8 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
     Context context;
     String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="";
     RetriveResponsePR.Data databean ;
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     String form1_value;
     String form1_name;
@@ -99,6 +101,8 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
         iv_back = (ImageView) findViewById(R.id.iv_back);
         feedback_remark = (EditText)findViewById(R.id.feedback_remark);
         img_Paused = findViewById(R.id.img_paused);
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
         Spannable name_Upload = new SpannableString("Action Required By Customer ");
         name_Upload.setSpan(new ForegroundColorSpan(Preventive_action_requiredActivity.this.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -196,6 +200,11 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
         preventive_check = sharedPreferences.getString("PreventiveChecklist","bbb");
         Log.e("Preventive Check",preventive_check);
 
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");

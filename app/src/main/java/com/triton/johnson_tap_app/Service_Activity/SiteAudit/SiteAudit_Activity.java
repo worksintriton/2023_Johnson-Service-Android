@@ -3,13 +3,17 @@ package com.triton.johnson_tap_app.Service_Activity.SiteAudit;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +31,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Count_pasusedRequest;
 import com.triton.johnson_tap_app.responsepojo.Count_pasusedResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -40,7 +45,7 @@ public class SiteAudit_Activity extends AppCompatActivity {
     TextView pasused_count,title_name;
     Context context;
     SharedPreferences sharedPreferences;
-    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,message,paused_count;
+    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,message,paused_count,networkStatus="";
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -65,7 +70,17 @@ public class SiteAudit_Activity extends AppCompatActivity {
         Log.e("name",""+service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
 
-        Count_paused();
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
+        }else {
+
+            Count_paused();
+        }
 
         cv_new_job.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +111,31 @@ public class SiteAudit_Activity extends AppCompatActivity {
         });
     }
 
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
+    }
+
     private void Count_paused() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -103,7 +143,7 @@ public class SiteAudit_Activity extends AppCompatActivity {
         Log.w(TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
 
         call.enqueue(new Callback<Count_pasusedResponse>() {
-            @SuppressLint("LogNotTimber")
+            @SuppressLint({"LogNotTimber", "SetTextI18n"})
             @Override
             public void onResponse(@NonNull Call<Count_pasusedResponse> call, @NonNull retrofit2.Response<Count_pasusedResponse> response) {
 

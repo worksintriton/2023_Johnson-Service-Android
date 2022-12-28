@@ -69,7 +69,8 @@ public class RetriveResponsePR {
         private String preventive_check;
         private String tech_signature;
         private String user_mobile_no;
-        private String page_number;
+        private int page_number;
+        private int subPage_number;
         public String getSMU_SCH_COMPNO() {
             return SMU_SCH_COMPNO;
         }
@@ -270,12 +271,20 @@ public class RetriveResponsePR {
             this.user_mobile_no = user_mobile_no;
         }
 
-        public String getPage_number() {
+        public int getPage_number() {
             return page_number;
         }
 
-        public void setPage_number(String page_number) {
+        public void setPage_number(int page_number) {
             this.page_number = page_number;
+        }
+
+        public int getSubPage_number() {
+            return subPage_number;
+        }
+
+        public void setSubPage_number(int subPage_number) {
+            this.subPage_number = subPage_number;
         }
     }
     public class FieldValueDatum {

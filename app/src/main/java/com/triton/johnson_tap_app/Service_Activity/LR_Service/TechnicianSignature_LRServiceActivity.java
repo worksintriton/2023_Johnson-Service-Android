@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,9 +15,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -41,6 +44,7 @@ import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import java.io.File;
@@ -73,8 +77,11 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
     ProgressDialog progressDialog;
     Bitmap signatureBitmap;
     MultipartBody.Part siganaturePart;
-    String myactivity = "LR Service",str_job_status,str_Quoteno,service_type,message;
+    String myactivity = "LR Service",str_job_status,str_Quoteno,service_type,message,networkStatus="";
     AlertDialog alertDialog;
+
+    TextView txt_Jobid,txt_Starttime;
+    String str_StartTime;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,7 +102,8 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
         img_Back = findViewById(R.id.img_back);
         img_Pause = findViewById(R.id.img_paused);
         img_Signature = findViewById(R.id.image1);
-
+        txt_Starttime = findViewById(R.id.txt_starttime);
+        txt_Jobid = findViewById(R.id.txt_jobid);
 
 
         Bundle extras = getIntent().getExtras();
@@ -104,8 +112,8 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
             status = extras.getString("status");
             //   Log.e("Name",":" + service_title);
             Log.e("Status", "" + status);
-            job_id = extras.getString("job_id");
-            Log.e("jobID", "" + job_id);
+//            job_id = extras.getString("job_id");
+//            Log.e("jobID", "" + job_id);
             str_Custname = extras.getString("C_name");
             str_Custno = extras.getString("C_no");
             str_Custremarks = extras.getString("C_remarks");
@@ -126,14 +134,36 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
         service_title = sharedPreferences.getString("service_title", "Services");
         str_Quoteno = sharedPreferences.getString("quoteno","123");
         service_type = sharedPreferences.getString("service_type","PSM");
+        job_id = sharedPreferences.getString("job_id","L-1234");
+        Log.e("jobID", "" + job_id);
         Log.e("name",""+service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
+
+        str_StartTime = sharedPreferences.getString("starttime","");
+        str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
+        Log.e("Start Time",str_StartTime);
+        txt_Jobid.setText("Job ID : " + job_id);
+        txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
+
+        Log.e("Network",""+networkStatus);
+
 
         if (status.equals("new")){
             getSign(job_id,myactivity);
         }
         else{
-            retrive_LocalValue();
+
+            if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+             NoInternetDialog();
+
+            }else{
+
+                retrive_LocalValue();
+            }
+
         }
 
         btn_Save.setEnabled(false);
@@ -184,25 +214,18 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
 
                 siganaturePart = MultipartBody.Part.createFormData("sampleFile", userid + file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-                progressDialog = new ProgressDialog(context);
-                progressDialog.setMessage("Please Wait Image Upload ...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
 
-                uploadDigitalSignatureImageRequest(file);
+                networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-                long delayInMillis = 15000;
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                }, delayInMillis);
+                Log.e("Network",""+networkStatus);
+                if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
 
+                    NoInternetDialog();
 
+                }else {
 
-
+                    uploadDigitalSignatureImageRequest(file);
+                }
 
                 //Toast.makeText(context,"Signature Saved",Toast.LENGTH_SHORT).show();
             }
@@ -301,6 +324,31 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     private void retrive_LocalValue() {
@@ -513,11 +561,23 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
 
     private void  uploadDigitalSignatureImageRequest(File file) {
 
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Please Wait Image Upload ...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
 
         APIInterface apiInterface = RetrofitClient.getImageClient().create(APIInterface.class);
         Call<FileUploadResponse> call = apiInterface.getImageStroeResponse(siganaturePart);
         Log.w(TAG, "url  :%s " + call.request().url().toString());
 
+        long delayInMillis = 10000;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, delayInMillis);
 
         call.enqueue(new Callback<FileUploadResponse>() {
             @SuppressLint("LogNotTimber")

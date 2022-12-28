@@ -2,6 +2,8 @@ package com.triton.johnson_tap_app.Service_Activity.LR_Service;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,7 +12,9 @@ import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -32,6 +36,7 @@ import com.triton.johnson_tap_app.requestpojo.JobListRequest;
 import com.triton.johnson_tap_app.requestpojo.Pasused_ListRequest;
 import com.triton.johnson_tap_app.responsepojo.JobListResponse;
 import com.triton.johnson_tap_app.responsepojo.Pasused_ListResponse;
+import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +56,7 @@ public class JobDetails_LRService_Activity extends AppCompatActivity {
     PausedJobListAdapter_LRService pausedlistAdapter;
     RelativeLayout Job;
     Context context;
-    String status,se_user_mobile_no, se_user_name, se_id,check_id, service_title,message;
+    String status,se_user_mobile_no, se_user_name, se_id,check_id, service_title,message,networkStatus="";
     SharedPreferences sharedPreferences;
     List<JobListResponse.DataBean> breedTypedataBeanList;
     List<Pasused_ListResponse.DataBean> databeanList;
@@ -93,16 +98,29 @@ public class JobDetails_LRService_Activity extends AppCompatActivity {
             Log.e("Status", "" + status);
         }
 
-        if (status.equals("new")){
+        networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
-            jobFindResponseCall(se_user_mobile_no,service_title);
+        Log.e("Network",""+networkStatus);
+        if (networkStatus.equalsIgnoreCase("Not connected to Internet")) {
+
+            NoInternetDialog();
+
         }
         else{
 
-            Job.setVisibility(View.GONE);
-            edtsearch.setVisibility(View.GONE);
-            pausedjobResponseCall();
+            if (status.equals("new")){
+
+                jobFindResponseCall(se_user_mobile_no,service_title);
+            }
+            else{
+
+                Job.setVisibility(View.GONE);
+                edtsearch.setVisibility(View.GONE);
+                pausedjobResponseCall();
+            }
         }
+
+
 
         img_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,6 +167,31 @@ public class JobDetails_LRService_Activity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void NoInternetDialog() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mView = inflater.inflate(R.layout.dialog_nointernet, null);
+        Button btn_Retry = mView.findViewById(R.id.btn_retry);
+
+
+        mBuilder.setView(mView);
+        final Dialog dialog= mBuilder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+
+        btn_Retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+                finish();
+                startActivity(getIntent());
+
+            }
+        });
     }
 
     private void pausedjobResponseCall() {
@@ -237,18 +280,25 @@ public class JobDetails_LRService_Activity extends AppCompatActivity {
     private void filter(String search) {
 
         List<JobListResponse.DataBean> filterlist = new ArrayList<>();
-        for (JobListResponse.DataBean item :breedTypedataBeanList){
-            if(item.getJob_id().toLowerCase().contains(search.toLowerCase()))
-            {
-                Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
-                filterlist.add(item);
 
+        try{
+
+            for (JobListResponse.DataBean item :breedTypedataBeanList) {
+                if(item.getJob_id().toLowerCase().contains(search.toLowerCase())) {
+                    Log.w(TAG,"filter----"+item.getJob_id().toLowerCase().contains(search.toLowerCase()));
+                    filterlist.add(item);
+
+                }
             }
+
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Log.e("Hi ",""+e.toString());
         }
 
 
-        if(filterlist.isEmpty())
-        {
+
+        if(filterlist.isEmpty()) {
             //Toast.makeText(this,"No Data Found ... ",Toast.LENGTH_SHORT).show();
             recyclerView.setVisibility(View.GONE);
             txt_no_records.setVisibility(View.VISIBLE);

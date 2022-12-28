@@ -33,29 +33,54 @@
         android:layout_height="match_parent"
         android:layout_below="@id/main_bar"
         android:layout_above="@id/linea"
+        android:layout_marginHorizontal="10dp"
         android:orientation="vertical">
 
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="15dp"
             android:layout_marginVertical="10dp"
             android:text="AD Number *"
             android:textColor="#FF0000"
             android:textSize="@dimen/_16dp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/txt_adnumber"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="15dp"
-            android:layout_marginVertical="10dp"
-            android:text="ADTN0121125392"
-            android:textColor="@color/black"
-            android:textSize="18dp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <TextView
+                android:id="@+id/txt_adnumber"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_weight="0.6"
+                android:gravity="center_vertical"
+                android:text="No Data Found"
+                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textStyle="bold" />
+
+
+            <Button
+                android:visibility="gone"
+                android:id="@+id/btn_skip"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.4"
+                android:textAlignment="center"
+                android:background="@drawable/blue_button_background_with_radius"                    android:text="Skip"
+                android:textColor="#ffffff"
+                android:textSize="15dp">
+            </Button>
+
+        </LinearLayout>
+
+
+
 
     </LinearLayout>
 

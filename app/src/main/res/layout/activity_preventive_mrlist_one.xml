@@ -39,14 +39,47 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <RelativeLayout
+        android:id="@+id/rel_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_bar"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/txt_jobid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:id="@+id/txt_starttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/txt_jobid"
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/line_job"
-        android:layout_below="@id/main_bar"
+        android:layout_below="@id/rel_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:orientation="horizontal"
+        android:visibility="gone"
         android:weightSum="1">
 
         <com.triton.johnson_tap_app.materialeditext.MaterialEditText
@@ -79,6 +112,7 @@
 
     <com.triton.johnson_tap_app.materialeditext.MaterialEditText
         android:id="@+id/part_no"
+        android:visibility="gone"
         android:layout_below="@id/line_job"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -97,6 +131,7 @@
 
     <com.triton.johnson_tap_app.materialeditext.MaterialEditText
         android:id="@+id/no"
+        android:visibility="gone"
         android:layout_below="@id/part_no"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -104,7 +139,7 @@
         android:layout_marginRight="20dp"
         android:layout_marginTop="@dimen/_10dp"
         android:hint="Quantity"
-        android:inputType="number"
+        android:inputType="numberDecimal"
         android:maxLines="1"
         android:singleLine="true"
         android:textSize="20sp"
@@ -113,21 +148,25 @@
         app:met_floatingLabelAnimating="true"
         app:met_primaryColor="@color/colorPrimary" />
 
-    <Button
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/no"
-        android:layout_marginTop="10dp"
-        android:textColor="@color/white"
+        android:layout_above="@id/line_btn"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="10dp"
         android:background="@drawable/blue_button_background_with_radius"
-        android:layout_centerInParent="true"
-        android:text="ADD"/>
+        android:contentDescription="Add"
+        android:src="@drawable/ic_baseline_add"
+        app:fabSize="auto"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/white" />
+
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_below="@id/btn_add"
+        android:layout_below="@id/rel_id"
         android:layout_above="@id/line_btn"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
@@ -213,3 +252,4 @@
     </LinearLayout>
 
 </RelativeLayout>
+
