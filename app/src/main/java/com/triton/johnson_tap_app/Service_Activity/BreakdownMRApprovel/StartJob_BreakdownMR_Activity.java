@@ -181,14 +181,8 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
                         Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
 
                         if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
+
                             Job_status_update();
-                            Intent send = new Intent(StartJob_BreakdownMR_Activity.this, MRForms_BreakdownMRActivity.class);
-                            send.putExtra("job_id",str_job_id);
-                            send.putExtra("status", status);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("starttime", str_StartTime);
-                            editor.apply();
-                            startActivity(send);
                         }
                         else{
 
@@ -231,6 +225,9 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
                         send.putExtra("status", status);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("starttime", str_StartTime);
+                        editor.putString("lati", String.valueOf(Latitude));
+                        editor.putString("long", String.valueOf(Logitude));
+                        editor.putString("add",address);
                         editor.apply();
                         startActivity(send);
 
@@ -312,9 +309,9 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
             ll_pause.setVisibility(GONE);
             ll_stop.setVisibility(GONE);
 
-            mBuilder.setView(mView);
-            final AlertDialog dialog = mBuilder.create();
-            dialog.show();
+        mBuilder.setView(mView);
+        mDialog= mBuilder.create();
+        mDialog.show();
 
             ll_start.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -334,18 +331,11 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
 
                         if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
                             Job_status_update();
-                            Intent send = new Intent(StartJob_BreakdownMR_Activity.this, MRForms_BreakdownMRActivity.class);
-                            send.putExtra("job_id", str_job_id);
-                            send.putExtra("status", status);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("starttime", str_StartTime);
-                            editor.apply();
-                            startActivity(send);
-                            dialog.dismiss();
+
                         }
                         else{
 
-                            dialog.dismiss();
+                            mDialog.dismiss();
                             ErrorAlert();
                         }
 
@@ -497,6 +487,17 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
+                            if (Objects.equals(status, "new")){
+                                mDialog.dismiss();
+                            }
+                            Intent send = new Intent(StartJob_BreakdownMR_Activity.this, MRForms_BreakdownMRActivity.class);
+                            send.putExtra("job_id",str_job_id);
+                            send.putExtra("status", status);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("starttime", str_StartTime);
+                            editor.apply();
+                            startActivity(send);
                         }
 
 
@@ -557,11 +558,10 @@ public class StartJob_BreakdownMR_Activity extends AppCompatActivity {
 
                 try {
                     myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                address = myAddress.get(0).getAddressLine(0);
 
                 Log.e("Address",address);
             }

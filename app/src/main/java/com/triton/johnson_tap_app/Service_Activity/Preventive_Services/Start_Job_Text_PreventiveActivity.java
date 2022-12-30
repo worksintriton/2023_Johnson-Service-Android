@@ -345,8 +345,8 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
         txt_DateTime.setText(date);
 
         mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-        dialog.show();
+        mDialog= mBuilder.create();
+        mDialog.show();
 
         ll_start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -367,11 +367,11 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                     if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
                         Job_status_update();
                         Check_Pod_Status();
-                        dialog.dismiss();
+
                     }
                     else{
 
-                        dialog.dismiss();
+                        mDialog.dismiss();
 
                         ErrorAlert();
                     }
@@ -652,6 +652,12 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
 
                             str_job_status = response.body().getData().getStatus();
 
+                            if (Objects.equals(message, "Not Started")){
+
+                                mDialog.dismiss();
+
+                            }
+
 //                            Intent send3 = new Intent(Start_Job_Text_PreventiveActivity.this, Esc_TrvActivity.class);
 //                            send3.putExtra("job_id",str_job_id);
 //                            send3.putExtra("value","ESC/TRV");
@@ -666,6 +672,9 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("statustype", "POD");
                                 editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
                                 editor.apply();
 
                                 send.putExtra("service_title",service_title);
@@ -680,6 +689,9 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("statustype", "SEMPOD");
                                 editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
                                 editor.apply();
 
                                 send1.putExtra("service_title",service_title);
@@ -694,6 +706,9 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("statustype", "MOD");
                                 editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
                                 editor.apply();
 
                                 send2.putExtra("service_title",service_title);
@@ -708,6 +723,9 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("statustype", "ESC/TRV");
                                 editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
                                 editor.apply();
 
                                 send3.putExtra("service_title",service_title);
@@ -763,11 +781,12 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
 
                 try {
                     myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                address = myAddress.get(0).getAddressLine(0);
+
 
                 Log.e("Address",address);
             }

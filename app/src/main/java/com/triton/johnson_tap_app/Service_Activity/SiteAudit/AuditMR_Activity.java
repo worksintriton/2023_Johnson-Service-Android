@@ -78,6 +78,8 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
     AlertDialog alertDialog;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime,str_Partid,str_Partno,str_Quantity,str_Partname,Quantity;
+    double Latitude ,Logitude;
+    String address = "";
 
     ArrayList<String> arli_Partname;
     ArrayList<String> arli_Partno;
@@ -146,6 +148,11 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -240,6 +247,7 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValueCall();
@@ -305,18 +313,18 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
                                 }
                             })
                             .show();
-                    if(arli_Quantity.contains("")){
+                }
+                else if(arli_Quantity.contains("0")){
 
-                        alertDialog = new AlertDialog.Builder(context)
-                                //.setTitle("Please Login to Continue!")
-                                .setMessage("Please add MR Quantity")
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        alertDialog.dismiss();
-                                    }
-                                })
-                                .show();
-                    }
+                    alertDialog = new AlertDialog.Builder(context)
+                            //.setTitle("Please Login to Continue!")
+                            .setMessage("Please add MR Quantity")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    alertDialog.dismiss();
+                                }
+                            })
+                            .show();
                 }
 
                 else{
@@ -388,6 +396,9 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setOM_OSA_COMPNO(osacompno);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }
@@ -404,8 +415,23 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
 
                 Log.w(TAG, "Check Local Value Form Response" + new Gson().toJson(response.body()));
 
-//                Intent send = new Intent(context, ServicesActivity.class);
-//                startActivity(send);
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+//                            Intent send = new Intent(context, ServicesActivity.class);
+//                            startActivity(send);
+                        }
+
+                    } else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
             }
 
             @Override

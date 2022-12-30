@@ -72,6 +72,8 @@
     </RelativeLayout>
 
     <ScrollView
+        android:id="@+id/line_mr"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="80dp"
@@ -537,6 +539,47 @@
         </LinearLayout>
     </ScrollView>
 
+    <RelativeLayout
+        android:id="@+id/rel_pop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <TextView
+            android:id="@+id/txt_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textFontWeight="@integer/google_play_services_version"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"
+            android:lineSpacingExtra="5dp"
+            android:text="Please Try Again"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btn_ok"
+            android:layout_width="@dimen/_200dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txt_message"
+            android:layout_centerInParent="true"
+            android:layout_marginVertical="@dimen/_25dp"
+            android:background="@drawable/backbtn_background"
+            android:elevation="1dp"
+            android:stateListAnimator="@animator/button_elevation"
+            android:text="OK"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:visibility="visible" />
+
+    </RelativeLayout>
+
     <LinearLayout
         android:id="@+id/footerView"
         android:layout_width="match_parent"
@@ -569,6 +612,7 @@
 
             </Button>
             <Button
+                android:visibility="gone"
                 android:id="@+id/btn_next"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

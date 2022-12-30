@@ -5,19 +5,26 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +33,7 @@ import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.R;
+import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMRListOne_Activity;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMR_Activity;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.MRForms_BreakdownMRActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -37,6 +45,8 @@ import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -45,7 +55,7 @@ import retrofit2.Response;
 
 public class MRForms_PreventiveMRActivity extends AppCompatActivity {
 
-    private Button btnSelection,btn_prev;
+    private Button btnSelection,btn_prev,btn_Ok;
     String value,job_id,feedback_group,feedback_details,bd_dta,feedback_remark,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="",tech_signature="";
     ImageView iv_back,iv_pause;
     EditText mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10;
@@ -59,7 +69,10 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
-
+    ProgressDialog dialog;
+    ScrollView line_MR;
+    RelativeLayout rel_Pop;
+    AlertDialog mDialog;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +101,9 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
         iv_pause = findViewById(R.id.ic_paused);
         txt_Starttime = findViewById(R.id.txt_starttime);
         txt_Jobid = findViewById(R.id.txt_jobid);
+        line_MR = findViewById(R.id.line_mr);
+        rel_Pop = findViewById(R.id.rel_pop);
+        btn_Ok = findViewById(R.id.btn_ok);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -343,6 +359,14 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
             });
         }
 
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
         btn_prev.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -447,11 +471,29 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
 
     public void Callservice_userdetails() {
 
+//        dialog = new ProgressDialog(context, R.style.NewProgressDialog);
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        dialog.setContentView(R.layout.progroess_popup);
+//        dialog.show();
+
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<ServiceUserdetailsResponse> call = apiInterface.ServiceUserdetailsPrventiveMRCall(RestUtils.getContentType(), serviceUserdetailsRequest());
         Log.w(TAG,"Callservice_userdetails url  :%s"+" "+ call.request().url().toString());
 
+        Log.e("Hi","Nish");
+//
+//        long delayInMillis = 5000;
+//        Timer timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                dialog.dismiss();
+////                ErrorAlert();
+//            }
+//        }, delayInMillis);
+
         call.enqueue(new Callback<ServiceUserdetailsResponse>() {
+
             @Override
             public void onResponse(Call<ServiceUserdetailsResponse> call, Response<ServiceUserdetailsResponse> response) {
 
@@ -460,6 +502,10 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
                     String message = response.body().getMessage();
                     if (200 == response.body().getCode()) {
                         if(response.body().getData() != null){
+
+                            rel_Pop.setVisibility(View.GONE);
+                            line_MR.setVisibility(View.VISIBLE);
+                            btnSelection.setVisibility(View.VISIBLE);
 
                             servicedetailsbean = response.body().getData();
                             int i =0;
@@ -501,11 +547,19 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
 
                             }
                         }
+                        else{
+                            //ErrorAlert();
+                        }
 
                     } else {
+                       // ErrorAlert();
                         Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
 
                     }
+                }
+
+                else{
+                 //   ErrorAlert();
                 }
 
             }
@@ -513,6 +567,9 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ServiceUserdetailsResponse> call, Throwable t) {
 
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+              //  ErrorAlert();
             }
         });
 
@@ -578,6 +635,33 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
                 finish();
                 startActivity(getIntent());
 
+            }
+        });
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private void ErrorAlert() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+        txt_Message.setText("Please Try Again Later");
+
+
+        mBuilder.setView(mView);
+        final AlertDialog mDialog = mBuilder.create();
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+                finish();
+                startActivity(getIntent());
             }
         });
     }

@@ -10,6 +10,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -33,6 +35,7 @@ import com.triton.johnson_tap_app.Adapter.CardViewDataAdapter;
 import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
+import com.triton.johnson_tap_app.Location.GpsTracker;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -81,6 +84,12 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
     TextView txt_Jobid,txt_Starttime;
     String networkStatus="";
     SharedPreferences sharedPreferences;
+    GpsTracker gpsTracker;
+    double Latitude ,Logitude;
+    String address = "";
+    Geocoder geocoder;
+    List<Address> myAddress =  new ArrayList<>();
+    android.app.AlertDialog mdialog;
 
     @SuppressLint("SetTextI18n")
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,9 +132,13 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
 
 //        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
 //        String currentDateandTime = sdf.format(new Date());
-
         txt_Jobid.setText("Job ID : " + str_job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
 //        CommonUtil.dbUtil.reportDeletePreventiveListDelete(str_job_id,service_title);
 
@@ -239,6 +252,7 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalvalue();
@@ -550,6 +564,9 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));

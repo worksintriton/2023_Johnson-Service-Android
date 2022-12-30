@@ -79,7 +79,8 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
     MultipartBody.Part siganaturePart;
     String myactivity = "LR Service",str_job_status,str_Quoteno,service_type,message,networkStatus="";
     AlertDialog alertDialog;
-
+    double Latitude ,Logitude;
+    String address = "";
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
 
@@ -310,6 +311,7 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValueCall();
@@ -512,6 +514,9 @@ public class TechnicianSignature_LRServiceActivity extends AppCompatActivity {
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setSMU_SCQH_QUOTENO(str_Quoteno);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }

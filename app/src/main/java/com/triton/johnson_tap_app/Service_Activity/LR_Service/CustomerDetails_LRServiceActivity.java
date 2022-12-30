@@ -72,7 +72,8 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
     List<Retrive_LocalValueResponse.Data> databeanList;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
-
+    double Latitude ,Logitude;
+    String address = "";
 
     @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
@@ -141,6 +142,11 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         Spannable name_Upload = new SpannableString("Customer Name ");
         name_Upload.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.colorAccent)), 0, name_Upload.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -245,6 +251,7 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 str_Custname = edt_Custname.getText().toString();
@@ -454,6 +461,9 @@ public class CustomerDetails_LRServiceActivity extends AppCompatActivity {
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setSMU_SCQH_QUOTENO(str_Quoteno);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }

@@ -63,6 +63,8 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
     String TAG = "MATERIAL REQUEST",value_s,List,compno,sertype,se_id,se_user_mobile_no,se_user_name,statustype,message,str_job_status;
     RetriveResponsePR.Data databean ;
     List<RetriveResponsePR.FieldValueDatum> databeanlist;
+    double Latitude ,Logitude;
+    String address = "";
 
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
@@ -216,6 +218,11 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
+
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
         form1_comments = sharedPreferences.getString("Form1_comments","124");
@@ -361,6 +368,7 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
                                 s_mr8 = mr8.getText().toString();
                                 s_mr9 = mr9.getText().toString();
                                 s_mr10 = mr10.getText().toString();
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValue();
@@ -426,6 +434,9 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG,"Job Status Update Request "+ new Gson().toJson(custom));

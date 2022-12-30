@@ -87,7 +87,6 @@ public class PreventiveMRListOne_Adapter extends RecyclerView.Adapter<RecyclerVi
 
     private void initLayoutOne(ViewHolderOne holder, int position) {
 
-
 //        if (arliPartno != null){
 //
 //                holder.partno.setText(arliPartno.get(position));

@@ -66,6 +66,8 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
     int PageNumber = 1;
+    double Latitude ,Logitude;
+    String address = "";
 
     @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
@@ -102,6 +104,11 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + str_job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -208,6 +215,7 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 getPreventivecheck();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
@@ -275,6 +283,9 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG,"Job Status Update Request "+ new Gson().toJson(custom));

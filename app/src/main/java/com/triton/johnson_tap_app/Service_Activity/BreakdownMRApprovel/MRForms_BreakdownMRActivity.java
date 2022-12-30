@@ -19,9 +19,12 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +48,8 @@ import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -53,7 +58,7 @@ import retrofit2.Response;
 
 public class MRForms_BreakdownMRActivity extends AppCompatActivity {
 
-    private Button btnSelection,btn_prev;
+    private Button btnSelection,btn_prev,btn_Ok;
     String value,job_id,feedback_group,feedback_details,bd_dta,feedback_remark,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="",tech_signature="";
     ImageView iv_back, iv_pause;
     EditText mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10;
@@ -68,6 +73,11 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
     ProgressDialog progressDialog;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    Dialog dialog;
+    ScrollView line_MR;
+    RelativeLayout rel_Pop;
+    double Latitude ,Logitude;
+    String address = "";
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +106,9 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
         mr10 = (EditText) findViewById(R.id.mr10);
         txt_Starttime = findViewById(R.id.txt_starttime);
         txt_Jobid = findViewById(R.id.txt_jobid);
+        line_MR = findViewById(R.id.line_mr);
+        rel_Pop = findViewById(R.id.rel_pop);
+        btn_Ok = findViewById(R.id.btn_ok);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -113,6 +126,11 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -280,7 +298,8 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
                 }
             });
 
-        }else{
+        }
+        else{
             Log.e("Inside", "New Job ");
 
             Cursor cur = CommonUtil.dbUtil.getBreakdownMrList(job_id,myactivity);
@@ -355,8 +374,13 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
             });
         }
 
-
-
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
 
         btn_prev.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -464,9 +488,24 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
 
     public void Callservice_userdetails() {
 
+//        dialog = new Dialog(context, R.style.NewProgressDialog);
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        dialog.setContentView(R.layout.progroess_popup);
+//        dialog.show();
+
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
         Call<ServiceUserdetailsResponse> call = apiInterface.ServiceUserdetailsResponseMRlistCall(RestUtils.getContentType(), serviceUserdetailsRequest());
         Log.w(TAG,"Callservice_userdetails url  :%s"+" "+ call.request().url().toString());
+
+//        long delayInMillis = 5000;
+//        Timer timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                dialog.dismiss();
+////                ErrorAlert();
+//            }
+//        }, delayInMillis);
 
         call.enqueue(new Callback<ServiceUserdetailsResponse>() {
             @Override
@@ -476,7 +515,12 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
                 if (response.body() != null) {
                     String message = response.body().getMessage();
                     if (200 == response.body().getCode()) {
+
                         if(response.body().getData() != null){
+
+                            rel_Pop.setVisibility(View.GONE);
+                            line_MR.setVisibility(View.VISIBLE);
+                            btnSelection.setVisibility(View.VISIBLE);
 
                             servicedetailsbean = response.body().getData();
                             int i =0;
@@ -518,17 +562,29 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
 
                             }
                         }
+                        else{
+                          //  ErrorAlert();
+                        }
 
-                    } else {
+                    }
+                    else {
+
+                    //    ErrorAlert();
                         Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
 
                     }
+                }
+                else{
+
+                //    ErrorAlert();
                 }
 
             }
 
             public void onFailure(Call<ServiceUserdetailsResponse> call, Throwable t) {
-
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+              //  ErrorAlert();
             }
         });
 
@@ -592,6 +648,33 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
                 finish();
                 startActivity(getIntent());
 
+            }
+        });
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private void ErrorAlert() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+        txt_Message.setText("Please Try Again Later");
+
+
+        mBuilder.setView(mView);
+        AlertDialog  mDialog = mBuilder.create();
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+                finish();
+                startActivity(getIntent());
             }
         });
     }

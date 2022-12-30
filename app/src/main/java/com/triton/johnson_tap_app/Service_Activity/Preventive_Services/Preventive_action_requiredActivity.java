@@ -67,6 +67,8 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
     RetriveResponsePR.Data databean ;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    double Latitude ,Logitude;
+    String address = "";
 
     String form1_value;
     String form1_name;
@@ -206,6 +208,11 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
+
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
         form1_comments = sharedPreferences.getString("Form1_comments","124");
@@ -277,7 +284,7 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 s_remark = feedback_remark.getText().toString();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
@@ -474,6 +481,9 @@ public class Preventive_action_requiredActivity extends AppCompatActivity {
             custom.setStatus(str_job_status);
             custom.setSMU_SCH_COMPNO(compno);
             custom.setSMU_SCH_SERTYPE(sertype);
+            custom.setJOB_START_LONG(Logitude);
+            custom.setJOB_START_LAT(Latitude);
+            custom.setJOB_LOCATION(address);
             Log.e("CompNo",""+compno);
             Log.e("SertYpe", ""+sertype);
             Log.w(TAG,"Job Status Update Request "+ new Gson().toJson(custom));

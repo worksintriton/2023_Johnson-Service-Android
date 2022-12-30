@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -36,6 +38,7 @@ import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
 import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.GetFieldListResponse;
+import com.triton.johnson_tap_app.Location.GpsTracker;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -52,6 +55,7 @@ import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -59,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -96,6 +101,13 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
     //String checklist = new ArrayList<?>();
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+
+    GpsTracker gpsTracker;
+    double Latitude ,Logitude;
+    Geocoder geocoder;
+    String address = "";
+    List<Address> myAddress =  new ArrayList<>();
+    AlertDialog mDialog;
 
     String form1_value;
     String form1_name;
@@ -548,9 +560,9 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         }
 
         mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-        dialog.show();
-        dialog.setCanceledOnTouchOutside(false);
+        mDialog = mBuilder.create();
+        mDialog.show();
+        mDialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -562,9 +574,9 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                         .setTitle("Are you sure to pause this job ?")
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 Job_status_update();
                                 createLocalValueCall();
-                                dialog.dismiss();
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -579,10 +591,18 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         ll_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                str_job_status = "Job Stopped";
-                Job_status_update();
+
+                getMYLocation();
+
+                if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
+                    str_job_status = "Job Stopped";
+                    Job_status_update();
+                }
+                else{
+                    ErrorAlert();
+                }
                 //  createLocalValueStopCall();
-                dialog.dismiss();
+
             }
         });
 
@@ -1013,17 +1033,18 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
                     message = response.body().getMessage();
 
                     if (200 == response.body().getCode()) {
-                        dialog.dismiss();
+//                        dialog.dismiss();
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
-                            dialog.dismiss();
+//                            dialog.dismiss();
+                            mDialog.dismiss();
                         }
 
 
                     } else {
                         Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
-                        dialog.dismiss();
+//                        dialog.dismiss();
                     }
                 }
 
@@ -1064,8 +1085,23 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                 Log.w(TAG, "Check Local Value Form Response" + new Gson().toJson(response.body()));
 
-//                Intent send = new Intent(context, ServicesActivity.class);
-//                startActivity(send);
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+//                            Intent send = new Intent(context, ServicesActivity.class);
+//                            startActivity(send);
+                        }
+
+                    } else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
             }
 
             @Override
@@ -1163,5 +1199,58 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         }
 
 
+    }
+
+
+    private void getMYLocation() {
+
+        Log.e("Hi","Getting Your Location");
+        gpsTracker = new GpsTracker(context);
+        if(gpsTracker.canGetLocation()){
+            Latitude = gpsTracker.getLatitude();
+            Logitude = gpsTracker.getLongitude();
+            Log.e("Lat ",Latitude + " Long: " + Logitude);
+
+            if (Latitude > 0.0 && Logitude > 0.0){
+                geocoder = new Geocoder(context, Locale.getDefault());
+
+                try {
+                    myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
+                Log.e("Address",address);
+            }
+        }else{
+            gpsTracker.showSettingsAlert();
+        }
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private void ErrorAlert() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+
+        mBuilder.setView(mView);
+        mDialog = mBuilder.create();
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+                finish();
+                startActivity(getIntent());
+            }
+        });
     }
 }

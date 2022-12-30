@@ -104,6 +104,9 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
     String str_StartTime,str_job_status="";
     ProgressDialog progressDialog;
 
+    double Latitude ,Logitude;
+    String address = "";
+
     String form1_value = "";
     String form1_name;
     String form1_comments;
@@ -174,6 +177,10 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
 //        Intent intent = getIntent();
 //        Bundle args = intent.getBundleExtra("BUNDLE");
@@ -243,7 +250,8 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                                     }
 
-                                }else {
+                                }
+                                else {
                                     int enditem = (currentPage + 1) * ITEMS_PER_PAGE;
                                     Log.w(TAG, "currentPage else currentPage : " + currentPage + " startItem : " + startItem + " enditem : " + enditem + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE);
 
@@ -268,12 +276,11 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                                         Log.e("Resuktt", form1_value);
                                     }
                                 }
-
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValue();
-//                                Intent send = new Intent(context, ServicesActivity.class);
-//                                startActivity(send);
+
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -671,7 +678,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
     private void createLocalFormcheck() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
-        Call<SuccessResponse> call = apiInterface.createLocalValueformcheckAudit(RestUtils.getContentType(),createLocalRequest());
+        Call<SuccessResponse> call = apiInterface.createLocalValueformcheckAudit(RestUtils.getContentType(),createLocalFormRequest());
         Log.w(TAG, " Create local Data Call url  :%s" + " " + call.request().url().toString());
 
         call.enqueue(new Callback<SuccessResponse>() {
@@ -708,6 +715,32 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
     }
 
+    private AuditRequest createLocalFormRequest() {
+        AuditRequest localreq = new AuditRequest();
+
+        List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
+
+        for(int j =0; j <myFieldValue.size(); j++){
+            AuditRequest.FieldValueDatum myfiled = new AuditRequest.FieldValueDatum();
+
+            myfiled.setFieldValue(myFieldValue.get(j));
+            myfiled.setFieldName(myname.get(j));
+            myfiled.setFieldComments(comments.get(j));
+            myfiled.setFieldCatId(catid.get(j));
+            myfiled.setFieldGroupId(groupid.get(j));
+            myfiled.setFieldRemarks(remarks.get(j));
+            fielddata.add(myfiled);
+
+        }
+
+        Log.e("Nish List",""+dataBeanList.size());
+
+        localreq.setFieldValueData(fielddata);
+
+        Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(localreq));
+        return localreq;
+    }
+
     private void createLocalValue() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -719,6 +752,24 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
 
                 Log.w(TAG, "Check Local Value Form Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+//                            Intent send = new Intent(context, ServicesActivity.class);
+//                            startActivity(send);
+                        }
+
+                    } else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
             }
 
             @Override
@@ -1015,6 +1066,9 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setOM_OSA_COMPNO(osacompno);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }

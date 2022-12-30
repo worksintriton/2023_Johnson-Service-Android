@@ -84,6 +84,8 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
     RetriveResponsePR.Data databean ;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    double Latitude ,Logitude;
+    String address = "";
 
     String form1_value;
     String form1_name;
@@ -152,6 +154,10 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         pm_status = sharedPreferences.getString("pmstatus","aaa");
         s_remark = sharedPreferences.getString("feedbackremark","000");
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         form1_value = sharedPreferences.getString("Form1_value","124");
         form1_name = sharedPreferences.getString("Form1_name","124");
@@ -307,7 +313,7 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValue();
@@ -616,6 +622,9 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG,"Job Status Update Request "+ new Gson().toJson(custom));

@@ -250,6 +250,9 @@ public class StartJob_PreventiveMR_Activity extends AppCompatActivity {
                         send.putExtra("status", status);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("starttime", str_StartTime);
+                        editor.putString("lati", String.valueOf(Latitude));
+                        editor.putString("long", String.valueOf(Logitude));
+                        editor.putString("add",address);
                         editor.apply();
                         startActivity(send);
 
@@ -413,8 +416,8 @@ public class StartJob_PreventiveMR_Activity extends AppCompatActivity {
         ll_stop.setVisibility(GONE);
 
         mBuilder.setView(mView);
-        dialog = mBuilder.create();
-        dialog.show();
+        mDialog= mBuilder.create();
+        mDialog.show();
 
         ll_start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -435,11 +438,10 @@ public class StartJob_PreventiveMR_Activity extends AppCompatActivity {
 
                     if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
                         Job_status_update();
-                        dialog.dismiss();
+
                     }
                     else{
-                        dialog.dismiss();
-
+                        mDialog.dismiss();
                         ErrorAlert();
                     }
 
@@ -644,13 +646,18 @@ public class StartJob_PreventiveMR_Activity extends AppCompatActivity {
 
                             Log.d("msg", message);
 
-
+                            if (Objects.equals(status, "new")){
+                                mDialog.dismiss();
+                            }
 
                             Intent send = new Intent(StartJob_PreventiveMR_Activity.this, MRForms_PreventiveMRActivity.class);
                             send.putExtra("job_id", str_job_id);
                             send.putExtra("status", status);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString("starttime", str_StartTime);
+                            editor.putString("lati", String.valueOf(Latitude));
+                            editor.putString("long", String.valueOf(Logitude));
+                            editor.putString("add",address);
                             editor.apply();
                             startActivity(send);
                         }
@@ -714,11 +721,12 @@ public class StartJob_PreventiveMR_Activity extends AppCompatActivity {
 
                 try {
                     myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                address = myAddress.get(0).getAddressLine(0);
+
 
                 Log.e("Address",address);
             }

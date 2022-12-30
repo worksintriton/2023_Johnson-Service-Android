@@ -108,6 +108,8 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
     int PageNumber = 2;
     int SubPage_Number = 0;
     ArrayList<String> mydata = new ArrayList<>();
+    double Latitude ,Logitude;
+    String address = "";
 
     ArrayList<String> myData = new ArrayList<>();
     String form1_value = "";
@@ -189,6 +191,11 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         Log.e("Current Page",""+currentPage);
         Log.e("List New", "" +List);
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
+
 //        getPreventivecheck();
         networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
@@ -257,7 +264,8 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
                                     }
 
-                                }else {
+                                }
+                                else {
                                     int enditem = (currentPage + 1) * ITEMS_PER_PAGE;
                                     Log.w(TAG, "currentPage else currentPage : " + currentPage + " startItem : " + startItem + " enditem : " + enditem + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE);
 
@@ -281,11 +289,11 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                                     }
                                 }
 
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValue();
-                                Intent send = new Intent(context, ServicesActivity.class);
-                                startActivity(send);
+
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -1000,6 +1008,9 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG,"loginRequest "+ new Gson().toJson(custom));
@@ -1122,6 +1133,9 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
+                            Intent send = new Intent(context, ServicesActivity.class);
+                            startActivity(send);
 
                         }
                     }

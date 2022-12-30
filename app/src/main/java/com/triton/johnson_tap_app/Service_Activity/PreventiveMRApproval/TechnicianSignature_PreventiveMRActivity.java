@@ -15,6 +15,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -34,6 +36,7 @@ import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
+import com.triton.johnson_tap_app.Location.GpsTracker;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.Service_Activity.BreakdownMRApprovel.BreakdownMR_Activity;
@@ -51,6 +54,7 @@ import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -95,6 +99,13 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
     AlertDialog alertDialog;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    GpsTracker gpsTracker;
+    double Latitude ,Logitude;
+    Geocoder geocoder;
+    SharedPreferences sharedPreferences;
+    String address = "";
+    List<Address> myAddress =  new ArrayList<>();
+    AlertDialog mDialog;
 
     ArrayList<String> arli_Partname = new ArrayList<>();
     ArrayList<String>  arli_Partno = new ArrayList<>();
@@ -140,6 +151,12 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        //lat and Long
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -615,9 +632,9 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         }
 
         mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-        dialog.show();
-        dialog.setCanceledOnTouchOutside(false);
+        mDialog = mBuilder.create();
+        mDialog.show();
+        mDialog.setCanceledOnTouchOutside(false);
 
         ll_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -629,9 +646,9 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                         .setTitle("Are you sure to pause this job ?")
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 Job_status_update();
                                 createLocalValueCall();
-                                dialog.dismiss();
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -646,10 +663,18 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
         ll_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                str_job_status = "Job Stopped";
-                Job_status_update();
-                createLocalValueStopCall();
-                dialog.dismiss();
+
+                getMYLocation();
+
+                if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
+                    str_job_status = "Job Stopped";
+                    Job_status_update();
+                    createLocalValueStopCall();
+                }
+                else{
+                    ErrorAlert();
+                }
+
             }
         });
 
@@ -929,6 +954,8 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
+                            mDialog.dismiss();
                         }
 
 
@@ -1370,6 +1397,58 @@ public class TechnicianSignature_PreventiveMRActivity extends AppCompatActivity 
                 finish();
                 startActivity(getIntent());
 
+            }
+        });
+    }
+
+    private void getMYLocation() {
+
+        Log.e("Hi","Getting Your Location");
+        gpsTracker = new GpsTracker(context);
+        if(gpsTracker.canGetLocation()){
+            Latitude = gpsTracker.getLatitude();
+            Logitude = gpsTracker.getLongitude();
+            Log.e("Lat ",Latitude + " Long: " + Logitude);
+
+            if (Latitude > 0.0 && Logitude > 0.0){
+                geocoder = new Geocoder(context, Locale.getDefault());
+
+                try {
+                    myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
+                Log.e("Address",address);
+            }
+        }else{
+            gpsTracker.showSettingsAlert();
+        }
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private void ErrorAlert() {
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+        TextView txt_Message = mView.findViewById(R.id.txt_message);
+        Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+
+        mBuilder.setView(mView);
+        mDialog = mBuilder.create();
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
+        btn_Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+                finish();
+                startActivity(getIntent());
             }
         });
     }

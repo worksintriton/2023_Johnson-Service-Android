@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,6 +40,7 @@ import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
+import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 
@@ -69,6 +71,8 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
     RetriveResponsePR.Data databean ;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    double Latitude ,Logitude;
+    String address = "",str_job_status="";
 
     String form1_value;
     String form1_name;
@@ -150,6 +154,11 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
         Log.e("Start Time",str_StartTime);
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
 
         form1_value = sharedPreferences.getString("Form1_value","124");
@@ -302,7 +311,9 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
+                                str_job_status = "Job Paused";
+                                Job_status_update();
                                 createLocalValue();
 
                             }
@@ -398,6 +409,64 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+    }
+
+    private void Job_status_update() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<Job_status_updateResponse> call = apiInterface.job_status_update_PreventiveResponseCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(), job_status_updateRequest());
+        Log.w(TAG,"SignupResponse url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<Job_status_updateResponse>() {
+            @SuppressLint("LogNotTimber")
+            @Override
+            public void onResponse(@NonNull Call<Job_status_updateResponse> call, @NonNull retrofit2.Response<Job_status_updateResponse> response) {
+
+                Log.w(TAG,"Job Status Update Response" + new Gson().toJson(response.body()));
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (200 == response.body().getCode()) {
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+                        }
+
+
+                    } else {
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+
+                    }
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Job_status_updateResponse> call, @NonNull Throwable t) {
+                Log.e("OTP", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private Job_status_updateRequest job_status_updateRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setService_name(service_title);
+        custom.setJob_id(job_id);
+        custom.setStatus(str_job_status);
+        custom.setSMU_SCH_COMPNO(compno);
+        custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
+        Log.e("CompNo",""+compno);
+        Log.e("SertYpe", ""+sertype);
+        Log.w(TAG,"Job Status Update Request "+ new Gson().toJson(custom));
+        return custom;
     }
 
     @SuppressLint("LongLogTag")

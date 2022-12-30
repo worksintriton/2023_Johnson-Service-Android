@@ -80,6 +80,8 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    double Latitude ,Logitude;
+    String address = "";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,6 +119,11 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         Log.e("Name", "" + service_title);
         Log.e("Mobile", ""+ se_user_mobile_no);
         Log.e("JobID",""+job_id);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         str_StartTime = sharedPreferences.getString("starttime","");
         str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
@@ -290,6 +297,7 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalValueCall();
@@ -489,6 +497,9 @@ public class TechnicianSignature_ACKServiceActivity extends AppCompatActivity {
         custom.setJob_id(job_id);
         custom.setStatus(str_job_status);
         custom.setSMU_ACK_COMPNO(str_ACKCompno);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
         return custom;
     }

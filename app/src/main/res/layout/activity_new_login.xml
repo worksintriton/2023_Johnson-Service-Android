@@ -279,7 +279,7 @@
                     android:layout_marginTop="20dp"
                     android:fontFamily="@font/sourcesanspro_regular"
                     android:padding="15dp"
-                    android:text="Service Loc Test Version - 28/12/2022"
+                    android:text="Service Test Version - 30/12/2022"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
                     android:textSize="18sp"

@@ -88,6 +88,8 @@ public class Feedback_GroupActivity extends AppCompatActivity {
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime,str_BDDetails="",feedback_group="";
     String networkStatus="";
+    double Latitude ,Logitude;
+    String address = "";
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +128,11 @@ public class Feedback_GroupActivity extends AppCompatActivity {
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
         // CommonUtil.dbUtil.reportDeletePreventiveListDelete(job_id,service_title);
+
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
 
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
@@ -278,6 +285,7 @@ public class Feedback_GroupActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalvalue();
@@ -507,6 +515,9 @@ public class Feedback_GroupActivity extends AppCompatActivity {
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));

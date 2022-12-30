@@ -72,6 +72,8 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime,str_job_status="";
     ArrayList<String> mydata = new ArrayList<>();
+    double Latitude ,Logitude;
+    String address = "";
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,9 +186,13 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         Log.e("Value",Value);
         Log.e("Start Time",str_StartTime);
 
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        address =sharedPreferences.getString("add","Chennai");
+        Log.e("Location",""+Latitude+""+Logitude+""+address);
+
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
-
 
         getBDDetails();
         getFeedbackGroup();
@@ -321,6 +327,7 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
                         .setMessage(date)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
                                 createLocalvalue();
@@ -388,6 +395,9 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         custom.setStatus(str_job_status);
         custom.setSMU_SCH_COMPNO(compno);
         custom.setSMU_SCH_SERTYPE(sertype);
+        custom.setJOB_START_LONG(Logitude);
+        custom.setJOB_START_LAT(Latitude);
+        custom.setJOB_LOCATION(address);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(VolleyLog.TAG,"loginRequest "+ new Gson().toJson(custom));

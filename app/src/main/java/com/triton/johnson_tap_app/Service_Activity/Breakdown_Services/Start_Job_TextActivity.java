@@ -154,6 +154,7 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 
                     Log.e("Status",""+ message);
 
+
 //                    getSapmleLoc();
 
                     if (Objects.equals(message, "Not Started")){
@@ -176,6 +177,9 @@ public class Start_Job_TextActivity extends AppCompatActivity {
                         send.putExtra("status", status);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("starttime", str_StartTime);
+                        editor.putString("lati", String.valueOf(Latitude));
+                        editor.putString("long", String.valueOf(Logitude));
+                        editor.putString("add",address);
                         editor.apply();
                         startActivity(send);
 
@@ -222,13 +226,7 @@ public class Start_Job_TextActivity extends AppCompatActivity {
                         if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
 
                             Job_status_update();
-                            Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
-                            // send.putExtra("job_id",str_job_id);
-                            send.putExtra("status",status);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("starttime", str_StartTime);
-                            editor.apply();
-                            startActivity(send);
+
                         }
                         else{
                             ErrorAlert();
@@ -348,8 +346,8 @@ public class Start_Job_TextActivity extends AppCompatActivity {
         ll_stop.setVisibility(GONE);
 
         mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-        dialog.show();
+        mDialog= mBuilder.create();
+        mDialog.show();
 
         ll_start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -371,19 +369,11 @@ public class Start_Job_TextActivity extends AppCompatActivity {
                     if (Latitude > 0.0 && Logitude > 0.0 && !Objects.equals(address, "")){
 
                         Job_status_update();
-                        Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
-                        send.putExtra("job_id",str_job_id);
-                        send.putExtra("status", status);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("starttime", str_StartTime);
-                        editor.apply();
-                        startActivity(send);
-                        dialog.dismiss();
+
                     }
                     else{
 
-                        dialog.dismiss();
-
+                        mDialog.dismiss();
                         ErrorAlert();
                     }
 
@@ -470,18 +460,34 @@ public class Start_Job_TextActivity extends AppCompatActivity {
                     message = response.body().getMessage();
 
                     if (200 == response.body().getCode()) {
+
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
+                            Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
+                            send.putExtra("job_id",str_job_id);
+                            send.putExtra("status", status);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("starttime", str_StartTime);
+                            editor.putString("lati", String.valueOf(Latitude));
+                            editor.putString("long", String.valueOf(Logitude));
+                            editor.putString("add",address);
+                            editor.apply();
+                            startActivity(send);
+
+                            if (Objects.equals(status, "new")){
+                                mDialog.dismiss();
+                            }
+
                         }
 
-
-                    } else {
+                    }
+                    else {
                         Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
 
                     }
                 }
-
 
             }
 
@@ -531,11 +537,10 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 
                 try {
                     myAddress = geocoder.getFromLocation(gpsTracker.getLatitude(),gpsTracker.getLongitude(),1);
+                    address = myAddress.get(0).getAddressLine(0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                address = myAddress.get(0).getAddressLine(0);
 
                 Log.e("Address",address);
             }
