@@ -75,7 +75,7 @@ public class Technician_signatureActivity extends AppCompatActivity {
     String userid;
     ImageView image,iv_back,img_Siganture,img_Pause;
     private String uploadimagepath = "";
-    String value="",job_id,feedback_group,feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,str_tech_signature="",message;
+    String value="",job_id,feedback_group,feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies="",str_tech_signature="",message;
     ProgressDialog progressDialog;
     Bitmap signatureBitmap;
     SharedPreferences sharedPreferences;
@@ -88,6 +88,7 @@ public class Technician_signatureActivity extends AppCompatActivity {
     ArrayList<String> mydata = new ArrayList<>();
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 8;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -198,7 +199,7 @@ public class Technician_signatureActivity extends AppCompatActivity {
         }
         if (extras != null) {
             breakdown_servies = extras.getString("breakdown_service");
-            Log.e("A",breakdown_servies);
+//            Log.e("A",breakdown_servies);
         }
         if (extras != null) {
 //            str_tech_signature = extras.getString("tech_signature");
@@ -553,6 +554,7 @@ public class Technician_signatureActivity extends AppCompatActivity {
         submitDailyRequest.setJob_id(job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));

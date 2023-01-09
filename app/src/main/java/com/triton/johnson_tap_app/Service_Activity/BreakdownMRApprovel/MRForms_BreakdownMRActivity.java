@@ -325,6 +325,9 @@ public class MRForms_BreakdownMRActivity extends AppCompatActivity {
             }else {
 
                 Log.e("way","db");
+                rel_Pop.setVisibility(View.GONE);
+                line_MR.setVisibility(View.VISIBLE);
+                btnSelection.setVisibility(View.VISIBLE);
                 getData(job_id,myactivity);
             }
 

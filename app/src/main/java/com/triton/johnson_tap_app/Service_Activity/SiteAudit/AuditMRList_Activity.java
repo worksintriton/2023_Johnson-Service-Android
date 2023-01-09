@@ -341,8 +341,9 @@ public class AuditMRList_Activity extends AppCompatActivity {
 
     private void getMRList() {
 
-//        Ar_PartNo = new ArrayList<>();
-//        Ar_PartName = new ArrayList<>();
+        Ar_PartNo = new ArrayList<>();
+        Ar_PartName = new ArrayList<>();
+        Ar_PartQuantity = new ArrayList<>();
 
         Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
         Log.e("List Count",""+cur.getCount());

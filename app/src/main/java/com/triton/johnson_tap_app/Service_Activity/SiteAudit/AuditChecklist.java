@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,7 +16,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -34,14 +34,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.VolleyLog;
 import com.google.gson.Gson;
+import com.triton.johnson_tap_app.Db.CommonUtil;
+import com.triton.johnson_tap_app.Db.DbHelper;
+import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.GetFieldListResponse;
 import com.triton.johnson_tap_app.R;
-import com.triton.johnson_tap_app.ReAdapter;
 import com.triton.johnson_tap_app.RestUtils;
-import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.TechnicianSignature_PreventiveMRActivity;
-import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Job_Details_PreventiveActivity;
-import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Material_Request_PreventiveActivity;
-import com.triton.johnson_tap_app.Service_Activity.Preventive_Services.Quarterly_Top_PitActivity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -53,6 +51,7 @@ import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.GetFieldListRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponseAudit;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
@@ -61,7 +60,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -93,7 +91,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
     Dialog dialog;
     String networkStatus = "";
     String string_value, message, service_id, activity_id, job_id, group_id, status, job_detail_no,osacompno,se_user_mobile_no;
-    String s1,_id,value,service_title,data,data1,data2,data3,data4,data5,field_value,field_name,field_comments,field_cat_id,field_group_id,field_remarks,str,str1,str2,str3,str4,str5,service_type;
+    String s1,_id,value,service_title,data,data1,data2,data3,data4,data5,field_value,field_name,field_comments,field_cat_id,field_group_id,field_remarks,str,str1,str2,str3,str4,str5,service_type="";
     private Dialog alertDialog;
     ImageView iv_back,img_Pause;
     LinearLayout footerView;
@@ -103,9 +101,14 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime,str_job_status="";
     ProgressDialog progressDialog;
-
+    int PageNumber = 2;
     double Latitude ,Logitude;
     String address = "";
+
+    ArrayList<String> arli_Partname;
+    ArrayList<String>  arli_Partno;
+    ArrayList<String> arli_Partid;
+    ArrayList<String> arli_Quantity;
 
     String form1_value = "";
     String form1_name;
@@ -126,6 +129,10 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         getSupportActionBar().hide();
         setContentView(R.layout.activity_recycler_spinner);
         context = this;
+
+        CommonUtil.dbUtil = new DbUtil(context);
+        CommonUtil.dbUtil.open();
+        CommonUtil.dbHelper = new DbHelper(context);
 
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         btn_prev = (Button) findViewById(R.id.btn_prev);
@@ -177,8 +184,8 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         txt_Jobid.setText("Job ID : " + job_id);
         txt_Starttime.setText("Start Time : " + str_StartTime);
 
-        Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
-        Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
+        Latitude = Double.parseDouble(sharedPreferences.getString("lati",""));
+        Logitude = Double.parseDouble(sharedPreferences.getString("long",""));
         address =sharedPreferences.getString("add","Chennai");
         Log.e("Location",""+Latitude+""+Logitude+""+address);
 
@@ -196,9 +203,17 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
             Toast.makeText(context,"No Internet Connection",Toast.LENGTH_LONG).show();
 
-        }else {
+        }
+        else {
+
+            if (status.equals("pause")){
+
+                retrive_LocalValue();
+            }
 
             jobFindResponseCall();
+
+
         }
         networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
 
@@ -279,6 +294,7 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
                                 Toast.makeText(context,"Lat : " + Latitude + "Long : " + Logitude + "Add : " + address,Toast.LENGTH_LONG).show();
                                 str_job_status = "Job Paused";
                                 Job_status_update();
+                                createLocalFormcheck();
                                 createLocalValue();
 
                             }
@@ -351,7 +367,8 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                     //joinInspectionCreateRequestCall();
 
-                } else {
+                }
+                else {
                     int enditem = (currentPage + 1) * ITEMS_PER_PAGE;
                     Log.w(TAG, "currentPage else currentPage : " + currentPage + " startItem : " + startItem + " enditem : " + enditem + " ITEMS_PER_PAGE : " + ITEMS_PER_PAGE);
 
@@ -675,6 +692,53 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         });
     }
 
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponseAudit> call = apiInterface.retriveLocalValueCallAudit(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.w(TAG,"Retrive Local Value url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponseAudit>() {
+            @Override
+            public void onResponse(Call<RetriveResponseAudit> call, Response<RetriveResponseAudit> response) {
+
+                Log.w(TAG,"Retrive Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200) {
+
+                        if(response.body().getData() != null) {
+
+                            service_type = response.body().getData().getService_type();
+                            Log.e("Type",""+service_type);
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponseAudit> call, Throwable t) {
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
+    private Job_status_updateRequest localRequest() {
+
+        Job_status_updateRequest local = new Job_status_updateRequest();
+        local.setUser_mobile_no(se_user_mobile_no);
+        local.setJobId(job_id);
+        local.setOM_OSA_COMPNO(osacompno);
+        Log.w(VolleyLog.TAG,"Retrive Request "+ new Gson().toJson(local));
+        return local;
+    }
+
     private void createLocalFormcheck() {
 
         APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -717,6 +781,9 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
     private AuditRequest createLocalFormRequest() {
         AuditRequest localreq = new AuditRequest();
+        localreq.setJob_id(job_id);
+        localreq.setOM_OSA_COMPNO(osacompno);
+        localreq.setUser_mobile_no(se_user_mobile_no);
 
         List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
 
@@ -762,8 +829,8 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
                             Log.d("msg",message);
 
-//                            Intent send = new Intent(context, ServicesActivity.class);
-//                            startActivity(send);
+                            Intent send = new Intent(context, ServicesActivity.class);
+                            startActivity(send);
                         }
 
                     } else{
@@ -786,8 +853,56 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
         AuditRequest localreq = new AuditRequest();
         localreq.setJobId(job_id);
         localreq.setCustomerSignature("");
+        localreq.setService_type(service_type);
         localreq.setOmOsaCompno(osacompno);
         localreq.setUserMobileNo(se_user_mobile_no);
+        localreq.setPageNumber(PageNumber);
+        Log.e("Service Type", "" + service_type);
+
+        List<AuditRequest.MrDatum> mrData = new ArrayList<>();
+
+        Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
+        Log.e("List Count",""+cur.getCount());
+
+        arli_Partid = new ArrayList<>();
+        arli_Partname = new ArrayList<>();
+        arli_Partno = new ArrayList<>();
+        arli_Quantity = new ArrayList<>();
+
+        if (cur.getCount()>0 &&cur.moveToFirst()) {
+
+            do {
+                String str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
+                String str_Partname = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                String str_Partno = cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
+                String str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
+                arli_Partname.add(str_Partname);
+                arli_Partno.add(str_Partno);
+                arli_Quantity.add(str_Quantity);
+                Log.e("Part List No",""+arli_Partno);
+                Log.e("Part List Name",""+arli_Partname);
+                Log.e("Part List Qty",""+arli_Quantity);
+
+            }while (cur.moveToNext());
+
+        }
+
+        for (int i = 0; i<arli_Partno.size();i++){
+            int mynum = i+1;
+
+            AuditRequest.MrDatum mrDatum = new AuditRequest.MrDatum();
+
+            mrDatum.setValue("MR "+mynum);
+            mrDatum.setPartno(arli_Partno.get(i));
+            mrDatum.setPartname(arli_Partname.get(i));
+            mrDatum.setReq(arli_Quantity.get(i));
+
+            mrData.add(mrDatum);
+
+        }
+        Log.e("Nish MR Data",""+ mrData.size());
+        Log.e(TAG,"Request field"+ new Gson().toJson(mrData));
+        localreq.setMrData(mrData);
 
         List<AuditRequest.FieldValueDatum> fielddata = new ArrayList<>();
 
@@ -954,7 +1069,9 @@ public class AuditChecklist extends AppCompatActivity implements GetSpinnerListe
 
         private GetFieldListRequest getFieldListRequest() {
         GetFieldListRequest getFieldListRequest = new GetFieldListRequest();
-        getFieldListRequest.setJob_id(job_id);
+        getFieldListRequest.setJobId(job_id);
+        getFieldListRequest.setUser_mobile_no(se_user_mobile_no);
+        getFieldListRequest.setOM_OSA_COMPNO(osacompno);
         getFieldListRequest.setService_type(service_type);
         Log.w(TAG, "GetFieldListRequest " + new Gson().toJson(getFieldListRequest));
         return getFieldListRequest;

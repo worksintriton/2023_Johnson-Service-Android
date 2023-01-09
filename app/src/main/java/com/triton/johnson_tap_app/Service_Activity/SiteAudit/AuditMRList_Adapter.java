@@ -117,6 +117,28 @@ public class AuditMRList_Adapter extends RecyclerView.Adapter<RecyclerView.ViewH
            e.printStackTrace();
        }
 
+        // String qty = Ar_PartQuantity.get(position);
+        String partno = holder.partno.getText().toString();
+        String myPartno = Ar_PartNo.toString();
+        String partname = holder.partname.getText().toString();
+        String myPartname = Ar_PartName.toString();
+
+//        isStringExists = myPartno.contains(partno);
+        isStringExists =  myPartno.contains(partno);
+//        isStringExists = Boolean.parseBoolean(myPartname.concat(partname));
+        Log.e("isChecked",""+isStringExists);
+
+        if(isStringExists){
+//            Log.e("Nish","inside" + holder.partno.getText().toString());
+            Log.e("Nish","inside" + holder.partname.getText().toString());
+            Log.e("Nish","inside");
+            holder.chkSelected.setChecked(true);
+
+        }else{
+
+            holder.chkSelected.setChecked(false);
+        }
+
         holder.lin_job_item.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -143,6 +165,7 @@ public class AuditMRList_Adapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                Partno= breedTypedataBeanList.get(position).getPartno();
                PartName = breedTypedataBeanList.get(position).getPartname();
+               PartName = PartName.replace("'","*");
                Log.e("Part No",""+Partno);
                Log.e("Part Name",""+PartName);
 

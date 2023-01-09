@@ -38,6 +38,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.Location.GpsTracker;
 import com.triton.johnson_tap_app.R;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Feedback_DetailsActivity;
+import com.triton.johnson_tap_app.Service_Activity.Breakdown_Services.Start_Job_TextActivity;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.StartJob_PreventiveMR_Activity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -45,6 +47,7 @@ import com.triton.johnson_tap_app.requestpojo.Job_statusRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponseAudit;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
@@ -81,6 +84,7 @@ public class StartJob_AuditActivity extends AppCompatActivity {
     double Latitude ,Logitude;
     String address = "";
     AlertDialog mDialog;
+    int PageNumber =0;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -223,6 +227,11 @@ public class StartJob_AuditActivity extends AppCompatActivity {
                     }
 
 
+                }
+                else{
+
+                    str_job_status = "Job Paused";
+                    Job_status_update();
                 }
             }
         });
@@ -470,18 +479,24 @@ public class StartJob_AuditActivity extends AppCompatActivity {
 
                             if (Objects.equals(status, "new")){
                                 mDialog.dismiss();
+                                Intent send = new Intent(context, Checklist_AuditActivity.class);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                Log.e("Time", "" + str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else{
+
+                                retrive_LocalValue();
                             }
 
-                            Intent send = new Intent(context, Checklist_AuditActivity.class);
-                            send.putExtra("status", status);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("starttime", str_StartTime);
-                            Log.e("Time", "" + str_StartTime);
-                            editor.putString("lati", String.valueOf(Latitude));
-                            editor.putString("long", String.valueOf(Logitude));
-                            editor.putString("add",address);
-                            editor.apply();
-                            startActivity(send);
+
+
                         }
 
 
@@ -513,6 +528,93 @@ public class StartJob_AuditActivity extends AppCompatActivity {
         custom.setJOB_START_LAT(Latitude);
         custom.setJOB_START_LONG(Logitude);
         Log.w(VolleyLog.TAG,"Request "+ new Gson().toJson(custom));
+        return custom;
+    }
+
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponseAudit> call = apiInterface.retriveLocalValueCallAudit(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.w(TAG,"Retrive Local Value url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponseAudit>() {
+            @Override
+            public void onResponse(Call<RetriveResponseAudit> call, Response<RetriveResponseAudit> response) {
+
+                Log.w(TAG,"Retrive Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200) {
+
+                        if(response.body().getData() != null) {
+
+                            PageNumber = response.body().getData().getPageNumber();
+                            Log.e("Pause Page Number",""+PageNumber);
+
+                            if (PageNumber ==2){
+
+                                Intent send = new Intent(context, AuditChecklist.class);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                Log.e("Time", "" + str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==4){
+
+                                Intent send = new Intent(context, AuditMR_Activity.class);
+                                send.putExtra("job_id",jobid);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else{
+
+                                Intent send = new Intent(context, TechnicianSigantureAudit_Activity.class);
+                                send.putExtra("job_id",jobid);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponseAudit> call, Throwable t) {
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
+    private Job_status_updateRequest localRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJobId(jobid);
+        custom.setOM_OSA_COMPNO(osacompno);
+        Log.w(VolleyLog.TAG,"Retrive Request "+ new Gson().toJson(custom));
         return custom;
     }
 

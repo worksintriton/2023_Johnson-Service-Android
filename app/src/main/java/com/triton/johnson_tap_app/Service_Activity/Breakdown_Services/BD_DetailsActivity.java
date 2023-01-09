@@ -90,6 +90,7 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
     Geocoder geocoder;
     List<Address> myAddress =  new ArrayList<>();
     android.app.AlertDialog mdialog;
+    int PageNumber = 1;
 
     @SuppressLint("SetTextI18n")
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +157,7 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
 
             jobFindResponseCall(str_job_id);
         }
+        getBDDetails();
 
         if (status.equals("new")){
 
@@ -174,6 +176,7 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
 
         }
 
+
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -185,14 +188,12 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
                     if (singleStudent.isSelected()) {
                         data = breedTypedataBeanList.get(i).getTitle().toString();
                         Log.e("My BD DATA",""+data);
-
 //                        CommonUtil.dbUtil.addBDDetails(str_job_id,service_title,data,"1");
 //                            Intent send = new Intent(BD_DetailsActivity.this, Feedback_GroupActivity.class);
 //                            send.putExtra("bd_details",data);
 //                            send.putExtra("job_id",str_job_id);
 //                            send.putExtra("status",status);
 //                            startActivity(send);
-
                     }
                 }
 
@@ -293,7 +294,11 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
                             str_BDDetails = response.body().getData().getBd_details();
                             Log.e("Retive BD",""+str_BDDetails);
 
-//                            setView(breedTypedataBeanList);
+                            CommonUtil.dbUtil.addBDDetails(str_job_id,service_title,str_BDDetails,"1");
+                            Cursor curs = CommonUtil.dbUtil.getBDdetails(str_job_id,service_title, "1");
+                            Log.e("BD",""+curs.getCount());
+
+                            setView(breedTypedataBeanList);
                         }
                     }else{
                         Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
@@ -375,8 +380,6 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
     }
 
     private void setView(List<BD_DetailsResponse.DataBean> dataBeanList) {
-
-        getBDDetails();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -649,8 +652,10 @@ public class BD_DetailsActivity extends AppCompatActivity implements UserTypeSel
         submitDailyRequest.setJob_id(str_job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
+        Log.e("Pause Page Number",""+PageNumber);
         Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));
         return submitDailyRequest;
     }

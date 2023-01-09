@@ -72,7 +72,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
     FloatingActionButton send;
     TextView text,txt_Title;
     ImageView iv_back;
-    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,str_job_id="",message,str_job_status,str_status;
+    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,str_job_id="",message,str_job_status ="",str_status;
     AlertDialog alertDialog1;
     CharSequence[] values = {"POD","SEMPOD","MOD","ESC/TRV"};
     String compno, sertype,status,str_StartTime,currentDateandTime;
@@ -253,6 +253,8 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
 
                             Job_status_update();
                             Check_Pod_Status();
+
+
                         }
                         else{
 
@@ -266,6 +268,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
             });
 
         }
+
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -434,8 +437,8 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
 
                             str_job_status = response.body().getData().getJob_status_type();
                             PageNumber = response.body().getData().getPage_number();
-                            Log.e("Status Type",str_job_status);
-                            Log.e("PAGE NUMBER", String.valueOf(PageNumber));
+//                            Log.e("Status Type",str_job_status);
+//                            Log.e("PAGE NUMBER", String.valueOf(PageNumber));
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString("statustype", str_job_status);
@@ -444,7 +447,32 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                             editor.putInt("currentpage",SubPageNumber);
                             editor.apply();
 
-                            if (str_job_status.equals("ESC/TRV") && PageNumber == 1){
+                            if (PageNumber ==0){
+
+                                AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+                                View mView = getLayoutInflater().inflate(R.layout.popup_tryagain, null);
+
+                                TextView txt_Message = mView.findViewById(R.id.txt_message);
+                                Button btn_Ok = mView.findViewById(R.id.btn_ok);
+
+                                txt_Message.setText("Please Try Again");
+
+
+                                mBuilder.setView(mView);
+                                mDialog = mBuilder.create();
+                                mDialog.setCanceledOnTouchOutside(false);
+                                mDialog.show();
+
+                                btn_Ok.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        mDialog.dismiss();
+                                        finish();
+                                        startActivity(getIntent());
+                                    }
+                                });
+                            }
+                            else if (str_job_status.equals("ESC/TRV") && PageNumber == 1){
 
                                 Intent send3 = new Intent(Start_Job_Text_PreventiveActivity.this, ESCTRV.class);
                                 send3.putExtra("job_id",str_job_id);
@@ -477,7 +505,85 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 send.putExtra("service_title",service_title);
                                 send.putExtra("status",status);
                                 startActivity(send);
-                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 4){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Material_Request_MR_Screen_PreventiveActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 5){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Preventive_checklistActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 6){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Preventive_action_requiredActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 8){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Technician_signature_preventiveActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 9){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Customer_Details_PreventiveActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
+                            }
+                            else if(PageNumber == 10){
+
+                                SubPageNumber = response.body().getData().getSubPage_number();
+                                Log.e("Page ", String.valueOf(SubPageNumber));
+
+                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Customer_Acknowledgement_PreventiveActivity.class);
+                                send.putExtra("job_id",str_job_id);
+
+                                send.putExtra("service_title",service_title);
+                                send.putExtra("status",status);
+                                startActivity(send);
+//                                Toast.makeText(context,"Page Not Found",Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -499,13 +605,13 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
     }
 
     private Job_status_updateRequest localRequest() {
-        Job_status_updateRequest custom = new Job_status_updateRequest();
-        custom.setUser_mobile_no(se_user_mobile_no);
-        custom.setJob_id(str_job_id);
-        custom.setSMU_SCH_COMPNO(compno);
+        Job_status_updateRequest createlocaldata = new Job_status_updateRequest();
+        createlocaldata.setUser_mobile_no(se_user_mobile_no);
+        createlocaldata.setJob_id(str_job_id);
+        createlocaldata.setSMU_SCH_COMPNO(compno);
         //  custom.setSMU_SCH_SERTYPE(sertype);
-        Log.e("Request Data ",""+ new Gson().toJson(custom));
-        return custom;
+        Log.e("Request Data ",""+ new Gson().toJson(createlocaldata));
+        return createlocaldata;
     }
 
     private void Job_status() {
@@ -593,6 +699,7 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                         if(response.body().getData() != null){
 
                             Log.d("msg",message);
+
                         }
 
 
@@ -657,81 +764,91 @@ public class Start_Job_Text_PreventiveActivity extends AppCompatActivity {
                                 mDialog.dismiss();
 
                             }
+                            Log.e("Status on Send ", ""+status);
 
 //                            Intent send3 = new Intent(Start_Job_Text_PreventiveActivity.this, Esc_TrvActivity.class);
 //                            send3.putExtra("job_id",str_job_id);
 //                            send3.putExtra("value","ESC/TRV");
 //                            send3.putExtra("service_title",service_title);
 //                            startActivity(send3);
+                            if (Objects.equals(status, "new")){
 
-                            if(str_job_status.equals("POD")){
-                                Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
-                                send.putExtra("job_id",str_job_id);
-                               // send.putExtra("value","POD");
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("statustype", "POD");
-                                editor.putString("starttime", str_StartTime);
-                                editor.putString("lati", String.valueOf(Latitude));
-                                editor.putString("long", String.valueOf(Logitude));
-                                editor.putString("add",address);
-                                editor.apply();
+                                if(str_job_status.equals("POD")){
+                                    Intent send = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
+                                    send.putExtra("job_id",str_job_id);
+                                    // send.putExtra("value","POD");
 
-                                send.putExtra("service_title",service_title);
-                                send.putExtra("status",status);
-                                startActivity(send);
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("statustype", "POD");
+                                    editor.putString("starttime", str_StartTime);
+                                    editor.putString("lati", String.valueOf(Latitude));
+                                    editor.putString("long", String.valueOf(Logitude));
+                                    editor.putString("add",address);
+                                    editor.apply();
+
+                                    send.putExtra("service_title",service_title);
+                                    send.putExtra("status",status);
+                                    startActivity(send);
+                                }
+                                else if(str_job_status.equals("SEMPOD")){
+                                    Intent send1 = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
+                                    send1.putExtra("job_id",str_job_id);
+                                    //  send1.putExtra("value","SEMPOD");
+
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("statustype", "SEMPOD");
+                                    editor.putString("starttime", str_StartTime);
+                                    editor.putString("lati", String.valueOf(Latitude));
+                                    editor.putString("long", String.valueOf(Logitude));
+                                    editor.putString("add",address);
+                                    editor.apply();
+
+                                    send1.putExtra("service_title",service_title);
+                                    send1.putExtra("status",status);
+                                    startActivity(send1);
+                                }
+                                else if(str_job_status.equals("MOD")){
+                                    Intent send2 = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
+                                    send2.putExtra("job_id",str_job_id);
+                                    // send2.putExtra("value","MOD");
+
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("statustype", "MOD");
+                                    editor.putString("starttime", str_StartTime);
+                                    editor.putString("lati", String.valueOf(Latitude));
+                                    editor.putString("long", String.valueOf(Logitude));
+                                    editor.putString("add",address);
+                                    editor.apply();
+
+                                    send2.putExtra("service_title",service_title);
+                                    send2.putExtra("status",status);
+                                    startActivity(send2);
+                                }
+                                else {
+                                    Intent send3 = new Intent(Start_Job_Text_PreventiveActivity.this, ESCTRV.class);
+                                    send3.putExtra("job_id",str_job_id);
+                                    //  send3.putExtra("value","ESC/TRV");
+
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("statustype", "ESC/TRV");
+                                    editor.putString("starttime", str_StartTime);
+                                    editor.putString("lati", String.valueOf(Latitude));
+                                    editor.putString("long", String.valueOf(Logitude));
+                                    editor.putString("add",address);
+                                    editor.apply();
+
+                                    send3.putExtra("service_title",service_title);
+                                    send3.putExtra("status",status);
+                                    startActivity(send3);
+                                }
                             }
-                            else if(str_job_status.equals("SEMPOD")){
-                                Intent send1 = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
-                                send1.putExtra("job_id",str_job_id);
-                              //  send1.putExtra("value","SEMPOD");
+                            else{
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("statustype", "SEMPOD");
-                                editor.putString("starttime", str_StartTime);
-                                editor.putString("lati", String.valueOf(Latitude));
-                                editor.putString("long", String.valueOf(Logitude));
-                                editor.putString("add",address);
-                                editor.apply();
-
-                                send1.putExtra("service_title",service_title);
-                                send1.putExtra("status",status);
-                                startActivity(send1);
+                                retriveLocalvalue();
                             }
-                            else if(str_job_status.equals("MOD")){
-                                Intent send2 = new Intent(Start_Job_Text_PreventiveActivity.this, Monthlist_Preventive_Activity.class);
-                                send2.putExtra("job_id",str_job_id);
-                               // send2.putExtra("value","MOD");
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("statustype", "MOD");
-                                editor.putString("starttime", str_StartTime);
-                                editor.putString("lati", String.valueOf(Latitude));
-                                editor.putString("long", String.valueOf(Logitude));
-                                editor.putString("add",address);
-                                editor.apply();
 
-                                send2.putExtra("service_title",service_title);
-                                send2.putExtra("status",status);
-                                startActivity(send2);
-                            }
-                            else {
-                                Intent send3 = new Intent(Start_Job_Text_PreventiveActivity.this, ESCTRV.class);
-                                send3.putExtra("job_id",str_job_id);
-                              //  send3.putExtra("value","ESC/TRV");
-
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("statustype", "ESC/TRV");
-                                editor.putString("starttime", str_StartTime);
-                                editor.putString("lati", String.valueOf(Latitude));
-                                editor.putString("long", String.valueOf(Logitude));
-                                editor.putString("add",address);
-                                editor.apply();
-
-                                send3.putExtra("service_title",service_title);
-                                send3.putExtra("status",status);
-                                startActivity(send3);
-                            }
                         }
 
 

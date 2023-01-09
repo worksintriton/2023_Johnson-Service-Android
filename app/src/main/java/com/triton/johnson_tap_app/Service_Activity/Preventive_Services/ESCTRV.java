@@ -34,6 +34,7 @@ import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 
 import java.text.DateFormat;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
@@ -53,7 +55,7 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
     ImageView iv_Back,img_Pause;
     RecyclerView recyclerView;
     Button btn_Next;
-    String str_job_id,service_title,value,se_id,se_user_mobile_no,compno,sertype,pre_check,status,message,str_job_status;
+    String str_job_id,service_title,value,se_id,se_user_mobile_no,compno,sertype,pre_check="",status,message,str_job_status;
     Context context;
     ArrayList<String> arli_Month = new ArrayList<String>();
     ArrayList<String> arli_ID = new ArrayList<String>();
@@ -232,6 +234,69 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
             }
         });
 
+        if (Objects.equals(status, "pause")){
+
+            retriveLocalvalue();
+        }
+
+    }
+
+    @SuppressLint("LongLogTag")
+    private void retriveLocalvalue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponsePR> call = apiInterface.retriveLocalValuePRCall(com.triton.johnson_tap_app.RestUtils.getContentType(),localRequest());
+        Log.e("Retrive Local Value url  :%s"," "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponsePR>() {
+            @Override
+            public void onResponse(Call<RetriveResponsePR> call, Response<RetriveResponsePR> response) {
+
+                Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (200 == response.body().getCode()) {
+                        if(response.body().getData() != null){
+
+                            Log.d("msg",message);
+
+                            statustype = response.body().getData().getJob_status_type();
+                            Log.e("Status Type",statustype);
+
+//                            SharedPreferences.Editor editor = sharedPreferences.edit();
+//                            editor.putString("statustype", statustype);
+//                            editor.putString("starttime", str_StartTime);
+//                            editor.apply();
+
+                        }
+
+
+                    } else {
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponsePR> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest localRequest() {
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJob_id(str_job_id);
+        custom.setSMU_SCH_COMPNO(compno);
+        //  custom.setSMU_SCH_SERTYPE(sertype);
+        Log.e("Request Data ",""+ new Gson().toJson(custom));
+        return custom;
     }
 
     private void Job_status_update() {
@@ -360,6 +425,7 @@ public class ESCTRV extends AppCompatActivity implements JobDateListener {
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+str_job_id);

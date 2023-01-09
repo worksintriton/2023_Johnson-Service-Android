@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +35,10 @@ import com.triton.johnson_tap_app.RestUtils;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
 import com.triton.johnson_tap_app.requestpojo.JobListRequest;
+import com.triton.johnson_tap_app.requestpojo.Pasused_ListRequest;
 import com.triton.johnson_tap_app.responsepojo.JobListResponse;
+import com.triton.johnson_tap_app.responsepojo.Pasused_ListResponse;
+import com.triton.johnson_tap_app.responsepojo.PauseJobListAuditResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
 import java.util.ArrayList;
@@ -52,11 +55,14 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
     RecyclerView recyclerView;
     EditText edtsearch;
     TextView txt_no_records;
+    RelativeLayout Job;
     JobListAdapter_SiteAudit petBreedTypesListAdapter;
     Context context;
     String status,se_user_mobile_no, se_user_name, se_id,check_id, service_title,message,networkStatus="";
     SharedPreferences sharedPreferences;
     List<JobListResponse.DataBean> breedTypedataBeanList;
+    List<PauseJobListAuditResponse.PauseData> databeanList;
+    PauseJobListAudit_Adapter pausedlistAdapter;
     private String PetBreedType = "";
 
 //    ArrayList<String> arli_jobid = new ArrayList<String>();
@@ -75,6 +81,7 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
         img_clearsearch = (ImageView) findViewById(R.id.img_clearsearch);
         txt_no_records = findViewById(R.id.txt_no_records);
         recyclerView = findViewById(R.id.recyclerView);
+        Job = findViewById(R.id.rel_job);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         se_id = sharedPreferences.getString("_id", "default value");
@@ -102,7 +109,18 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
 
         }else{
 
-            newJoblist();
+            if (status.equals("new")){
+
+                newJoblist();
+            }
+            else{
+
+                Job.setVisibility(View.GONE);
+                edtsearch.setVisibility(View.GONE);
+                pausedjobResponseCall();
+            }
+
+
         }
 
 
@@ -171,6 +189,89 @@ public class JobdetailsSiteaudit_Activity extends AppCompatActivity implements P
             }
         });
 
+    }
+
+    private void pausedjobResponseCall() {
+
+        APIInterface apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+        Call<PauseJobListAuditResponse> call = apiInterface.PausedJobListAudit(RestUtils.getContentType(), serviceRequest());
+        Log.w(TAG, "Jobno Find Response url  :%s" + " " + call.request().url().toString());
+
+        call.enqueue(new Callback<PauseJobListAuditResponse>() {
+            @Override
+            public void onResponse(Call<PauseJobListAuditResponse> call, Response<PauseJobListAuditResponse> response) {
+
+                Log.w(TAG, "Paused Job Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+
+                    message = response.body().getMessage();
+                    Log.d("message", message);
+
+                    if (200 == response.body().getCode()) {
+                        if (response.body().getData() != null) {
+                            databeanList = response.body().getData();
+
+                            if (databeanList.size() == 0){
+
+                                recyclerView.setVisibility(View.GONE);
+                                txt_no_records.setVisibility(View.VISIBLE);
+                                txt_no_records.setText("No Records Found");
+                                edtsearch.setEnabled(false);
+
+                            }
+
+                            setPausedTypeView(databeanList);
+                            Log.d("dataaaaa", String.valueOf(databeanList));
+
+                        }
+
+                    } else if (400 == response.body().getCode()) {
+                        if (response.body().getMessage() != null && response.body().getMessage().equalsIgnoreCase("There is already a user registered with this email id. Please add new email id")) {
+
+                            recyclerView.setVisibility(View.GONE);
+                            txt_no_records.setVisibility(View.VISIBLE);
+                            txt_no_records.setText("Error 404 Found");
+                            edtsearch.setEnabled(false);
+                        }
+                    } else {
+
+                        recyclerView.setVisibility(View.GONE);
+                        txt_no_records.setVisibility(View.VISIBLE);
+                        txt_no_records.setText("Error 404 Found");
+                        edtsearch.setEnabled(false);
+                        //  Toasty.warning(getApplicationContext(), "" + response.body().getMessage(), Toasty.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PauseJobListAuditResponse> call, Throwable t) {
+
+                Log.e("Jobno Find ", "--->" + t.getMessage());
+                recyclerView.setVisibility(View.GONE);
+                txt_no_records.setVisibility(View.VISIBLE);
+                txt_no_records.setText("Something Went Wrong.. Try Again Later");
+                edtsearch.setEnabled(false);
+                // Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setPausedTypeView(List<PauseJobListAuditResponse.PauseData> databeanList) {
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        pausedlistAdapter= new PauseJobListAudit_Adapter(getApplicationContext(), databeanList,status);
+        recyclerView.setAdapter(pausedlistAdapter);
+    }
+
+    private Pasused_ListRequest serviceRequest() {
+        Pasused_ListRequest service = new Pasused_ListRequest();
+        service.setUser_mobile_no(se_user_mobile_no);
+        //service.setService_name(title);
+        Log.w(TAG, "Paused Request " + new Gson().toJson(service));
+        return service;
     }
 
     private void filter(String search) {

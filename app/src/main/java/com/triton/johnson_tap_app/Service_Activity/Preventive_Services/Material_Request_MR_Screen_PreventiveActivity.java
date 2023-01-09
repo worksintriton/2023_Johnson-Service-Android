@@ -36,6 +36,7 @@ import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
+import com.triton.johnson_tap_app.responsepojo.ServiceUserdetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 
 import java.text.DateFormat;
@@ -60,11 +61,13 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
     AlertDialog alertDialog;
     String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",contract_status,status;
     SharedPreferences sharedPreferences;
-    String TAG = "MATERIAL REQUEST",value_s,List,compno,sertype,se_id,se_user_mobile_no,se_user_name,statustype,message,str_job_status;
+    String TAG = "MATERIAL REQUEST",value_s,List="",compno,sertype,se_id,se_user_mobile_no,se_user_name,statustype="",message,str_job_status;
     RetriveResponsePR.Data databean ;
     List<RetriveResponsePR.FieldValueDatum> databeanlist;
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 4;
+    List<RetriveResponsePR.FieldValueDatum> servicedetailsbean;
 
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
@@ -469,7 +472,11 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
 
                             Log.e("Data", String.valueOf(databean));
 
-
+                            List = response.body().getData().getJob_date();
+                            Log.e("Month List",List);
+                            statustype = response.body().getData().getJob_status_type();
+                            Log.e("Status Type",statustype);
+                            value_s = response.body().getData().getMr_status();
                             s_mr1 = response.body().getData().getMr_1();
                             s_mr2 = response.body().getData().getMr_2();
                             s_mr3 = response.body().getData().getMr_3();
@@ -492,8 +499,31 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
                             mr8.setText(s_mr8);
                             mr9.setText(s_mr9);
                             mr10.setText(s_mr10);
-                        }
 
+                            servicedetailsbean = response.body().getData().getField_value_data();
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    Form1_cat_id = servicedetailsbean.get(i).getField_cat_id();
+                                    Form1_group_id = servicedetailsbean.get(i).getField_group_id();
+                                    form1_comments = servicedetailsbean.get(i).getField_comments();
+                                    form1_name = servicedetailsbean.get(i).getField_name();
+                                    form1_value = servicedetailsbean.get(i).getField_value();
+                                    Log.e("A", "" + Form1_cat_id);
+                                    Log.e("B", "" + Form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
 
                     }
                 }
@@ -586,6 +616,7 @@ public class Material_Request_MR_Screen_PreventiveActivity extends AppCompatActi
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+job_id);

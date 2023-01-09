@@ -75,6 +75,7 @@ public class Feedback_RemarkActivity extends AppCompatActivity {
     ArrayList<String> mydata = new ArrayList<>();
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 4;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -357,6 +358,7 @@ public class Feedback_RemarkActivity extends AppCompatActivity {
         submitDailyRequest.setJob_id(job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));

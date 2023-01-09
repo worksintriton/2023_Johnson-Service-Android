@@ -320,18 +320,17 @@ public class BD_StatusActivity extends AppCompatActivity {
 
                             String breakdownservice = response.body().getData().getBreakdown_service();
                             Log.e("mrData",""+breakdownservice);
+                            value = response.body().getData().getMr_status();
 
                             if (breakdownservice.equals("Completed in full")){
-
                                 material.setVisibility(GONE);
                                 lift.setVisibility(GONE);
-
                             }
                             else if(breakdownservice.equals("Completed but material to be replaced")){
                                 full.setVisibility(GONE);
                                 lift.setVisibility(GONE);
                             }
-                            else {
+                            else if(breakdownservice.equals("Lift Shutdown") ||breakdownservice.equals("Escalator Shutdown")) {
                                 full.setVisibility(GONE);
                                 material.setVisibility(GONE);
                             }

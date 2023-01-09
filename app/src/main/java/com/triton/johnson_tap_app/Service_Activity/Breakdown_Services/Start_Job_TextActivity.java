@@ -43,6 +43,7 @@ import com.triton.johnson_tap_app.requestpojo.Job_statusRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 import com.triton.johnson_tap_app.utils.RestUtils;
 
@@ -58,6 +59,7 @@ import java.util.Objects;
 import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 
 public class Start_Job_TextActivity extends AppCompatActivity {
 
@@ -75,6 +77,7 @@ public class Start_Job_TextActivity extends AppCompatActivity {
     List<Address> myAddress =  new ArrayList<>();
     Context context;
     AlertDialog mDialog;
+    int PageNumber =0;
 
     @SuppressLint("ResourceAsColor")
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +150,6 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 
         if (status.equals("new")){
 
-
             send.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -188,7 +190,10 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 
                 }
             });
-        }else{
+
+
+        }
+        else{
 
             send.setImageResource(R.drawable.ic_resume);
           //  send.getImageTintList() = ColorStateList.valueOf(Color.rgb(255, 50, 50));
@@ -242,7 +247,6 @@ public class Start_Job_TextActivity extends AppCompatActivity {
         }
 
 
-
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -251,6 +255,162 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 //                startActivity(send);
             }
         });
+    }
+
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveLocalValueBRResponse> call = apiInterface.retriveLocalValueBRCall(RestUtils.getContentType(),localRequest());
+        Log.w(TAG,"Retrive Local Value url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveLocalValueBRResponse>() {
+            @Override
+            public void onResponse(Call<RetriveLocalValueBRResponse> call, Response<RetriveLocalValueBRResponse> response) {
+
+                Log.e(TAG,"Retrive Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null){
+
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200){
+
+                        if (response.body().getData() != null){
+                            Log.d("msg",message);
+
+                            PageNumber = response.body().getData().getPage_number();
+                            Log.e("Pause Page Number",""+PageNumber);
+
+                            if (PageNumber ==1){
+                                Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==2){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Feedback_GroupActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==3){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Feedback_DetailsActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==4){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Feedback_RemarkActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==6){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Material_Request_MR_ScreenActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==8){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Technician_signatureActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else if(PageNumber ==9){
+
+                                Intent send = new Intent(Start_Job_TextActivity.this, Customer_Details_BreakdownActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else{
+                                Intent send = new Intent(Start_Job_TextActivity.this, Customer_AcknowledgementActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+
+
+                        }
+                    }else{
+                        Toasty.warning(getApplicationContext(),""+message,Toasty.LENGTH_LONG).show();
+                    }
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(Call<RetriveLocalValueBRResponse> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest localRequest() {
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJob_id(str_job_id);
+        custom.setSMU_SCH_COMPNO(compno);
+        //  custom.setSMU_SCH_SERTYPE(sertype);
+        Log.w(TAG,"Request Data "+ new Gson().toJson(custom));
+        return custom;
     }
 
     private Job_status_updateRequest getSapmleLoc() {
@@ -465,19 +625,22 @@ public class Start_Job_TextActivity extends AppCompatActivity {
 
                             Log.d("msg",message);
 
-                            Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
-                            send.putExtra("job_id",str_job_id);
-                            send.putExtra("status", status);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("starttime", str_StartTime);
-                            editor.putString("lati", String.valueOf(Latitude));
-                            editor.putString("long", String.valueOf(Logitude));
-                            editor.putString("add",address);
-                            editor.apply();
-                            startActivity(send);
-
                             if (Objects.equals(status, "new")){
                                 mDialog.dismiss();
+                                Intent send = new Intent(Start_Job_TextActivity.this, BD_DetailsActivity.class);
+                                send.putExtra("job_id",str_job_id);
+                                send.putExtra("status", status);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("starttime", str_StartTime);
+                                editor.putString("lati", String.valueOf(Latitude));
+                                editor.putString("long", String.valueOf(Logitude));
+                                editor.putString("add",address);
+                                editor.apply();
+                                startActivity(send);
+                            }
+                            else{
+
+                                retrive_LocalValue();
                             }
 
                         }

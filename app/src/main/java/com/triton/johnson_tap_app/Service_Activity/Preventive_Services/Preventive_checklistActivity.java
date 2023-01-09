@@ -41,6 +41,7 @@ import com.triton.johnson_tap_app.requestpojo.Preventive_ChecklistRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
 import com.triton.johnson_tap_app.responsepojo.Preventive_ChecklistResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
@@ -63,19 +64,22 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
     ImageView iv_back,img_Paused;
     List<Preventive_ChecklistResponse.DataBean> breedTypedataBeanList;
     Preventive_ChecklistAdapter activityBasedListAdapter;
-    private String PetBreedType = "",hellWrld,str,pre_check;
-    String message,se_user_mobile_no,se_user_name, se_id,service_title,str_job_id,data = "",value_s="",job_id,value,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,Form1_value,Form1_name,Form1_comments;
+    private String PetBreedType = "",hellWrld,str,pre_check="";
+    String message,se_user_mobile_no,se_user_name, se_id,service_title,str_job_id,data = "",value_s="no",job_id,value,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,Form1_value,Form1_name,Form1_comments;
     private String Title,petimage,Form1_cat_id,Form1_group_id,jobid,status,str_job_status;
     AlertDialog alertDialog;
     ProgressDialog progressDialog;
+    RetriveResponsePR.Data databean ;
     Context context;
     ArrayList<String> mydata = new ArrayList<>();
     SharedPreferences sharedPreferences;
-    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",List,statustype,compno,sertype,networkStatus="";
+    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",List="",statustype="",compno,sertype,networkStatus="";
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 5;
+    List<RetriveResponsePR.FieldValueDatum> servicedetailsbean;
 
     String form1_value;
     String form1_name;
@@ -267,7 +271,13 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
             jobFindResponseCall();
         }
 
-        getData(jobid,service_title);
+        if (status.equals("new")){
+
+            getData(job_id,service_title);
+        }else{
+
+            retriveLocalvalue();
+        }
 
         img_Paused.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -424,6 +434,98 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
             }
         });
 
+    }
+
+    @SuppressLint("LongLogTag")
+    private void retriveLocalvalue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponsePR> call = apiInterface.retriveLocalValuePRCall(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.e("Retrive Local Value url  :%s"," "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponsePR>() {
+            @Override
+            public void onResponse(Call<RetriveResponsePR> call, Response<RetriveResponsePR> response) {
+
+                Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+
+                if (response.body() != null){
+
+                    message = response.body().getMessage();
+                    Log.d("message", message);
+
+                    if (response.body().getCode() == 200){
+
+                        if (response.body().getData() != null){
+
+                            databean = response.body().getData();
+
+                            Log.e("Data", String.valueOf(databean));
+
+                            List = response.body().getData().getJob_date();
+//                            Log.e("Month List",List);
+                            statustype = response.body().getData().getJob_status_type();
+//                            Log.e("Status Type",statustype);
+                            value_s = response.body().getData().getMr_status();
+                            s_mr1 = response.body().getData().getMr_1();
+                            s_mr2 = response.body().getData().getMr_2();
+                            s_mr3 = response.body().getData().getMr_3();
+                            s_mr4 = response.body().getData().getMr_4();
+                            s_mr5 = response.body().getData().getMr_5();
+                            s_mr6 = response.body().getData().getMr_6();
+                            s_mr7 = response.body().getData().getMr_7();
+                            s_mr8 = response.body().getData().getMr_8();
+                            s_mr9 = response.body().getData().getMr_9();
+                            s_mr10 = response.body().getData().getMr_10();
+                            pre_check = response.body().getData().getPreventive_check();
+
+                            servicedetailsbean = response.body().getData().getField_value_data();
+
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    Form1_cat_id = servicedetailsbean.get(i).getField_cat_id();
+                                    Form1_group_id = servicedetailsbean.get(i).getField_group_id();
+                                    form1_comments = servicedetailsbean.get(i).getField_comments();
+                                    form1_name = servicedetailsbean.get(i).getField_name();
+                                    form1_value = servicedetailsbean.get(i).getField_value();
+                                    Log.e("A", "" + Form1_cat_id);
+                                    Log.e("B", "" + Form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
+
+
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponsePR> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest localRequest() {
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJob_id(jobid);
+        custom.setSMU_SCH_COMPNO(compno);
+        Log.e("Request Data ",""+ new Gson().toJson(custom));
+        return custom;
     }
 
     private void Job_status_update() {
@@ -583,6 +685,7 @@ public class Preventive_checklistActivity extends AppCompatActivity implements U
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+jobid);

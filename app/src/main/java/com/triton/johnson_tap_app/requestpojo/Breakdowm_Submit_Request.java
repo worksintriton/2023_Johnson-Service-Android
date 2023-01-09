@@ -29,6 +29,8 @@ public class Breakdowm_Submit_Request {
     private String SMU_SCH_COMPNO;
     private String SMU_SCH_SERTYPE;
 
+    private int page_number;
+
 
     public String getBd_details() {
         return bd_details;
@@ -229,5 +231,13 @@ public class Breakdowm_Submit_Request {
 
     public void setCode_list(String code_list) {
         this.code_list = code_list;
+    }
+
+    public int getPage_number() {
+        return page_number;
+    }
+
+    public void setPage_number(int page_number) {
+        this.page_number = page_number;
     }
 }

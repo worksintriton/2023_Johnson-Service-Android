@@ -26,6 +26,7 @@ import androidx.cardview.widget.CardView;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.RestUtils;
+import com.triton.johnson_tap_app.Service_Activity.LR_Service.JobDetails_LRService_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
 import com.triton.johnson_tap_app.api.APIInterface;
 import com.triton.johnson_tap_app.api.RetrofitClient;
@@ -94,9 +95,9 @@ public class SiteAudit_Activity extends AppCompatActivity {
         cv_pasused_job.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Intent intent = new Intent(context,JobDetails_LRService_Activity.class);
-//                intent.putExtra("status" , "pause");
-//                startActivity(intent);
+                Intent intent = new Intent(context, JobdetailsSiteaudit_Activity.class);
+                intent.putExtra("status" , "pause");
+                startActivity(intent);
             }
         });
 

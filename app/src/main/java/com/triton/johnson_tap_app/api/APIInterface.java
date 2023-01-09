@@ -41,9 +41,11 @@ import com.triton.johnson_tap_app.responsepojo.LR_DetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.MR_DetailsResponse;
 import com.triton.johnson_tap_app.responsepojo.Material_DetailsResponseACK;
 import com.triton.johnson_tap_app.responsepojo.NotificationListResponse;
+import com.triton.johnson_tap_app.responsepojo.PauseJobListAuditResponse;
 import com.triton.johnson_tap_app.responsepojo.Preventive_ChecklistResponse;
 import com.triton.johnson_tap_app.responsepojo.RTGS_PopResponse;
 import com.triton.johnson_tap_app.responsepojo.RetriveLocalValueBRResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponseAudit;
 import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.ServiceUserdetailsResponse;
@@ -423,6 +425,9 @@ public interface APIInterface {
     @POST("audit_data_management/service_audit_new_job_list")
     Call<JobListResponse> NewJobAuditListCall(@Header("Content-Type") String type, @Body JobListRequest joblistRequest);
 
+    @POST("audit_data_management/pause_job_list")
+    Call<PauseJobListAuditResponse> PausedJobListAudit(@Header("Content-Type") String type, @Body Pasused_ListRequest pasusedRequest);
+
     @POST("audit_data_management/service_audit_check_work_status")
     Call<Job_statusResponse> CheckworkAuditStatusCall(@Header("Content-Type") String type, @Body Job_statusRequest custom_detailsRequest);
 
@@ -443,6 +448,10 @@ public interface APIInterface {
 
     @POST("service_temp_data/create_local_value_form_check_two")
     Call<SuccessResponse> createLocalValueformcheckAudit(@Header("Content-Type") String type, @Body AuditRequest auditRequest);
+
+
+    @POST("service_temp_data/retrive_local_value_form_7")
+    Call<RetriveResponseAudit> retriveLocalValueCallAudit(@Header("Content-Type") String type, @Body Job_status_updateRequest job_status_updateRequest);
     ///////
 
     @POST("service_admin/getlist_userlist")

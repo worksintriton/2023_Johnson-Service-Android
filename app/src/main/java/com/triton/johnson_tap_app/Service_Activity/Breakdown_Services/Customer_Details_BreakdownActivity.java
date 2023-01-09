@@ -58,7 +58,7 @@ public class Customer_Details_BreakdownActivity extends AppCompatActivity {
     private Button btnSelection,btn_prev;
     TextView txt_cust_name, txt_cust_no,txt;
     ImageView iv_back,img_Pause;
-    String value="",job_id,feedback_group="",feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies ="",tech_signature,str_cust_name="",str_cust_no="",customer_acknowledgement="";
+    String value="",job_id,feedback_group="",feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies="",tech_signature,str_cust_name="",str_cust_no="",customer_acknowledgement="";
     EditText et_cust_name,et_cust_no;
     String  animal2 ="";
     SharedPreferences sharedPreferences;
@@ -71,6 +71,7 @@ public class Customer_Details_BreakdownActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 9;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,7 +175,7 @@ public class Customer_Details_BreakdownActivity extends AppCompatActivity {
         }
         if (extras != null) {
             breakdown_servies = extras.getString("breakdown_service");
-            Log.e("A",breakdown_servies);
+//            Log.e("A",breakdown_servies);
         }
         if (extras != null) {
             tech_signature = extras.getString("tech_signature");
@@ -498,6 +499,7 @@ public class Customer_Details_BreakdownActivity extends AppCompatActivity {
         submitDailyRequest.setJob_id(job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w("Customer Breakdown"," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));

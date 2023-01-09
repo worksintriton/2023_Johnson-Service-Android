@@ -621,7 +621,8 @@ public class BreakdownMRListOne_Activity extends AppCompatActivity implements Qu
 
             do {
                str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
-                str_Partname= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+               str_Partname= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+               str_Partname = str_Partname.replace("*","'");
                str_Partno= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
                str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
                 Log.e("Quantity",""+str_Quantity);
@@ -931,6 +932,7 @@ public class BreakdownMRListOne_Activity extends AppCompatActivity implements Qu
 
                                     strPartno = databean.get(i).getPartno();
                                     strPartname = databean.get(i).getPartname();
+                                    strPartname = strPartname.replace("'","*");
                                     strQuantity = databean.get(i).getReq();
                                     //commonutil
 

@@ -60,19 +60,21 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
     private Button btnSelection,btn_prev;
     TextView txt_cust_name, txt_cust_no,txt;
     ImageView iv_back,img_Paused;
-    String value="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,value_s,service_title,preventive_check,pm_status,Tech_signature,action_req_customer,Form1_value,Form1_name,Form1_comments,customer_acknowledgement="";
+    String value="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,value_s="",service_title,preventive_check="",pm_status="",Tech_signature,action_req_customer,Form1_value,Form1_name,Form1_comments,customer_acknowledgement="";
     EditText et_cust_name,et_cust_no;
     String Form1_cat_id,Form1_group_id,customer_name="",customer_no="",se_id,se_user_mobile_no,se_user_name;
     AlertDialog alertDialog;
     Context context;
     SharedPreferences sharedPreferences;
-    String s_cust_name,s_cust_no,status,List,statustype,compno,sertype,s_remark,signfile,uploadimagepath,message;
+    String s_cust_name,s_cust_no,status,List="",statustype="",compno,sertype,s_remark="",signfile,uploadimagepath,message;
     String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="";
     RetriveResponsePR.Data databean ;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
     double Latitude ,Logitude;
     String address = "",str_job_status="";
+    int PageNumber = 9;
+    java.util.List<RetriveResponsePR.FieldValueDatum> servicedetailsbean;
 
     String form1_value;
     String form1_name;
@@ -327,7 +329,6 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
             }
         });
 
-
         btnSelection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -497,11 +498,54 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
 
                             s_cust_name = response.body().getData().getCustomer_name();
                             s_cust_no = response.body().getData().getCustomer_number();
-
                             et_cust_name.setText(s_cust_name);
                             et_cust_no.setText(s_cust_no);
-                        }
 
+                            uploadimagepath = response.body().getData().getTech_signature();
+
+                            s_remark = response.body().getData().getAction_req_customer();
+                            List = response.body().getData().getJob_date();
+                            Log.e("Month List",List);
+                            statustype = response.body().getData().getJob_status_type();
+                            Log.e("Status Type",statustype);
+                            value_s = response.body().getData().getMr_status();
+                            s_mr1 = response.body().getData().getMr_1();
+                            s_mr2 = response.body().getData().getMr_2();
+                            s_mr3 = response.body().getData().getMr_3();
+                            s_mr4 = response.body().getData().getMr_4();
+                            s_mr5 = response.body().getData().getMr_5();
+                            s_mr6 = response.body().getData().getMr_6();
+                            s_mr7 = response.body().getData().getMr_7();
+                            s_mr8 = response.body().getData().getMr_8();
+                            s_mr9 = response.body().getData().getMr_9();
+                            s_mr10 = response.body().getData().getMr_10();
+                            preventive_check = response.body().getData().getPreventive_check();
+                            pm_status = response.body().getData().getPm_status();
+                            servicedetailsbean = response.body().getData().getField_value_data();
+
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    Form1_cat_id = servicedetailsbean.get(i).getField_cat_id();
+                                    Form1_group_id = servicedetailsbean.get(i).getField_group_id();
+                                    form1_comments = servicedetailsbean.get(i).getField_comments();
+                                    form1_name = servicedetailsbean.get(i).getField_name();
+                                    form1_value = servicedetailsbean.get(i).getField_value();
+                                    Log.e("A", "" + Form1_cat_id);
+                                    Log.e("B", "" + Form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
 
                     }
                 }
@@ -671,6 +715,7 @@ public class Customer_Details_PreventiveActivity extends AppCompatActivity {
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+job_id);

@@ -50,6 +50,7 @@ import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.FileUploadResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_statusResponse;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponseAudit;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
@@ -82,7 +83,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
     String myactivity = "AUDIT";
     SharedPreferences sharedPreferences;
     Context context;
-    String job_id,status,se_id,se_user_mobile_no,se_user_name,str_job_status,service_title,message;
+    String job_id,status,se_id,se_user_mobile_no,se_user_name,str_job_status,service_title,message,service_type="";
     SignaturePad signaturePad;
     Button saveButton,clearButton,btnSelection,btn_prev;
     ImageView img_Siganture,iv_back,iv_pause;
@@ -93,6 +94,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
     String userid,value;
     String uploadimagepath = "",signfile;
     String osacompno;
+    String strPartname, strPartno,strPartid, strQuantity;
     String jsonString = "",str_Partid,str_Partname,str_Partno,str_Quantity,networkStatus ="";
     AlertDialog alertDialog;
     List<AuditRequest.MrDatum> mrData = new ArrayList<>();
@@ -101,6 +103,9 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
     //String checklist = new ArrayList<?>();
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
+    int PageNumber = 5;
+    List<RetriveResponseAudit.Data.MrDatum> databean;
+    List<RetriveResponseAudit.Data.FieldValueDatum> servicedetailsbean;
 
     GpsTracker gpsTracker;
     double Latitude ,Logitude;
@@ -169,6 +174,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         se_user_mobile_no = sharedPreferences.getString("user_mobile_no", "default value");
         se_user_name = sharedPreferences.getString("user_name", "default value");
         job_id =sharedPreferences.getString("jobid","L-1234");
+        service_type = sharedPreferences.getString("service_type","value");
         service_title = sharedPreferences.getString("service_title", "Services");
         osacompno = sharedPreferences.getString("osacompno","ADT2020202020");
         value = sharedPreferences.getString("value","value");
@@ -260,6 +266,23 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         }
 
         getSign(job_id,myactivity);
+
+        if (status.equals("new")){
+
+        }
+        else{
+
+            if (networkStatus != "Not connected to Internet"){
+
+                retrive_LocalValue();
+            }
+            else{
+
+                NoInternetDialog();
+
+            }
+
+        }
 
 
         iv_back.setOnClickListener(new View.OnClickListener() {
@@ -381,6 +404,104 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponseAudit> call = apiInterface.retriveLocalValueCallAudit(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.w(TAG,"Retrive Local Value url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponseAudit>() {
+            @Override
+            public void onResponse(Call<RetriveResponseAudit> call, Response<RetriveResponseAudit> response) {
+
+                Log.w(TAG,"Retrive Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200) {
+
+                        if(response.body().getData() != null) {
+
+                            service_type = response.body().getData().getService_type();
+                            Log.e("Type",""+service_type);
+                            databean = response.body().getData().getMrData();
+
+                            for (int i =0 ; i < databean.size(); i++){
+                                //  datre =  response.body().getData();
+
+                                strPartno = databean.get(i).getPartno();
+                                strPartname = databean.get(i).getPartname();
+                                strQuantity = databean.get(i).getReq();
+                                //commonutil
+
+                                Log.e("Part 1",""+strPartno);
+                                Log.e("Part 2",""+strPartname);
+                                Log.e("Part 3",""+strQuantity);
+
+                                Log.e("jobID",""+ job_id);
+
+                            }
+
+                            if (CommonUtil.dbUtil.hasMRList(strPartno,strPartname,"3",job_id,service_title)) {
+                                Log.e("Hi Nish", "Had Data");
+                                CommonUtil.dbUtil.deleteMRList(strPartno, strPartname, "3", job_id, service_title);
+                                Cursor cur = CommonUtil.dbUtil.getMRList(job_id, "3", service_title);
+                                Log.e("List Count", "" + cur.getCount());
+                                CommonUtil.dbUtil.addMRList(strPartno, strPartname, "3", job_id, service_title, strQuantity);
+                                Cursor curs = CommonUtil.dbUtil.getMRList(job_id, "3", service_title);
+                                Log.e("List Count", "" + curs.getCount());
+                                Log.e("Nish","outside");
+                            }
+
+                            servicedetailsbean = response.body().getData().getFieldValueData();
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    form1_cat_id = servicedetailsbean.get(i).getFieldCatId();
+                                    form1_group_id = servicedetailsbean.get(i).getFieldGroupId();
+                                    form1_comments = servicedetailsbean.get(i).getFieldComments();
+                                    form1_name = servicedetailsbean.get(i).getFieldName();
+                                    form1_value = servicedetailsbean.get(i).getFieldValue();
+                                    Log.e("A", "" + form1_cat_id);
+                                    Log.e("B", "" + form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponseAudit> call, Throwable t) {
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
+    private Job_status_updateRequest localRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJobId(job_id);
+        custom.setOM_OSA_COMPNO(osacompno);
+        Log.w(VolleyLog.TAG,"Retrive Request "+ new Gson().toJson(custom));
+        return custom;
     }
 
     public void NoInternetDialog() {
@@ -1094,8 +1215,8 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
 
                             Log.d("msg",message);
 
-//                            Intent send = new Intent(context, ServicesActivity.class);
-//                            startActivity(send);
+                            Intent send = new Intent(context, ServicesActivity.class);
+                            startActivity(send);
                         }
 
                     } else{
@@ -1120,6 +1241,7 @@ public class TechnicianSigantureAudit_Activity extends AppCompatActivity {
         localreq.setCustomerSignature("");
         localreq.setOmOsaCompno(osacompno);
         localreq.setUserMobileNo(se_user_mobile_no);
+        localreq.setPageNumber(PageNumber);
 
         List<AuditRequest.MrDatum> mrData = new ArrayList<>();
 

@@ -96,14 +96,14 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
     private String uploadimagepath = "";
     private List<Breakdown_submitrResponse.DataBean.Feedback_detailsBean> defaultLocationList ;
     List<Feedback_DetailsResponse.DataBean> pet_imgList = new ArrayList();
-    String statustype ="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,tech_signature,customer_name,customer_no,value_s,preventive_check,pm_status,action_req_customer,Form1_value,Form1_name,Form1_comments;
+    String statustype ="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,tech_signature="",customer_name,customer_no,value_s="",preventive_check="",pm_status="",action_req_customer="",Form1_value,Form1_name,Form1_comments;
     String se_user_mobile_no, se_user_name, se_id,check_id,service_title,Form1_cat_id,Form1_group_id;
     String str_job_status,message,str_customer_acknowledgement,signfile,custfile,status;
     ProgressDialog progressDialog;
     TextView job_details_text;
     Bitmap signatureBitmap;
     Dialog dialog;
-    String compno, sertype,List,s_cust_name,s_cust_no;
+    String compno, sertype,List="",s_cust_name="",s_cust_no="";
     Context context;
     SharedPreferences sharedPreferences;
     AlertDialog alertDialog;
@@ -117,6 +117,9 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
     String address = "";
     List<Address> myAddress =  new ArrayList<>();
     AlertDialog mDialog;
+    int PageNumber = 10;
+    RetriveResponsePR.Data databean ;
+    java.util.List<RetriveResponsePR.FieldValueDatum> servicedetailsbean;
 
     String form1_value;
     String form1_name;
@@ -792,6 +795,71 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
             public void onResponse(Call<RetriveResponsePR> call, Response<RetriveResponsePR> response) {
 
                 Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+
+                if (response.body() != null){
+
+                    message = response.body().getMessage();
+                    Log.d("message", message);
+
+                    if (response.body().getCode() == 200){
+
+                        if (response.body().getData() != null){
+
+                            databean = response.body().getData();
+
+                            Log.e("Data", String.valueOf(databean));
+
+                            s_cust_name = response.body().getData().getCustomer_name();
+                            s_cust_no = response.body().getData().getCustomer_number();
+
+                            tech_signature = response.body().getData().getTech_signature();
+
+                            action_req_customer = response.body().getData().getAction_req_customer();
+                            List = response.body().getData().getJob_date();
+                            Log.e("Month List",List);
+                            statustype = response.body().getData().getJob_status_type();
+                            Log.e("Status Type",statustype);
+                            value_s = response.body().getData().getMr_status();
+                            s_mr1 = response.body().getData().getMr_1();
+                            s_mr2 = response.body().getData().getMr_2();
+                            s_mr3 = response.body().getData().getMr_3();
+                            s_mr4 = response.body().getData().getMr_4();
+                            s_mr5 = response.body().getData().getMr_5();
+                            s_mr6 = response.body().getData().getMr_6();
+                            s_mr7 = response.body().getData().getMr_7();
+                            s_mr8 = response.body().getData().getMr_8();
+                            s_mr9 = response.body().getData().getMr_9();
+                            s_mr10 = response.body().getData().getMr_10();
+                            preventive_check = response.body().getData().getPreventive_check();
+                            pm_status = response.body().getData().getPm_status();
+                            servicedetailsbean = response.body().getData().getField_value_data();
+
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    Form1_cat_id = servicedetailsbean.get(i).getField_cat_id();
+                                    Form1_group_id = servicedetailsbean.get(i).getField_group_id();
+                                    form1_comments = servicedetailsbean.get(i).getField_comments();
+                                    form1_name = servicedetailsbean.get(i).getField_name();
+                                    form1_value = servicedetailsbean.get(i).getField_value();
+                                    Log.e("A", "" + Form1_cat_id);
+                                    Log.e("B", "" + Form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
+
+                    }
+                }
             }
 
             @Override
@@ -974,6 +1042,7 @@ public class Customer_Acknowledgement_PreventiveActivity extends AppCompatActivi
         localRequest.setCustomer_name(s_cust_name);
         localRequest.setCustomer_number(s_cust_no);
         localRequest.setCustomer_signature("-");
+        localRequest.setPage_number(PageNumber);
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);

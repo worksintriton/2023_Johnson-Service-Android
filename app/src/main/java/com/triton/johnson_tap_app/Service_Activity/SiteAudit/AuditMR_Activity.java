@@ -47,11 +47,15 @@ import com.triton.johnson_tap_app.materialeditext.MaterialEditText;
 import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponseAudit;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
+import com.triton.johnson_tap_app.responsepojo.Retrive_LocalValueResponse;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -70,7 +74,7 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
     ImageView iv_back,img_clearsearch,iv_pause;
     Button  submitButton, prevButton;
     FloatingActionButton addButton;
-    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,job_id,osacompno;
+    String se_user_mobile_no, se_user_name, se_id,check_id, service_title,job_id,osacompno,service_type="";
     String strPartname, strPartno,strPartid, strQuantity,status,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="";
     private String PetBreedType = "",str_job_status="",message;
     Context context;
@@ -80,6 +84,9 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
     String str_StartTime,str_Partid,str_Partno,str_Quantity,str_Partname,Quantity;
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 4;
+    List<RetriveResponseAudit.Data.MrDatum> databean;
+    List<RetriveResponseAudit.Data.FieldValueDatum> servicedetailsbean;
 
     ArrayList<String> arli_Partname;
     ArrayList<String> arli_Partno;
@@ -136,6 +143,7 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         se_user_mobile_no = sharedPreferences.getString("user_mobile_no", "default value");
         se_user_name = sharedPreferences.getString("user_name", "default value");
         service_title = sharedPreferences.getString("service_title", "Services");
+        service_type = sharedPreferences.getString("service_type","value");
         job_id =sharedPreferences.getString("jobid","L-1234");
         osacompno = sharedPreferences.getString("osacompno","ADT2020202020");
         Log.e("Name", "" + service_title);
@@ -153,6 +161,46 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         Logitude = Double.parseDouble(sharedPreferences.getString("long","0.00000"));
         address =sharedPreferences.getString("add","Chennai");
         Log.e("Location",""+Latitude+""+Logitude+""+address);
+
+        form1_value = sharedPreferences.getString("Form1_value","124");
+        form1_name = sharedPreferences.getString("Form1_name","124");
+        form1_comments = sharedPreferences.getString("Form1_comments","124");
+        form1_cat_id = sharedPreferences.getString("Form1_cat_id","124");
+        form1_group_id = sharedPreferences.getString("Form1_group_id","124");
+        form_remarks = sharedPreferences.getString("Field_remarks","abc");
+
+        Log.e("Value",""+form1_value);
+        Log.e("Name",""+form1_name);
+        Log.e("Comments",""+form1_comments);
+        Log.e("catid",""+form1_cat_id);
+        Log.e("groupid",""+form1_group_id);
+        Log.e("remarks",""+form_remarks);
+
+        strValue = form1_value.split(",");
+        myFieldValue = new ArrayList<String>(
+                Arrays.asList(strValue));
+
+        strName = form1_name.split(",");
+        myname = new ArrayList<String>(
+                Arrays.asList(strName));
+
+        strComments = form1_comments.split(",");
+        comments = new ArrayList<String>(
+                Arrays.asList(strComments));
+
+        strGroupid = form1_group_id.split(",");
+        groupid = new ArrayList<String>(
+                Arrays.asList(strGroupid));
+
+        strCatid = form1_cat_id.split(",");
+        catid = new ArrayList<String>(
+                Arrays.asList(strCatid));
+
+
+        strRemarks = form_remarks.split(",");
+        remarks = new ArrayList<String>(
+                Arrays.asList(strRemarks));
+
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -192,6 +240,14 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         if (status.equals("pause")){
 
             Log.e("Inside", "Paused Job");
+            arli_Partid = new ArrayList<>();
+            arli_Partname = new ArrayList<>();
+            arli_Partno = new ArrayList<>();
+            arli_Quantity = new ArrayList<>();
+
+            retrive_LocalValue();
+
+//            getMRList();
 
         }
 
@@ -207,33 +263,34 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
 
             getMRList();
 
-            addButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
 
-                    if (status.equals("pause")){
-//                        createLocaldata();
-                    }
-                    Intent send = new Intent(context, AuditMRList_Activity.class);
-                    send.putExtra("service_title",service_title);
-                    send.putExtra("job_id",job_id);
-                    send.putExtra("mr1", str_mr1);
-                    send.putExtra("mr2", str_mr2);
-                    send.putExtra("mr3", str_mr3);
-                    send.putExtra("mr4", str_mr4);
-                    send.putExtra("mr5", str_mr5);
-                    send.putExtra("mr6", str_mr6);
-                    send.putExtra("mr7", str_mr7);
-                    send.putExtra("mr8", str_mr8);
-                    send.putExtra("mr9", str_mr9);
-                    send.putExtra("mr10", str_mr10);
-                    send.putExtra("status", status);
-                    startActivity(send);
-
-                }
-            });
         }
 
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (status.equals("pause")){
+//                        createLocaldata();
+                }
+                Intent send = new Intent(context, AuditMRList_Activity.class);
+                send.putExtra("service_title",service_title);
+                send.putExtra("job_id",job_id);
+                send.putExtra("mr1", str_mr1);
+                send.putExtra("mr2", str_mr2);
+                send.putExtra("mr3", str_mr3);
+                send.putExtra("mr4", str_mr4);
+                send.putExtra("mr5", str_mr5);
+                send.putExtra("mr6", str_mr6);
+                send.putExtra("mr7", str_mr7);
+                send.putExtra("mr8", str_mr8);
+                send.putExtra("mr9", str_mr9);
+                send.putExtra("mr10", str_mr10);
+                send.putExtra("status", status);
+                startActivity(send);
+
+            }
+        });
 
         iv_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -279,17 +336,6 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
                 onBackPressed();
             }
         });
-//
-//        imgbtnSearch.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//
-//                Intent send = new Intent(AuditMR_Activity.this, AuditMRList_Activity.class);
-//                send.putExtra("status", status);
-//                startActivity(send);
-//
-//            }
-//        });
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -348,6 +394,106 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
 
             }
         });
+    }
+
+    private void retrive_LocalValue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponseAudit> call = apiInterface.retriveLocalValueCallAudit(com.triton.johnson_tap_app.utils.RestUtils.getContentType(),localRequest());
+        Log.w(TAG,"Retrive Local Value url  :%s"+" "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponseAudit>() {
+            @Override
+            public void onResponse(Call<RetriveResponseAudit> call, Response<RetriveResponseAudit> response) {
+
+                Log.w(TAG,"Retrive Response" + new Gson().toJson(response.body()));
+
+                if (response.body() != null) {
+                    message = response.body().getMessage();
+
+                    if (response.body().getCode() == 200) {
+
+                        if(response.body().getData() != null) {
+
+                            service_type = response.body().getData().getService_type();
+                            Log.e("Type",""+service_type);
+
+                            databean = response.body().getData().getMrData();
+
+                            for (int i =0 ; i < databean.size(); i++){
+                                    //  datre =  response.body().getData();
+
+                                    strPartno = databean.get(i).getPartno();
+                                    strPartname = databean.get(i).getPartname();
+                                    strPartname = strPartname.replace("'","*");
+                                    strQuantity = databean.get(i).getReq();
+
+                                    Log.e("Part 1",""+strPartno);
+                                    Log.e("Part 2",""+strPartname);
+                                    Log.e("Part 3",""+strQuantity);
+
+                                    Log.e("jobID",""+ job_id);
+
+                                }
+                            if (CommonUtil.dbUtil.hasMRList(strPartno,strPartname,"3",job_id,service_title)) {
+                                    Log.e("Hi Nish", "Had Data");
+                                    CommonUtil.dbUtil.deleteMRList(strPartno, strPartname, "3", job_id, service_title);
+                                    Cursor cur = CommonUtil.dbUtil.getMRList(job_id, "3", service_title);
+                                    Log.e("List Count", "" + cur.getCount());
+                                    CommonUtil.dbUtil.addMRList(strPartno, strPartname, "3", job_id, service_title, strQuantity);
+                                    Cursor curs = CommonUtil.dbUtil.getMRList(job_id, "3", service_title);
+                                    Log.e("List Count", "" + curs.getCount());
+                                    Log.e("Nish","outside");
+                                }
+                            //  addMrData(job_id);
+                            getMRList();
+
+                            servicedetailsbean = response.body().getData().getFieldValueData();
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    form1_cat_id = servicedetailsbean.get(i).getFieldCatId();
+                                    form1_group_id = servicedetailsbean.get(i).getFieldGroupId();
+                                    form1_comments = servicedetailsbean.get(i).getFieldComments();
+                                    form1_name = servicedetailsbean.get(i).getFieldName();
+                                    form1_value = servicedetailsbean.get(i).getFieldValue();
+                                    Log.e("A", "" + form1_cat_id);
+                                    Log.e("B", "" + form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponseAudit> call, Throwable t) {
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
+    private Job_status_updateRequest localRequest() {
+
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJobId(job_id);
+        custom.setOM_OSA_COMPNO(osacompno);
+        Log.w(VolleyLog.TAG,"Retrive Request "+ new Gson().toJson(custom));
+        return custom;
     }
 
     private void Job_status_update() {
@@ -424,8 +570,8 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
 
                             Log.d("msg",message);
 
-//                            Intent send = new Intent(context, ServicesActivity.class);
-//                            startActivity(send);
+                            Intent send = new Intent(context, ServicesActivity.class);
+                            startActivity(send);
                         }
 
                     } else{
@@ -449,12 +595,18 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
         localreq.setJobId(job_id);
         localreq.setCustomerSignature("");
         localreq.setOmOsaCompno(osacompno);
+        localreq.setPageNumber(PageNumber);
+        localreq.setService_type(service_type);
         localreq.setUserMobileNo(se_user_mobile_no);
-
         List<AuditRequest.MrDatum> mrData = new ArrayList<>();
 
         Cursor cur = CommonUtil.dbUtil.getMRList(job_id,"3",service_title);
         Log.e("List Count",""+cur.getCount());
+
+        arli_Partid = new ArrayList<>();
+        arli_Partname = new ArrayList<>();
+        arli_Partno = new ArrayList<>();
+        arli_Quantity = new ArrayList<>();
 
         if (cur.getCount()>0 &&cur.moveToFirst()) {
 
@@ -553,6 +705,7 @@ public class AuditMR_Activity extends AppCompatActivity  implements QuantityList
             do {
                 str_Partid = cur.getString(cur.getColumnIndexOrThrow(DbHelper.ID));
                 str_Partname= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NAME));
+                str_Partname = str_Partname.replace("*","'");
                 str_Partno= cur.getString(cur.getColumnIndexOrThrow(DbHelper.PART_NO));
                 str_Quantity = cur.getString(cur.getColumnIndexOrThrow(DbHelper.QUANTITY));
                 Log.e("Quantity",""+str_Quantity);

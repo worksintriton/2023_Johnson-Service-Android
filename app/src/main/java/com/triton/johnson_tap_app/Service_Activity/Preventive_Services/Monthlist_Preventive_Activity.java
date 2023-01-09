@@ -57,7 +57,7 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
     RecyclerView recyclerView;
     ImageView img_Back, img_Pause;
     Button btn_Prev, btn_Next;
-    String str_job_id,service_title,value,se_id,se_user_mobile_no,compno,sertype,pre_check,status,statustype,message,str_job_status;
+    String str_job_id,service_title,value,se_id,se_user_mobile_no,compno,sertype,pre_check,status,statustype="",message,str_job_status;
     Context context;
     ArrayList<String> arli_Month = new ArrayList<String>();
     MonthList_Preventive_Adapter petBreedTypesListAdapter;
@@ -336,6 +336,9 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
             public void onResponse(Call<RetriveResponsePR> call, Response<RetriveResponsePR> response) {
 
                 Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+
+                statustype = response.body().getData().getJob_status_type();
+                Log.e("Status Type",statustype);
             }
 
             @Override
@@ -468,7 +471,7 @@ public class Monthlist_Preventive_Activity extends AppCompatActivity implements 
         // Log.e("Nish List",""+dataBeanList.size());
         localRequest.setField_valueData(FieldData);
         localRequest.setPage_number(PageNumber);
-        localRequest.setSubPage_number(Integer.parseInt(SubPageNumber));
+//        localRequest.setSubPage_number(Integer.parseInt(SubPageNumber));
         Log.w(TAG, "Create Local Request" + new Gson().toJson(localRequest));
         return  localRequest;
     }

@@ -100,14 +100,18 @@ public class AuditAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder>
 //
 //           Log.e("Nish",data);
 
-
-
         if (currentItem.getField_comments() != null && !currentItem.getField_comments().equals("")) {
             holder.txt_field_comments.setText(currentItem.getField_comments());
         //    holder.txt_field_comments.setTextColor(ContextCompat.getColor(context, R.color.red));
         } else {
             holder.txt_field_comments.setText("");
 
+        }
+
+        if (currentItem.getField_remarks()!= null && !currentItem.getField_remarks().equals("") && !currentItem.getField_remarks().equals("NO RM")){
+            holder.edt_Remarks.setText(currentItem.getField_remarks());
+        }else{
+            holder.edt_Remarks.setText("");
         }
 
 

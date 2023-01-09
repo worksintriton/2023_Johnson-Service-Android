@@ -15,9 +15,19 @@ public class AuditRequest {
 
     private String jobId;
 
+    private String job_id;
+
+    private String user_mobile_no;
+
+    private String OM_OSA_COMPNO;
+
     private String omOsaCompno;
 
     private String userMobileNo;
+
+    private String service_type;
+
+    private int PageNumber;
 
     //private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -79,6 +89,46 @@ public class AuditRequest {
 
     public void setUserMobileNo(String userMobileNo) {
         this.userMobileNo = userMobileNo;
+    }
+
+    public String getService_type() {
+        return service_type;
+    }
+
+    public void setService_type(String service_type) {
+        this.service_type = service_type;
+    }
+
+    public int getPageNumber() {
+        return PageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        PageNumber = pageNumber;
+    }
+
+    public String getJob_id() {
+        return job_id;
+    }
+
+    public void setJob_id(String job_id) {
+        this.job_id = job_id;
+    }
+
+    public String getUser_mobile_no() {
+        return user_mobile_no;
+    }
+
+    public void setUser_mobile_no(String user_mobile_no) {
+        this.user_mobile_no = user_mobile_no;
+    }
+
+    public String getOM_OSA_COMPNO() {
+        return OM_OSA_COMPNO;
+    }
+
+    public void setOM_OSA_COMPNO(String OM_OSA_COMPNO) {
+        this.OM_OSA_COMPNO = OM_OSA_COMPNO;
     }
 
 //

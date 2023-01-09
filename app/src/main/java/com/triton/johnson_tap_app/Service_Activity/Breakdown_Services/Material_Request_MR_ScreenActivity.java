@@ -24,6 +24,7 @@ import com.android.volley.VolleyLog;
 import com.google.gson.Gson;
 import com.triton.johnson_tap_app.Db.CommonUtil;
 import com.triton.johnson_tap_app.Db.DbHelper;
+import com.triton.johnson_tap_app.Db.DbUtil;
 import com.triton.johnson_tap_app.R;
 import com.triton.johnson_tap_app.Service_Activity.PreventiveMRApproval.PreventiveMR_Activity;
 import com.triton.johnson_tap_app.Service_Activity.ServicesActivity;
@@ -51,7 +52,7 @@ import retrofit2.Response;
 public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
 
     private Button btnSelection,btn_prev;
-    String value,job_id,feedback_details,bd_dta,feedback_remark,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="";
+    String value="",job_id,feedback_details,bd_dta,feedback_remark,str_mr1 ="",str_mr2="",str_mr3="",str_mr4="",str_mr5="",str_mr6="",str_mr7="",str_mr8="",str_mr9="",str_mr10="";
     ImageView iv_back,img_Pause;
     EditText mr1;
     EditText mr2;
@@ -74,6 +75,7 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
     ArrayList<String> mydata = new ArrayList<>();
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 6;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +83,10 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         setContentView(R.layout.activity_material_request_mr_screen);
         context = this;
+
+        CommonUtil.dbUtil = new DbUtil(context);
+        CommonUtil.dbUtil.open();
+        CommonUtil.dbHelper = new DbHelper(context);
 
         btnSelection = (Button) findViewById(R.id.btn_next);
         btn_prev = (Button) findViewById(R.id.btn_show);
@@ -176,14 +182,14 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         se_user_name = sharedPreferences.getString("user_name", "default value");
         service_title = sharedPreferences.getString("service_title", "default value");
         job_id = sharedPreferences.getString("job_id","L1234");
-        Value = sharedPreferences.getString("value","default value");
+        value = sharedPreferences.getString("value","default value");
         compno = sharedPreferences.getString("compno","123");
         sertype = sharedPreferences.getString("sertype","123");
         str_StartTime = sharedPreferences.getString("starttime","");
         str_StartTime = str_StartTime.replaceAll("[^0-9-:]", " ");
         Log.e("Name",service_title);
         Log.e("JobID",job_id);
-        Log.e("Value",Value);
+        Log.e("Value",value);
         Log.e("Start Time",str_StartTime);
 
         Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
@@ -209,15 +215,8 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             alertDialog.dismiss();
-//                                                Intent send = new Intent(context, ServicesActivity.class);
-//                                                startActivity(send);
                         }
                     })
-//                                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                                            public void onClick(DialogInterface dialogInterface, int i) {
-//                                                alertDialog.dismiss();
-//                                            }
-//                                        })
                     .show();
         }
 
@@ -227,9 +226,6 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         else{
 
         }
-
-
-
 
         btn_prev.setBackgroundResource(R.drawable.blue_button_background_with_radius);
         btn_prev.setTextColor(getResources().getColor(R.color.white));
@@ -466,6 +462,8 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         s_mr9 = mr9.getText().toString();
         s_mr10 = mr10.getText().toString();
 
+        Log.e("Mr Status",""+value);
+
         Breakdowm_Submit_Request submitDailyRequest = new Breakdowm_Submit_Request();
         submitDailyRequest.setBd_details(str_BDDetails);
         //submitDailyRequest.setFeedback_details(sstring);
@@ -493,6 +491,7 @@ public class Material_Request_MR_ScreenActivity extends AppCompatActivity {
         submitDailyRequest.setJob_id(job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));

@@ -54,6 +54,7 @@ import com.triton.johnson_tap_app.requestpojo.GetFieldListRequest;
 import com.triton.johnson_tap_app.requestpojo.Job_status_updateRequest;
 import com.triton.johnson_tap_app.requestpojo.Preventive_Submit_Request;
 import com.triton.johnson_tap_app.responsepojo.Job_status_updateResponse;
+import com.triton.johnson_tap_app.responsepojo.RetriveResponsePR;
 import com.triton.johnson_tap_app.responsepojo.SuccessResponse;
 import com.triton.johnson_tap_app.utils.ConnectionDetector;
 
@@ -77,6 +78,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
     private RecyclerView recyclerView;
     private  String TAG = "Audit Checklist Adapter";
     List<GetFieldListResponse.DataBean> dataBeanList;
+    List<RetriveResponsePR.FieldValueDatum> datumList;
     ReAdapter activityBasedListAdapter;
     private int currentPage = 0;
     String Data_values;
@@ -95,11 +97,11 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
     Dialog dialog;
     String networkStatus = "";
     String string_value, message, service_id, activity_id, job_id, group_id, status, job_detail_no;
-    String s1,_id, statustype,service_title,data,data1,data2,data3,data4,field_value,field_name,field_comments,field_cat_id,field_group_id,str,str1,str2,str3,str4;
+    String s1,_id, statustype="",service_title,data,data1,data2,data3,data4,field_value,field_name,field_comments,field_cat_id,field_group_id,str,str1,str2,str3,str4;
     AlertDialog alertDialog;
     ImageView iv_back,img_Pause;
     LinearLayout footerView;
-    String List,se_id,se_user_mobile_no,se_user_name,compno,sertype,str_job_status;
+    String List="",se_id,se_user_mobile_no,se_user_name,compno,sertype,str_job_status;
     Context context;
     SharedPreferences sharedPreferences;
     ProgressDialog progressDialog;
@@ -188,7 +190,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 //        Intent intent = getIntent();
 //        Bundle args = intent.getBundleExtra("BUNDLE");
 //        ArrayList<String > object = (ArrayList<String>) args.getSerializable("ARRAYLIST");
-        Log.e("Current Page",""+currentPage);
+//        Log.e("Current Page",""+currentPage);
         Log.e("List New", "" +List);
 
         Latitude = Double.parseDouble(sharedPreferences.getString("lati","0.00000"));
@@ -211,13 +213,11 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
                 jobFindResponseCall();
                 //   getSpinnerData();
             }else{
-                checklocalvaluecall();
+
+                retriveLocalvalue();
             }
 
         }
-
-
-
 
         iv_back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -855,6 +855,46 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         });
     }
 
+    @SuppressLint("LongLogTag")
+    private void retriveLocalvalue() {
+
+        APIInterface apiInterface =  RetrofitClient.getClient().create((APIInterface.class));
+        Call<RetriveResponsePR> call = apiInterface.retriveLocalValuePRCall(RestUtils.getContentType(),localRequest());
+        Log.e("Retrive Local Value url  :%s"," "+ call.request().url().toString());
+
+        call.enqueue(new Callback<RetriveResponsePR>() {
+            @Override
+            public void onResponse(Call<RetriveResponsePR> call, Response<RetriveResponsePR> response) {
+
+                Log.e("Retrive Response","" + new Gson().toJson(response.body()));
+
+                statustype = response.body().getData().getJob_status_type();
+                Log.e("Status Type",statustype);
+                List = response.body().getData().getJob_date();
+                Log.e("Month List",List);
+
+                checklocalvaluecall();
+            }
+
+            @Override
+            public void onFailure(Call<RetriveResponsePR> call, Throwable t) {
+
+                Log.e("On Failure", "--->" + t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private Job_status_updateRequest localRequest() {
+        Job_status_updateRequest custom = new Job_status_updateRequest();
+        custom.setUser_mobile_no(se_user_mobile_no);
+        custom.setJob_id(job_id);
+        custom.setSMU_SCH_COMPNO(compno);
+        //  custom.setSMU_SCH_SERTYPE(sertype);
+        Log.e("Request Data ",""+ new Gson().toJson(custom));
+        return custom;
+    }
+
     public void NoInternetDialog() {
 
         android.app.AlertDialog.Builder mBuilder = new android.app.AlertDialog.Builder(context);
@@ -999,6 +1039,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         });
 
     }
+
     private Job_status_updateRequest job_status_updateRequest() {
 
         Job_status_updateRequest custom = new Job_status_updateRequest();
@@ -1103,6 +1144,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
 
     }
 
+
     private GetFieldListRequest getChecklistRequest() {
         GetFieldListRequest getFieldListRequest = new GetFieldListRequest();
         getFieldListRequest.setJob_id(job_id);
@@ -1185,7 +1227,7 @@ public class Recycler_SpinnerActivity extends AppCompatActivity implements GetSp
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
         localRequest.setPage_number(PageNumber);
-        localRequest.setSubPage_number(currentPage);
+//        localRequest.setSubPage_number(currentPage);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+job_id);

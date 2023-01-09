@@ -89,6 +89,7 @@ public class Feedback_DetailsActivity extends AppCompatActivity implements UserT
     String networkStatus = "";
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 3;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -641,6 +642,7 @@ public class Feedback_DetailsActivity extends AppCompatActivity implements UserT
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.w(TAG," Create Local Value Request"+ new Gson().toJson(submitDailyRequest));
         return submitDailyRequest;
     }

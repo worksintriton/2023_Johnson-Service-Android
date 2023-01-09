@@ -44,16 +44,18 @@ public class ReAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> {
     GetStringListener getStringListener;
     ArrayList<String> mySpinnerData = new ArrayList<>();
 
-    public ReAdapter(Context context, List<GetFieldListResponse.DataBean> dataBeanList, int ITEMS_PER_PAGE, int TOTAL_NUM_ITEMS, int currentPage, GetSpinnerListener getSpinnerListener, Recycler_SpinnerActivity getStringListener, Recycler_SpinnerActivity getNumberListener) {
+    public ReAdapter(Context context, List<GetFieldListResponse.DataBean> dataBeanList, int ITEMS_PER_PAGE, int TOTAL_NUM_ITEMS, int currentpage, GetSpinnerListener getSpinnerListener, Recycler_SpinnerActivity getStringListener, Recycler_SpinnerActivity getNumberListener) {
         this.context = context;
         this.dataBeanList = dataBeanList;
       //  this.userTypeSelectListener = userTypeSelectListener;
         this.ITEMS_PER_PAGE = ITEMS_PER_PAGE;
         this.TOTAL_NUM_ITEMS = TOTAL_NUM_ITEMS;
-        this.currentPage = currentPage;
+        this.currentPage = currentpage;
         this.getSpinnerListener = getSpinnerListener;
         this.getStringListener = getStringListener;
         this.getNumberListener = getNumberListener ;
+
+        Log.e("Current Page On",""+currentPage);
 
     }
 

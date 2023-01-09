@@ -295,6 +295,7 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
             Log.e("MRNewLIST" ,"" + cur.getCount());
 
             if (cur.getCount()==0){
+
                 Log.e("way", "API");
 
                 networkStatus = ConnectionDetector.getConnectivityStatusString(getApplicationContext());
@@ -310,7 +311,11 @@ public class MRForms_PreventiveMRActivity extends AppCompatActivity {
                 }
 
             }else {
+
                 Log.e("way","db");
+                rel_Pop.setVisibility(View.GONE);
+                line_MR.setVisibility(View.VISIBLE);
+                btnSelection.setVisibility(View.VISIBLE);
                 getData(job_id,myactivity);
             }
 

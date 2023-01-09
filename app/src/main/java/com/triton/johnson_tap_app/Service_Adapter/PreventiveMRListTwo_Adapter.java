@@ -190,6 +190,7 @@ public class PreventiveMRListTwo_Adapter extends RecyclerView.Adapter<RecyclerVi
 
                 Partno= breedTypedataBeanList.get(position).getPartno();
                 PartName = breedTypedataBeanList.get(position).getPartname();
+                PartName = PartName.replace("'","*");
                 Log.e("Part No",""+Partno);
                 Log.e("Part Name",""+PartName);
 

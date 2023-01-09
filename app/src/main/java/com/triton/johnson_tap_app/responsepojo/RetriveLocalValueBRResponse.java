@@ -67,6 +67,7 @@ public class RetriveLocalValueBRResponse {
         private String mr_8;
         private String mr_9;
         private String mr_10;
+        private int page_number;
 
         public String getSMU_SCH_COMPNO() {
             return SMU_SCH_COMPNO;
@@ -266,6 +267,14 @@ public class RetriveLocalValueBRResponse {
 
         public void setMr_10(String mr_10) {
             this.mr_10 = mr_10;
+        }
+
+        public int getPage_number() {
+            return page_number;
+        }
+
+        public void setPage_number(int page_number) {
+            this.page_number = page_number;
         }
     }
 }

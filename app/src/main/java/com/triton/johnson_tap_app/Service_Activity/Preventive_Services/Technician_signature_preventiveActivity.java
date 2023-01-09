@@ -72,20 +72,22 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
     String userid;
     ImageView image,iv_back,img_Paused,img_Siganture;
     private String uploadimagepath = "";
-    String value="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,value_s,service_title,preventive_check,pm_status,action_req_customer,Form1_value,Form1_name,Form1_comments,str_tech_signature="",str_job_status;
+    String value="",job_id,mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,value_s="",service_title,preventive_check="",pm_status="",action_req_customer,Form1_value,Form1_name,Form1_comments,str_tech_signature="",str_job_status;
     String Form1_cat_id,Form1_group_id;
     ProgressDialog progressDialog;
     Bitmap signatureBitmap;
     Context context;
     AlertDialog alertDialog;
     SharedPreferences sharedPreferences;
-    String se_id,se_user_mobile_no,se_user_name,signfile,status,List,statustype,compno,sertype,s_remark,message;
-    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",networkStatus="";
+    String se_id,se_user_mobile_no,se_user_name,signfile,status,List="",statustype="",compno,sertype,s_remark="",message;
+    String s_mr1 ="", s_mr2 ="",s_mr3 ="",s_mr4 ="",s_mr5 ="",s_mr6 ="",s_mr7 ="",s_mr8 ="",s_mr9 ="",s_mr10 ="",networkStatus="",pre_check="";
     RetriveResponsePR.Data databean ;
     TextView txt_Jobid,txt_Starttime;
     String str_StartTime;
     double Latitude ,Logitude;
     String address = "";
+    int PageNumber = 8;
+    java.util.List<RetriveResponsePR.FieldValueDatum> servicedetailsbean;
 
     String form1_value;
     String form1_name;
@@ -546,6 +548,48 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
                             uploadimagepath = response.body().getData().getTech_signature();
                             Picasso.get().load(uploadimagepath).into(img_Siganture);
 
+                            s_remark = response.body().getData().getAction_req_customer();
+                            List = response.body().getData().getJob_date();
+                            Log.e("Month List",List);
+                            statustype = response.body().getData().getJob_status_type();
+                            Log.e("Status Type",statustype);
+                            value_s = response.body().getData().getMr_status();
+                            s_mr1 = response.body().getData().getMr_1();
+                            s_mr2 = response.body().getData().getMr_2();
+                            s_mr3 = response.body().getData().getMr_3();
+                            s_mr4 = response.body().getData().getMr_4();
+                            s_mr5 = response.body().getData().getMr_5();
+                            s_mr6 = response.body().getData().getMr_6();
+                            s_mr7 = response.body().getData().getMr_7();
+                            s_mr8 = response.body().getData().getMr_8();
+                            s_mr9 = response.body().getData().getMr_9();
+                            s_mr10 = response.body().getData().getMr_10();
+                            preventive_check = response.body().getData().getPreventive_check();
+
+                            servicedetailsbean = response.body().getData().getField_value_data();
+
+
+                            if (servicedetailsbean.isEmpty()){
+
+                            }
+                            else{
+                                Log.e("Check List", "" + servicedetailsbean.size());
+
+                                for(int i=0;i<servicedetailsbean.size();i++){
+
+                                    Form1_cat_id = servicedetailsbean.get(i).getField_cat_id();
+                                    Form1_group_id = servicedetailsbean.get(i).getField_group_id();
+                                    form1_comments = servicedetailsbean.get(i).getField_comments();
+                                    form1_name = servicedetailsbean.get(i).getField_name();
+                                    form1_value = servicedetailsbean.get(i).getField_value();
+                                    Log.e("A", "" + Form1_cat_id);
+                                    Log.e("B", "" + Form1_group_id);
+                                    Log.e("c", "" + form1_comments);
+                                    Log.e("d", "" + form1_name);
+                                    Log.e("e", "" + form1_value);
+                                }
+                            }
+
 
                         }
 
@@ -720,6 +764,7 @@ public class Technician_signature_preventiveActivity extends AppCompatActivity {
         localRequest.setUser_mobile_no(se_user_mobile_no);
         localRequest.setSMU_SCH_COMPNO(compno);
         localRequest.setSMU_SCH_SERTYPE(sertype);
+        localRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("JobID",""+job_id);

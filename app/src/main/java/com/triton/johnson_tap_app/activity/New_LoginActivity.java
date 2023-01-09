@@ -119,6 +119,7 @@ public class New_LoginActivity extends AppCompatActivity {
                     });
 
         }
+
         catch (Exception e){
             Log.w(TAG,"FCM : "+e.getLocalizedMessage());
             Log.w(TAG,"FCM Message : "+e.getMessage());

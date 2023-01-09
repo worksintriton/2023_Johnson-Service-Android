@@ -51,8 +51,6 @@ public class PasusedListAdapter extends  RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         initLayoutOne((ViewHolderOne) holder, position);
-
-
     }
 
     @SuppressLint("LogNotTimber")

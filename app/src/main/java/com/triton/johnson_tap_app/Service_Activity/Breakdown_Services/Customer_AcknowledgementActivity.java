@@ -96,7 +96,7 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
     private String uploadimagepath = "",signfile="";
     private List<Breakdown_submitrResponse.DataBean.Feedback_detailsBean> defaultLocationList ;
     List<Feedback_DetailsResponse.DataBean> pet_imgList = new ArrayList();
-    String value="",job_id,feedback_group,Str_feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies,tech_signature="",customer_name,customer_no,str_customer_acknowledgement="";
+    String value="",job_id,feedback_group,Str_feedback_details,bd_dta,feedback_remark="",mr1,mr2,mr3,mr4,mr5,mr6,mr7,mr8,mr9,mr10,breakdown_servies="",tech_signature="",customer_name,customer_no,str_customer_acknowledgement="";
     String se_user_mobile_no, se_user_name, se_id,check_id,service_title;
     String str_job_status="",message;
     ProgressDialog progressDialog;
@@ -117,6 +117,7 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
     String address = "";
     List<Address> myAddress =  new ArrayList<>();
     AlertDialog mDialog;
+    int PageNumber = 10;
 
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +191,7 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
 
             if (status.equals("new")){
                 breakdown_servies = extras.getString("breakdown_service");
-                Log.e("A",breakdown_servies);
+//                Log.e("A",breakdown_servies);
             }
 
         }
@@ -940,6 +941,7 @@ public class Customer_AcknowledgementActivity extends AppCompatActivity {
         submitDailyRequest.setJob_id(job_id);
         submitDailyRequest.setSMU_SCH_COMPNO(compno);
         submitDailyRequest.setSMU_SCH_SERTYPE(sertype);
+        submitDailyRequest.setPage_number(PageNumber);
         Log.e("CompNo",""+compno);
         Log.e("SertYpe", ""+sertype);
         Log.e("Feedback Details",""+ Str_feedback_details);

@@ -52,10 +52,12 @@ public class GetFieldListRequest {
 
     private String job_status_type;
     private String job_id;
+    private String jobId;
     private String job_date;
     private String service_type;
     private String user_mobile_no;
     private String SMU_SCH_COMPNO;
+    private String OM_OSA_COMPNO;
 
     public String getJob_id() {
         return job_id;
@@ -103,5 +105,21 @@ public class GetFieldListRequest {
 
     public void setSMU_SCH_COMPNO(String SMU_SCH_COMPNO) {
         this.SMU_SCH_COMPNO = SMU_SCH_COMPNO;
+    }
+
+    public String getOM_OSA_COMPNO() {
+        return OM_OSA_COMPNO;
+    }
+
+    public void setOM_OSA_COMPNO(String OM_OSA_COMPNO) {
+        this.OM_OSA_COMPNO = OM_OSA_COMPNO;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
     }
 }

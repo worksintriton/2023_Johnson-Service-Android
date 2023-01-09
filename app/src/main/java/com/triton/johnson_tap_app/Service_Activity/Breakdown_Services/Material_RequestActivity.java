@@ -40,7 +40,7 @@ public class Material_RequestActivity extends AppCompatActivity {
     CardView yes,no;
     String value;
     ImageView iv_back;
-    String job_id,feedback_group,feedback_details,bd_dta,feedback_remark,tech_signature="",status;
+    String job_id,feedback_group,feedback_details,bd_dta,feedback_remark,tech_signature="",status,mr_status="";
     SharedPreferences sharedPreferences;
     Context context;
     String se_id,se_user_mobile_no,se_user_name,compno,sertype,message;
@@ -192,13 +192,13 @@ public class Material_RequestActivity extends AppCompatActivity {
                         if (response.body().getData() != null){
                             Log.d("msg",message);
 
-                            String mr_status = response.body().getData().getMr_status();
+                            mr_status = response.body().getData().getMr_status();
                             Log.e("mrData",""+mr_status);
 
                             if (mr_status.equals("yes")){
 
                                 no.setVisibility(GONE);
-                            }else{
+                            }else if(mr_status.equals("no")){
                                 yes.setVisibility(GONE);
                             }
 
