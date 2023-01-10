@@ -49,6 +49,10 @@
         android:usesCleartextTraffic="true"
         tools:ignore="AllowBackup"
         tools:targetApi="m">
+        <activity
+            android:name=".activity.DailyAttendanceActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"  />
 
         <activity
             android:name=".Service_Activity.PreventiveMRApproval.PreventiveMRListtwo_Activity"

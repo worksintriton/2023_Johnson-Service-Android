@@ -2,6 +2,7 @@ package com.triton.johnson_tap_app.api;
 
 import com.triton.johnson_tap_app.requestpojo.ACKService_SubmitRequest;
 import com.triton.johnson_tap_app.requestpojo.Agent_new_screenRequest;
+import com.triton.johnson_tap_app.requestpojo.AttendanceHelperListRequest;
 import com.triton.johnson_tap_app.requestpojo.AuditRequest;
 import com.triton.johnson_tap_app.requestpojo.Change_PasswordRequest;
 import com.triton.johnson_tap_app.GetFieldListResponse;
@@ -11,6 +12,7 @@ import com.triton.johnson_tap_app.requestpojo.FbTokenRequest;
 import com.triton.johnson_tap_app.requestpojo.Fetch_MrList_Request;
 import com.triton.johnson_tap_app.requestpojo.GetCustomer_Engineer_Request;
 import com.triton.johnson_tap_app.requestpojo.GetFieldListRequest;
+import com.triton.johnson_tap_app.requestpojo.HelperAttendanceSubmitRequest;
 import com.triton.johnson_tap_app.requestpojo.Joblist_new_screenRequest;
 import com.triton.johnson_tap_app.requestpojo.LRService_SubmitRequest;
 import com.triton.johnson_tap_app.requestpojo.NotificationListRequest;
@@ -23,6 +25,7 @@ import com.triton.johnson_tap_app.requestpojo.SkipJobDetailRequest;
 import com.triton.johnson_tap_app.requestpojo.UpdateOutstandingJobRequest;
 import com.triton.johnson_tap_app.responsepojo.Agent_new_screenResponse;
 import com.triton.johnson_tap_app.responsepojo.Agent_pop_statusResponse;
+import com.triton.johnson_tap_app.responsepojo.AttendanceHelperListResponse;
 import com.triton.johnson_tap_app.responsepojo.Auditcheckresponse;
 import com.triton.johnson_tap_app.responsepojo.BreedTypeResponse1;
 import com.triton.johnson_tap_app.responsepojo.Change_PasswordResponse;
@@ -525,5 +528,11 @@ public interface APIInterface {
 
     @POST("pop_notification/update_status")
     Call<SuccessResponse> updatePopUpImage(@Header("Content-Type") String type, @Body UpdatePopImageRequest updatePopImageRequest);
+
+    @POST("service_attendance/helper_list")
+    Call<AttendanceHelperListResponse> attendanceHelperList(@Header("Content-Type") String type, @Body AttendanceHelperListRequest attendanceHelperListRequest);
+
+    @POST("service_attendance/helper_attendance_submit")
+    Call<SuccessResponse> helperAttendanceSubmit(@Header("Content-Type") String type, @Body HelperAttendanceSubmitRequest helperAttendanceSubmitRequest);
 }
 

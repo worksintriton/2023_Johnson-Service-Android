@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_forenoon"
+        android:title="Forenoon" />
+    <item
+        android:id="@+id/menu_afternoon"
+        android:title="Afternoon" />
+    <item
+        android:id="@+id/menu_full"
+        android:title="Full" />
+</menu>
