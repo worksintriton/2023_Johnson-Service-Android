@@ -82,6 +82,8 @@ public class Dashbaord_MainActivity extends AppCompatActivity {
     @SuppressLint("NonConstantResourceId")
     @BindView(R.id.dashboard)
     Button dashboard;
+    @BindView(R.id.attendance)
+    Button attendance;
     private SessionManager session;
     private String TAG ="MainActivity";
     private SharedPreferences sharedpreferences;
@@ -140,6 +142,15 @@ public class Dashbaord_MainActivity extends AppCompatActivity {
         emp_Type = sharedPreferences.getString("emp_type","ABCD");
         se_id = sharedPreferences.getString("_id", "default value");
         se_user_name = sharedPreferences.getString("user_name", "default value");
+
+        Log.i(TAG, "onCreate: emp_Type --> " + emp_Type);
+
+        if (emp_Type.equalsIgnoreCase("engineer")) {
+            attendance.setVisibility(View.VISIBLE);
+        } else {
+            attendance.setVisibility(View.GONE);
+        }
+
         if(login.equals("true")){
             login="true";
         }else {
@@ -214,6 +225,16 @@ public class Dashbaord_MainActivity extends AppCompatActivity {
                             })
                             .show();
                 }
+
+            }
+        });
+
+        attendance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent send = new Intent(Dashbaord_MainActivity.this, DailyAttendanceActivity.class);
+                startActivity(send);
 
             }
         });

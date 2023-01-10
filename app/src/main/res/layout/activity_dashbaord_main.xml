@@ -191,6 +191,24 @@
                             android:visibility="visible"
                             android:textStyle="bold" />
 
+                        <Button
+                            android:id="@+id/attendance"
+                            android:layout_width="match_parent"
+                            android:layout_height="45dp"
+                            android:layout_gravity="center"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginRight="20dp"
+                            android:background="@drawable/general_login_background"
+                            android:elevation="1dp"
+                            android:stateListAnimator="@animator/button_elevation"
+                            android:text="Attendance"
+                            android:textAlignment="center"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16dp"
+                            android:textStyle="bold"
+                            android:visibility="visible" />
+
                     </LinearLayout>
 
                 </LinearLayout>

@@ -62,8 +62,17 @@ public class LoginResponse1 {
         private String last_logout_time;
         private String user_token;
         private String user_type;
+        private String user_id;
         private int __v;
         private String emp_type;
+
+        public String getUser_id() {
+            return user_id;
+        }
+
+        public void setUser_id(String user_id) {
+            this.user_id = user_id;
+        }
 
         public String get_id() {
             return _id;

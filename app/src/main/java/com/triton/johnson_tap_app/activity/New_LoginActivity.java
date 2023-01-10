@@ -252,6 +252,7 @@ public class New_LoginActivity extends AppCompatActivity {
                             editor.putString("user_name", response.body().getData().getUser_name());
                             editor.putString("user_password", response.body().getData().getUser_password());
                             editor.putString("user_type", response.body().getData().getUser_type());
+                            editor.putString("user_id", response.body().getData().getUser_id());
                             editor.putString("emp_type",emp_Type);
                             editor.putString("last_login",lastLogin);
                             editor.apply();
